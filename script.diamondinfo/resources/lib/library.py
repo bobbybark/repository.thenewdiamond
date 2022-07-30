@@ -2411,8 +2411,12 @@ def library_auto_tv(single_item=None):
                 process_flag_show = True
             else:
                 process_flag_show = False
+            if i['show']['ids']['tvdb'] == 'None' or i['show']['ids']['tvdb'] == None:
+                process_flag_show = False
         else:
             process_flag_show = True
+            if i['show']['ids']['tvdb'] == 'None' or i['show']['ids']['tvdb'] == None:
+                process_flag_show = False
         if process_flag_show == True:
             nfo = 'https://thetvdb.com/?tab=series&id=' + str(i['show']['ids']['tvdb'])
             if str(i['show']['ids']['tmdb']) == 'None':

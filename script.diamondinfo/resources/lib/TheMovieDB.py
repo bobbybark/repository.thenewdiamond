@@ -1327,7 +1327,7 @@ def get_imdb_watchlist_ids(ur_list_str=None, limit=0):
 
     imdb_url = 'https://www.imdb.com/user/'+str(list_str)+'/watchlist'
     imdb_response = requests.get(imdb_url)
-
+    xbmc.log(str(imdb_url)+'===>PHIL', level=xbmc.LOGINFO)
     #from bs4 import BeautifulSoup
 
     #html_soup = BeautifulSoup(imdb_response.text, 'html.parser')

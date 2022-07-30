@@ -139,14 +139,21 @@ class PlayerMonitor(xbmc.Player):
 
         #response = requests.post('https://api.trakt.tv/scrobble/' + str(action), data=values, headers=headers)
         response = None
-        while response == None:
-            response = requests.post('https://api.trakt.tv/scrobble/' + str(action), data=values, headers=headers)
-            try: test_var = response.json()
-            except: response = None
+        count = 0
+        while response == None and count < 20:
+            count = count + 1
+            try:
+                response = requests.post('https://api.trakt.tv/scrobble/' + str(action), data=values, headers=headers)
+                test_var = response.json()
+            except: 
+                response = None
     #    xbmc.log(str(response.json())+'===>TRAKT_SCROBBLE_TITLE____OPEN_INFO', level=xbmc.LOGFATAL)
         if percent < 10 or percent >= 80: 
             xbmc.log(str(response.json())+'===>TRAKT_SCROBBLE_TITLE____OPEN_INFO', level=xbmc.LOGFATAL)
-        return response.json()
+        try:
+            return response.json()
+        except:
+            return response
 
     def trakt_scrobble_tmdb(self, tmdb_id, percent, action=None):
         global trakt_method
@@ -208,15 +215,22 @@ class PlayerMonitor(xbmc.Player):
             if percent > 80:
                 action = 'stop'
         response = None
-        while response == None:
-            response = requests.post('https://api.trakt.tv/scrobble/' + str(action), data=values, headers=headers)
-            try: test_var = response.json()
-            except: response = None
+        count = 0
+        while response == None and count < 20:
+            count = count + 1
+            try:
+                response = requests.post('https://api.trakt.tv/scrobble/' + str(action), data=values, headers=headers)
+                test_var = response.json()
+            except: 
+                response = None
     #    xbmc.log(str(response.json())+'===>TRAKT_SCROBBLE_TMDB____OPEN_INFO', level=xbmc.LOGFATAL)
         if percent < 10 or percent >= 80: 
             try:    xbmc.log(str(response.json())+'===>TRAKT_SCROBBLE_TMDB____OPEN_INFO', level=xbmc.LOGFATAL)
             except: pass
-        return response.json()
+        try:
+            return response.json()
+        except:
+            return response
 
     def trakt_scrobble_tv(self, title, season, episode, percent, action=None):
         #headers = library.trak_auth()
@@ -274,10 +288,14 @@ class PlayerMonitor(xbmc.Player):
                 action = 'stop'
         #response = requests.post('https://api.trakt.tv/scrobble/' + str(action), data=values, headers=headers)
         response = None
-        while response == None:
-            response = requests.post('https://api.trakt.tv/scrobble/' + str(action), data=values, headers=headers)
-            try: test_var = response.json()
-            except: response = None
+        count = 0
+        while response == None and count < 20:
+            count = count + 1
+            try:
+                response = requests.post('https://api.trakt.tv/scrobble/' + str(action), data=values, headers=headers)
+                test_var = response.json()
+            except: 
+                response = None
         if percent < 10 or percent >= 80: 
             try: xbmc.log(str(response.json())+'===>TRAKT_SCROBBLE_TV____OPEN_INFO', level=xbmc.LOGFATAL)
             except: pass

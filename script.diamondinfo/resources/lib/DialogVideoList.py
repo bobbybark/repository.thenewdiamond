@@ -818,7 +818,7 @@ def get_tmdb_window(window_type):
 
             if selection == -1:
                 return
-            
+
             Utils.show_busy()
             y = 0
             for i in trakt_data['trakt_list']:
@@ -839,6 +839,7 @@ def get_tmdb_window(window_type):
                     list_number = imdb_list[x]
                     self.mode = 'imdb'
                 x = x + 1
+
             if self.mode == 'imdb' and 'ls' in str(list_number):
                 from resources.lib.TheMovieDB import get_imdb_list_ids
                 self.search_str = get_imdb_list_ids(list_str=list_number,limit=0)
@@ -1029,7 +1030,6 @@ def get_tmdb_window(window_type):
 
                 if selection == -1:
                     return
-                
                 Utils.show_busy()
                 x = 0
                 for i in imdb_list_name:
