@@ -247,7 +247,7 @@ def setup_xml_filenames():
     dir_path = Path(str(main_file_path()) + '/resources/skins/Default/1080i/')
     for dirpath, dnames, fnames in os.walk(dir_path):
         for f in fnames:
-            if '.xml' in f:
+            if '.xml' in f and 'script.' in f:
                 old_name = f
                 name1 = str(f).split('script.')[0]
                 name2 = str(f).split('script.')[1].split('-')[0]
