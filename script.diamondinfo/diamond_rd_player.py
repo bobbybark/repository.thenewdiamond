@@ -384,6 +384,19 @@ def download_tv_test(meta_info, filename):
 	if str(meta_info['episode_name']).lower() in filename or str(meta_info['clean_episode_name']).lower() in filename:
 		episode_name_flag = True
 
+	if episode_name_flag == False:
+		name_word_list = meta_info['clean_episode_name'].split(' ')
+		word_count = 0
+		for i in name_word_list:
+			if str(i) in filename and len(i) > 3:
+				word_count = word_count + 1
+		if len(name_word_list) <= 3 and len(name_word_list) > 1:
+			if word_count >= len(name_word_list) - 1:
+				episode_name_flag = True
+		elif len(name_word_list) > 3:
+			if word_count >= len(name_word_list) -2:
+				episode_name_flag = True
+
 	if episode_list_flag == True and episode_name_flag == False:
 		for xi in meta_info['season_ep_titles']:
 			clean_episode_name = regex.sub(' ', xi.replace('\'s','s').replace('&','and')).replace('  ',' ').lower()
@@ -418,6 +431,8 @@ def download_tv_test(meta_info, filename):
 		else:
 			x265_match_pass = True
 	meta_info_flags = {'x265_match_pass': x265_match_pass,'alternate_titles_flag': alternate_titles_flag,'episode_list_flag': episode_list_flag,'season_list_flag': season_list_flag,'episode_name_flag': episode_name_flag,'show_title_flag': show_title_flag,'part1_part2_match_flag': part1_part2_match_flag}
+	#print_log(filename, meta_info)
+	#print_log(meta_info_flags)
 	return meta_info_flags
 
 def get_next_ep_details(show_title, show_curr_season, show_curr_episode, tmdb):
@@ -830,9 +845,9 @@ def next_ep_play(show_title, show_season, show_episode, tmdb):
 	except: year = ''
 	try: 
 		try:
-			plot = str(response['summary']).replace('<p>','').replace('</p>','').replace('\n','').replace('\r','')
+			plot = str(response['summary']).replace('<i>','').replace('</i>','').replace('<p>','').replace('</p>','').replace('\n','').replace('\r','')
 		except:
-			plot = str(u''.join(response['summary'].replace('<p>','').replace('</p>','').replace('\n','').replace('\r','')).encode("utf-8").strip())
+			plot = str(u''.join(response['summary'].replace('<i>','').replace('</i>','').replace('<p>','').replace('</p>','').replace('\n','').replace('\r','')).encode("utf-8").strip())
 	except: plot = ''
 	if plot[-1] == '\'' and plot[:2] == 'b\'':
 		plot = plot[:-1]
