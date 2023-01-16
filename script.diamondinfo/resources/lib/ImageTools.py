@@ -1,11 +1,5 @@
 import os, urllib.parse, urllib.request, urllib.error, threading
-try:
-	from PIL import Image, ImageFilter
-except:
-	try:
-		from resources.PIL import Image, ImageFilter
-	except:
-		from resources.PIL2.PIL import Image, ImageFilter
+from PIL import Image, ImageFilter
 import xbmc, xbmcvfs
 from resources.lib import Utils
 

@@ -279,7 +279,7 @@ def prescrape_seren(tmdb=None, season=None, episode=None):
 	response = get_trakt_data(url=url, cache_days=14, folder='Trakt')
 	print_log(response)
 	for i in response:
-		if i['number'] == season:
+		if str(i['number']) == str(season):
 			trakt_season_id = i['ids']['trakt']
 	url = 'https://api.trakt.tv/shows/'+str(trakt_show_id)+'/seasons/'+str(season)+'/episodes/' + str(episode)
 	#response = requests.get(url, headers=headers).json()
@@ -288,32 +288,34 @@ def prescrape_seren(tmdb=None, season=None, episode=None):
 	action_args={'mediatype': 'episode', 'trakt_id': trakt_episode_id, 'trakt_season_id': trakt_season_id, 'trakt_show_id': trakt_show_id}
 
 	#plugin://plugin.video.seren/?action=preScrape_diamond&action_args={"mediatype": "episode", "trakt_id": 40983, "trakt_season_id": 2207, "trakt_show_id": 653}&from_widget=true
-	xbmcgui.Window(10000).clearProperty('seren_stream_link')
-	xbmcgui.Window(10000).clearProperty('seren_prescrape')
-	xbmcgui.Window(10000).setProperty('seren_prescrape', 'True')
+	#xbmcgui.Window(10000).clearProperty('seren_stream_link')
+	#xbmcgui.Window(10000).clearProperty('seren_prescrape')
+	#xbmcgui.Window(10000).setProperty('seren_prescrape', 'True')
 	print_log(str(action_args)+'===>OPENINFO')
-	query = str('RunPlugin(%splugin://plugin.video.seren/?action=preScrape_diamond&action_args=%s&from_widget=true%s)' % ('"',urllib.parse.quote(str(action_args)),'"'))
+	#query = str('RunPlugin(%splugin://plugin.video.seren/?action=preScrape_diamond&action_args=%s&from_widget=true%s)' % ('"',urllib.parse.quote(str(action_args)),'"'))
 	
-	url = 'plugin://plugin.video.seren/?action=preScrape_diamond&action_args=%257B%2522mediatype%2522%253A%2520%2522episode%2522%252C%2520%2522trakt_id%2522%253A%2520'+str(trakt_episode_id)+'%252C%2520%2522trakt_season_id%2522%253A%2520'+str(trakt_season_id)+'%252C%2520%2522trakt_show_id%2522%253A%2520'+str(trakt_show_id)+'%257D&from_widget=true'
+	xbmcgui.Window(10000).setProperty('plugin.video.seren.runtime.tempSilent', 'True')
+	url = 'plugin://plugin.video.seren/?action=preScrape&action_args=%257B%2522mediatype%2522%253A%2520%2522episode%2522%252C%2520%2522trakt_id%2522%253A%2520'+str(trakt_episode_id)+'%252C%2520%2522trakt_season_id%2522%253A%2520'+str(trakt_season_id)+'%252C%2520%2522trakt_show_id%2522%253A%2520'+str(trakt_show_id)+'%257D&from_widget=true'
 	query = str("RunPlugin(%s)" % (url))
 	#urllib.parse.quote(query)
-	print_log(str(query)+'===>OPENINFO')
+	#print_log(str(query)+'===>OPENINFO')
 	xbmc.executebuiltin(query)
-	seren_stream_link = xbmcgui.Window(10000).getProperty('seren_stream_link')
-	seren_prescrape = xbmcgui.Window(10000).getProperty('seren_prescrape')
-	count = 0
-	while seren_prescrape == 'True' and count < 90 * 1000:
-		xbmc.sleep(500)
-		seren_stream_link = xbmcgui.Window(10000).getProperty('seren_stream_link')
-		seren_prescrape = xbmcgui.Window(10000).getProperty('seren_prescrape')
-		print_log(str(seren_stream_link)+'seren_stream_link===>OPENINFO')
-		#print_log(str(seren_prescrape)+'seren_stream_link===>OPENINFO')
-		count = count + 500
-		if seren_stream_link != '':
-			xbmcgui.Window(10000).clearProperty('seren_stream_link')
-			xbmcgui.Window(10000).clearProperty('seren_prescrape')
-			break
-	return seren_stream_link
+	return
+	#seren_stream_link = xbmcgui.Window(10000).getProperty('seren_stream_link')
+	#seren_prescrape = xbmcgui.Window(10000).getProperty('seren_prescrape')
+	#count = 0
+	#while seren_prescrape == 'True' and count < 90 * 1000:
+	#	xbmc.sleep(500)
+	#	seren_stream_link = xbmcgui.Window(10000).getProperty('seren_stream_link')
+	#	seren_prescrape = xbmcgui.Window(10000).getProperty('seren_prescrape')
+	#	print_log(str(seren_stream_link)+'seren_stream_link===>OPENINFO')
+	#	#print_log(str(seren_prescrape)+'seren_stream_link===>OPENINFO')
+	#	count = count + 500
+	#	if seren_stream_link != '':
+	#		xbmcgui.Window(10000).clearProperty('seren_stream_link')
+	#		xbmcgui.Window(10000).clearProperty('seren_prescrape')
+	#		break
+	#return seren_stream_link
 
 def download_tv_test(meta_info, filename):
 	alternate_titles_flag = False
@@ -364,6 +366,8 @@ def download_tv_test(meta_info, filename):
 
 	for xi in meta_info['alternate_titles']:
 		alternate_title = regex.sub(' ', xi.replace('\'s','s').replace('&','and')).replace('  ',' ').lower()
+		if alternate_title.replace(' ','') == '':
+			continue
 		if alternate_title in filename:
 			alternate_titles_flag = True
 		elif str(xi).lower() in filename:
@@ -663,8 +667,9 @@ def next_ep_play(show_title, show_season, show_episode, tmdb):
 	except:
 		pass
 
-	response = extended_tvshow_info(tvshow_id=tmdb_id, cache_time=14)
-	runtime_seconds = int(response[0]['duration(m)']) * 60
+	response = extended_tvshow_info(tvshow_id=tmdb_id, cache_time=0.001)
+	try: runtime_seconds = int(response[0]['duration(m)']) * 60
+	except: runtime_seconds = 50 * 60
 	tvdb_id = response[0]['tvdb_id']
 	imdb_id = response[0]['imdb_id']
 
@@ -1122,6 +1127,9 @@ def next_ep_play(show_title, show_season, show_episode, tmdb):
 		PTN_download = ''
 		print_log(str('Not found1'),'===>OPENINFO')
 		xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
+		if xbmc.getCondVisibility('System.HasAddon(plugin.video.seren)'):
+			prescrape_seren(tmdb=tmdb, season=show_season, episode=show_episode)
+			xbmcgui.Window(10000).setProperty('plugin.video.seren.runtime.tempSilent', 'True')
 		return
 
 	hdclearart, seasonposter, seasonthumb, seasonbanner, tvthumb, tvbanner, showbackground, clearlogo, characterart, tvposter, clearart, hdtvlogo = get_fanart_results(tvdb_id, media_type='tv_tvdb')
@@ -1519,10 +1527,10 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 
 	#response = requests.get('https://api.themoviedb.org/3/movie/'+str(tmdb_id)+'/alternative_titles?api_key='+str(tmdb_api())+'&language=en-US').json()
 	response = single_movie_info(movie_id=tmdb_id)
-	print_log(response)
+	#print_log(response)
 	alternate_titles = []
 	y = 0
-	print_log(response)
+	#print_log(response)
 	for i in response['alternative_titles']['titles']:
 		try:
 			alternate_titles.append(response['alternative_titles']['titles'][y]['title'])
@@ -1538,7 +1546,7 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 			resume_progress_seconds = int(float(runtime_seconds) * float(resume_progress/100))
 			break
 
-	print_log(alternate_titles)
+	#print_log(alternate_titles)
 	#x265_enabled = 'True'
 	downloads_fail = 'False'
 	torrents_fail = 'False'
@@ -1641,6 +1649,8 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 				if 1==1:
 					torr_data2 = {}
 					torr_data3 = {}
+					try: test = torr_data[k['hash']]['rd']
+					except TypeError: continue
 					for j in torr_data[k['hash']]['rd']:
 						for x in j:
 							torr_data2[x] = j[x]
@@ -1715,7 +1725,7 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 									except: 
 										file_name = ''
 										pass
-									if str(file_name.replace(' ','.')) == str(torr_data2[str(j)]['filename']) or str(torr_data2[str(j)]['filename'].replace('.',' ')) == str(file_name):
+									if str(file_name.replace(' ','.')).lower() == str(torr_data2[str(j)]['filename']).lower() or str(torr_data2[str(j)]['filename'].replace('.',' ')).lower() == str(file_name).lower():
 										torrent_found = 1
 									else:
 										torrent_found = 0
@@ -1956,6 +1966,7 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 		if 'test=True' in str(sys.argv):
 			#print_log(sys.argv)
 			#print_log(next_ep_play_details,'next_ep_play_details')
+			xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
 			exit()
 
 		playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
