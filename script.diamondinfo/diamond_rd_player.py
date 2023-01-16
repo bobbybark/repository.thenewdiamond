@@ -532,7 +532,7 @@ def next_ep_play(show_title, show_season, show_episode, tmdb):
 	clear_next_ep_props()
 
 	show_title = show_title.replace('+', ' ')
-	kodi_send_command = 'kodi-send --action="RunScript(script.extendedinfo,info=diamond_rd_player,type=tv,show_title=%s,show_season=%s,show_episode=%s,tmdb=%s,test=True)"' % (show_title, show_season, show_episode, tmdb)
+	kodi_send_command = 'kodi-send --action="RunScript(%s,info=diamond_rd_player,type=tv,show_title=%s,show_season=%s,show_episode=%s,tmdb=%s,test=True)"' % (addonID(), show_title, show_season, show_episode, tmdb)
 	print_log(kodi_send_command,'___kodi_send_command')
 	if not xbmc.Player().isPlaying():
 		xbmc.executebuiltin('ActivateWindow(busydialognocancel)')

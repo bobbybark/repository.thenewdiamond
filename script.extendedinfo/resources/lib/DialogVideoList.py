@@ -322,7 +322,7 @@ def get_tmdb_window(window_type):
                     PLAYER.play_from_button(url, listitem=None, window=self, dbid=0)
 
             if selection_text == 'Eject/Load DVD':
-                xbmc.executebuiltin('RunScript(script.extendedinfo,info=eject_load_dvd)')
+                xbmc.executebuiltin('RunScript(%s,info=eject_load_dvd)' % (addonID()))
 
 
             if selection_text == 'TasteDive Similar Items':

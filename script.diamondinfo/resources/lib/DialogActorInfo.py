@@ -117,8 +117,6 @@ def get_actor_window(window_type):
 				import urllib
 				item_title = self.listitem.getProperty('TVShowTitle') or self.listitem.getProperty('Title')
 				#item_title = urllib.parse.quote_plus(item_title)
-#				xbmc.executebuiltin('RunPlugin(plugin://script.extendedinfo/?info=search_string&str=%s' % item_title)
-#				xbmc.log(str('RunPlugin(plugin://script.extendedinfo/?info=search_string&str=%s)' % item_title)+'===>TMDB_HELPER_3', level=xbmc.LOGNOTICE)
 				self.close()
 				xbmc.executebuiltin('RunScript('+str(addon_ID())+',info=search_string,str=%s)' % item_title)
 

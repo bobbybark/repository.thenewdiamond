@@ -270,22 +270,27 @@ def setup_xml_filenames():
                             print(line.replace(old_addonID, str(addon_ID())), end='')
                 if old_name != new_name and not os.path.exists(new_path):
                     os.rename(old_path, new_path)
-    settings_xml = Path(str(main_file_path()) + '/resources/settings.xml')
-    filename = settings_xml
-    xbmc.log(str(old_addonID)+'= REPLACE OLD ADDONID - SETTINGS.XML,' + str(addon_ID()) + ' = NEW ADDONID -- DIAMONDINFO_MOD', level=xbmc.LOGINFO)
-    with fileinput.FileInput(filename, inplace=True, backup='.bak') as file:
-        for line in file:
-            if not '(Diamond)' in str(line):
-                print(line.replace(old_addonID, str(addon_ID())), end='')
-    readme_md = Path(str(main_file_path()) + '/README.md')
-    filename = readme_md
-    xbmc.log(str(old_addonID)+'= REPLACE OLD ADDONID - README.MD,' + str(addon_ID()) + ' = NEW ADDONID -- DIAMONDINFO_MOD', level=xbmc.LOGINFO)
-    try: 
+    update_files = []
+    update_files.append('/resources/settings.xml')
+    update_files.append('/README.md')
+    update_files.append('/direct.diamond_player.json')
+    update_files.append('/direct.diamond_player_bluray.json')
+    update_files.append('/direct.diamond_player_bluray2.json')
+    update_files.append('/direct.diamond_player_bluray2.json')
+    for fi in update_files:
+        filename = Path(str(main_file_path()) + fi)
+        xbmc.log(str(old_addonID)+'= REPLACE OLD ADDONID - '+ fi + ', ' + str(addon_ID()) + ' = NEW ADDONID -- DIAMONDINFO_MOD', level=xbmc.LOGINFO)
         with fileinput.FileInput(filename, inplace=True, backup='.bak') as file:
-            for line in file:
-                print(line.replace(old_addonID, str(addon_ID())), end='')
-    except: 
-        pass
+            try:
+                for line in file:
+                    if 'settings.xml' in fi:
+                        if not '(Diamond)' in str(line):
+                            print(line.replace(old_addonID, str(addon_ID())), end='')
+                    else:
+                        print(line.replace(old_addonID, str(addon_ID())), end='')
+            except:
+                pass
+
 
 def get_art_fanart_movie(tmdb_id, fanart_api, show_file_path, art_path,tmdb_api):
     #import requests
