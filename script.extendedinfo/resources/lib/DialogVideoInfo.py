@@ -234,7 +234,7 @@ def get_movie_window(window_type):
 				xbmc.executebuiltin('RunScript('+str(addon_ID())+',info=search_string,str=%s)' % item_title)
 
 			if selection_text == 'Eject/Load DVD':
-				xbmc.executebuiltin('RunScript(%s,info=eject_load_dvd)' % (addonID()))
+				xbmc.executebuiltin('RunScript(%s,info=eject_load_dvd)' % (addon_ID()))
 
 
 		@ch.click(150)
