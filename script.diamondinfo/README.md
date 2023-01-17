@@ -9,8 +9,8 @@
 
 
 
-The New Diamond Info is a fork of the old Diamond Info which in turn was a fork of the OpenInfo Script.  Currently the addonid is:  script.diamoninfo/script.extendedinfo
-WARNING: If you install the extendedinfo variant this will replace any existing copy of script.extendedinfo on your system.
+The New Diamond Info is a fork of the old Diamond Info which in turn was a fork of the OpenInfo Script.  Currently the addonid is:  script.diamoninfo/script.diamondinfo
+WARNING: If you install the extendedinfo variant this will replace any existing copy of script.diamondinfo on your system.
 This is by design, so that it has full compatibility with any pre-existing implementations of OpenInfo Script in skins and other add-ons. **YOU HAVE BEEN WARNED !!!** . **Its best to turn OFF auto updates** for Diamond Info / Extended info mod / script / etc . to prevent any repos that have forks from overwriting Diamond Info . You can always force updates when you want updates .
 
  
@@ -40,7 +40,7 @@ https://raw.githubusercontent.com/henryjfry/repository.thenewdiamond/main/trakt_
 https://bit.ly/3jCkXkw
 
 And the url can be changed in the settings, if the custom url setting is disabled in the settings it will use "imdb_list.json" and "trakt_list.json" in the addon folder:
-"~/.kodi/addons/script.extendedinfo"
+"~/.kodi/addons/script.diamondinfo"
 
 If you wish to create your own lists of lists see the two JSON files in the addon folder or look at one of the lists at the urls above for the list format.
 
@@ -80,7 +80,7 @@ If you need to reverse the update, and go back to Diamond Info Script, disable u
 
 ·     Go to "Add-ons"
 
-·     In Add-ons, install an addon from zip. When it asks for the location, select "TheNewMatrix", and install [https://henryjfry.github.io/repository.thenewdiamond/script.extendedinfo-1.30.zip) (or whatever version is higher )
+·     In Add-ons, install an addon from zip. When it asks for the location, select "TheNewMatrix", and install [https://henryjfry.github.io/repository.thenewdiamond/script.diamondinfo-1.30.zip) (or whatever version is higher )
 
 ·     Go back to Add-ons install, but this time, select "Install from repository"
 
@@ -98,51 +98,51 @@ If you need to reverse the update, and go back to Diamond Info Script, disable u
 
 BONUS ! , if you would like to point a Shortcut / category widget to open info search use this custom action
 
-RunScript(script.extendedinfo,info=search_menu)
+RunScript(script.diamondinfo,info=search_menu)
 
 Plugin Routes (open in kodis default addon pages):
 
-plugin://script.extendedinfo/?info=libraryallmovies
-plugin://script.extendedinfo/?info=libraryalltvshows
-plugin://script.extendedinfo/?info=popularmovies
-plugin://script.extendedinfo/?info=topratedmovies
-plugin://script.extendedinfo/?info=incinemamovies
-plugin://script.extendedinfo/?info=upcomingmovies
-plugin://script.extendedinfo/?info=populartvshows
-plugin://script.extendedinfo/?info=topratedtvshows
-plugin://script.extendedinfo/?info=onairtvshows
-plugin://script.extendedinfo/?info=airingtodaytvshows
-plugin://script.extendedinfo/?info=studio&studio=Studio Name
+plugin://script.diamondinfo/?info=libraryallmovies
+plugin://script.diamondinfo/?info=libraryalltvshows
+plugin://script.diamondinfo/?info=popularmovies
+plugin://script.diamondinfo/?info=topratedmovies
+plugin://script.diamondinfo/?info=incinemamovies
+plugin://script.diamondinfo/?info=upcomingmovies
+plugin://script.diamondinfo/?info=populartvshows
+plugin://script.diamondinfo/?info=topratedtvshows
+plugin://script.diamondinfo/?info=onairtvshows
+plugin://script.diamondinfo/?info=airingtodaytvshows
+plugin://script.diamondinfo/?info=studio&studio=Studio Name
 
 Script Routes (open in the fancy UI):
 
 #UI all movies
-plugin://script.extendedinfo/?info=allmovies
+plugin://script.diamondinfo/?info=allmovies
 
 #UI all tv shows
-plugin://script.extendedinfo/?info=alltvshows
+plugin://script.diamondinfo/?info=alltvshows
 
 #Text entry dialog + UI with search results
-plugin://script.extendedinfo/?info=search_menu
+plugin://script.diamondinfo/?info=search_menu
 
 #UI Trakt watched TV (+ plugin with &script=False)
-plugin://script.extendedinfo/?info=trakt_watched&trakt_type=tv
+plugin://script.diamondinfo/?info=trakt_watched&trakt_type=tv
 
 #UI Trakt watched Movies (+ plugin with &script=False)
-plugin://script.extendedinfo/?info=trakt_watched&trakt_type=movie
+plugin://script.diamondinfo/?info=trakt_watched&trakt_type=movie
 
 #UI Trakt collection movie (+ plugin with &script=False)
-plugin://script.extendedinfo/?info=trakt_coll&trakt_type=movie
+plugin://script.diamondinfo/?info=trakt_coll&trakt_type=movie
 
 #UI Trakt collection TV (+ plugin with &script=False)
-plugin://script.extendedinfo/?info=trakt_coll&trakt_type=tv
+plugin://script.diamondinfo/?info=trakt_coll&trakt_type=tv
 
 
 #UI Trakt list with name of list and user id and trakt list slug from list url and sort rank and sort order asc (+ plugin with &script=False)
-plugin://script.extendedinfo/?info=trakt_list&trakt_type="trakt_type"&trakt_list_name="trakt_list_name"&trakt_user_id="trakt_user_id"&takt_list_slug="takt_list_slug"&trakt_sort_by=rank&sort_order=asc
+plugin://script.diamondinfo/?info=trakt_list&trakt_type="trakt_type"&trakt_list_name="trakt_list_name"&trakt_user_id="trakt_user_id"&takt_list_slug="takt_list_slug"&trakt_sort_by=rank&sort_order=asc
 
 #UI Trakt list with name of list and user id and trakt list slug from list url and sort listed_at and sort order desc (+ plugin with &script=False)
-plugin://script.extendedinfo/?info=trakt_list&trakt_type="trakt_type"&trakt_list_name="trakt_list_name"&trakt_user_id="trakt_user_id"&takt_list_slug="takt_list_slug"&trakt_sort_by=listed_at&sort_order=desc	(&script=False)
+plugin://script.diamondinfo/?info=trakt_list&trakt_type="trakt_type"&trakt_list_name="trakt_list_name"&trakt_user_id="trakt_user_id"&takt_list_slug="takt_list_slug"&trakt_sort_by=listed_at&sort_order=desc	(&script=False)
 
 #UI IMDB list with "ls999999" imdb list number (+ plugin with &script=False)
 imdb_list&list=ls9999999
@@ -155,11 +155,11 @@ search_person&person=Person Name
 
 Extended info dialogs (for skins??)
 
-RunScript(script.extendedinfo,info=diamondinfo,dbid=%s,id=%s,imdb_id=%s,name=%s)
-RunScript(script.extendedinfo,info=extendedtvinfo,dbid=%s,id=%s,tvdb_id=%s,name=%s)
-RunScript(script.extendedinfo,info=seasoninfo,tvshow=%s,season=%s)
-RunScript(script.extendedinfo,info=extendedepisodeinfo,tvshow=%s,season=%s,episode=%s)
-RunScript(script.extendedinfo,info=extendedactorinfo,name=%s)
+RunScript(script.diamondinfo,info=diamondinfo,dbid=%s,id=%s,imdb_id=%s,name=%s)
+RunScript(script.diamondinfo,info=extendedtvinfo,dbid=%s,id=%s,tvdb_id=%s,name=%s)
+RunScript(script.diamondinfo,info=seasoninfo,tvshow=%s,season=%s)
+RunScript(script.diamondinfo,info=extendedepisodeinfo,tvshow=%s,season=%s,episode=%s)
+RunScript(script.diamondinfo,info=extendedactorinfo,name=%s)
 
 
 
@@ -173,9 +173,9 @@ RunScript(script.extendedinfo,info=extendedactorinfo,name=%s)
 
 **Diamond Info (alias OpenInfo)**
 
-Le nouveau Diamond Info est un dérivé du vieux Diamond Info  qui lui aussi était un dérivé  du script OpenInfo.  Maintenant le "Addon ID" est script.extendedinfo.
+Le nouveau Diamond Info est un dérivé du vieux Diamond Info  qui lui aussi était un dérivé  du script OpenInfo.  Maintenant le "Addon ID" est script.diamondinfo.
 
-Donc, veuillez noter que dorénavant ceci vas remplacer toutes les copies  existantes  du script.extendedinfo de votre système.
+Donc, veuillez noter que dorénavant ceci vas remplacer toutes les copies  existantes  du script.diamondinfo de votre système.
 Ce script est complètement compatible avec les implémentations pré-existantes du script OpenInfo dans les skns et les addiciels. **Vous êtes maintenant avertis!!!  Il est préférable de mettre à OFF les mises à jour automatiques !!!** .  Pour Diamond Info / Extended info mod / script / etc... afin de prévenir que d'autres repo qui seraient un dérivé de notre travail, viennent écraser cet additiel par un autre. Vous pouvez  toujours forcer les mises à jour, quand cela vous plaise.
 
  
@@ -206,7 +206,7 @@ https://raw.githubusercontent.com/henryjfry/repository.thenewdiamond/main/trakt_
 https://bit.ly/3jCkXkw
 
 Les urls peuvent être personnalisés à votre goût,   IPour activer l'utilisation do vos listes personnelles json vous devez désactiver dans la configuration de custom url setting et ensuite vous pourrez utiliser vos listes personnelles "imdb_list.json" et "trakt_list.json" in the addon folder:
-"~/.kodi/addons/script.extendedinfo"
+"~/.kodi/addons/script.diamondinfo"
 
 Si vous désirez créer vos propres list pour  les deux two fichiers JSON files dans le répertoire de l'addiciel,  vous pouvezz vous inspirer des listes en exemples ci-dessus.
 
@@ -251,7 +251,7 @@ si vous désirez revenir à la configuration d'origine avant cette mise à jour,
 
 ·     Go to "Add-ons"
 
-·     In Add-ons, install an addon from zip. When it asks for the location, select "TheNewMatrix", and install [https://henryjfry.github.io/repository.thenewdiamond/script.extendedinfo-1.30.zip) (or whatever version is higher )
+·     In Add-ons, install an addon from zip. When it asks for the location, select "TheNewMatrix", and install [https://henryjfry.github.io/repository.thenewdiamond/script.diamondinfo-1.30.zip) (or whatever version is higher )
 
 ·     Go back to Add-ons install, but this time, select "Install from repository"
 
@@ -269,51 +269,51 @@ BONUS ! , si vous voulez créer des raccourcis a Shortcut / category widget pour
 
 
 
-RunScript(script.extendedinfo,info=search_menu)
+RunScript(script.diamondinfo,info=search_menu)
 
 Plugin Routes (open in kodis default addon pages):
 
-plugin://script.extendedinfo/?info=libraryallmovies
-plugin://script.extendedinfo/?info=libraryalltvshows
-plugin://script.extendedinfo/?info=popularmovies
-plugin://script.extendedinfo/?info=topratedmovies
-plugin://script.extendedinfo/?info=incinemamovies
-plugin://script.extendedinfo/?info=upcomingmovies
-plugin://script.extendedinfo/?info=populartvshows
-plugin://script.extendedinfo/?info=topratedtvshows
-plugin://script.extendedinfo/?info=onairtvshows
-plugin://script.extendedinfo/?info=airingtodaytvshows
-plugin://script.extendedinfo/?info=studio&studio=Studio Name
+plugin://script.diamondinfo/?info=libraryallmovies
+plugin://script.diamondinfo/?info=libraryalltvshows
+plugin://script.diamondinfo/?info=popularmovies
+plugin://script.diamondinfo/?info=topratedmovies
+plugin://script.diamondinfo/?info=incinemamovies
+plugin://script.diamondinfo/?info=upcomingmovies
+plugin://script.diamondinfo/?info=populartvshows
+plugin://script.diamondinfo/?info=topratedtvshows
+plugin://script.diamondinfo/?info=onairtvshows
+plugin://script.diamondinfo/?info=airingtodaytvshows
+plugin://script.diamondinfo/?info=studio&studio=Studio Name
 
 Script Routes (open in the fancy UI):
 
 #UI all movies
-plugin://script.extendedinfo/?info=allmovies
+plugin://script.diamondinfo/?info=allmovies
 
 #UI all tv shows
-plugin://script.extendedinfo/?info=alltvshows
+plugin://script.diamondinfo/?info=alltvshows
 
 #Text entry dialog + UI with search results
-plugin://script.extendedinfo/?info=search_menu
+plugin://script.diamondinfo/?info=search_menu
 
 #UI Trakt watched TV (+ plugin with &script=False)
-plugin://script.extendedinfo/?info=trakt_watched&trakt_type=tv
+plugin://script.diamondinfo/?info=trakt_watched&trakt_type=tv
 
 #UI Trakt watched Movies (+ plugin with &script=False)
-plugin://script.extendedinfo/?info=trakt_watched&trakt_type=movie
+plugin://script.diamondinfo/?info=trakt_watched&trakt_type=movie
 
 #UI Trakt collection movie (+ plugin with &script=False)
-plugin://script.extendedinfo/?info=trakt_coll&trakt_type=movie
+plugin://script.diamondinfo/?info=trakt_coll&trakt_type=movie
 
 #UI Trakt collection TV (+ plugin with &script=False)
-plugin://script.extendedinfo/?info=trakt_coll&trakt_type=tv
+plugin://script.diamondinfo/?info=trakt_coll&trakt_type=tv
 
 
 #UI Trakt list with name of list and user id and trakt list slug from list url and sort rank and sort order asc (+ plugin with &script=False)
-plugin://script.extendedinfo/?info=trakt_list&trakt_type="trakt_type"&trakt_list_name="trakt_list_name"&trakt_user_id="trakt_user_id"&takt_list_slug="takt_list_slug"&trakt_sort_by=rank&sort_order=asc
+plugin://script.diamondinfo/?info=trakt_list&trakt_type="trakt_type"&trakt_list_name="trakt_list_name"&trakt_user_id="trakt_user_id"&takt_list_slug="takt_list_slug"&trakt_sort_by=rank&sort_order=asc
 
 #UI Trakt list with name of list and user id and trakt list slug from list url and sort listed_at and sort order desc (+ plugin with &script=False)
-plugin://script.extendedinfo/?info=trakt_list&trakt_type="trakt_type"&trakt_list_name="trakt_list_name"&trakt_user_id="trakt_user_id"&takt_list_slug="takt_list_slug"&trakt_sort_by=listed_at&sort_order=desc	(&script=False)
+plugin://script.diamondinfo/?info=trakt_list&trakt_type="trakt_type"&trakt_list_name="trakt_list_name"&trakt_user_id="trakt_user_id"&takt_list_slug="takt_list_slug"&trakt_sort_by=listed_at&sort_order=desc	(&script=False)
 
 #UI IMDB list with "ls999999" imdb list number (+ plugin with &script=False)
 imdb_list&list=ls9999999
@@ -326,8 +326,8 @@ search_person&person=Person Name
 
 Extended info dialogs (for skins??)
 
-RunScript(script.extendedinfo,info=diamondinfo,dbid=%s,id=%s,imdb_id=%s,name=%s)
-RunScript(script.extendedinfo,info=extendedtvinfo,dbid=%s,id=%s,tvdb_id=%s,name=%s)
-RunScript(script.extendedinfo,info=seasoninfo,tvshow=%s,season=%s)
-RunScript(script.extendedinfo,info=extendedepisodeinfo,tvshow=%s,season=%s,episode=%s)
-RunScript(script.extendedinfo,info=extendedactorinfo,name=%s)
+RunScript(script.diamondinfo,info=diamondinfo,dbid=%s,id=%s,imdb_id=%s,name=%s)
+RunScript(script.diamondinfo,info=extendedtvinfo,dbid=%s,id=%s,tvdb_id=%s,name=%s)
+RunScript(script.diamondinfo,info=seasoninfo,tvshow=%s,season=%s)
+RunScript(script.diamondinfo,info=extendedepisodeinfo,tvshow=%s,season=%s,episode=%s)
+RunScript(script.diamondinfo,info=extendedactorinfo,name=%s)

@@ -270,6 +270,7 @@ def setup_xml_filenames():
                             print(line.replace(old_addonID, str(addon_ID())), end='')
                 if old_name != new_name and not os.path.exists(new_path):
                     os.rename(old_path, new_path)
+    """
     update_files = []
     update_files.append('/resources/settings.xml')
     update_files.append('/README.md')
@@ -290,7 +291,7 @@ def setup_xml_filenames():
                         print(line.replace(old_addonID, str(addon_ID())), end='')
             except:
                 pass
-
+    """
 
 def get_art_fanart_movie(tmdb_id, fanart_api, show_file_path, art_path,tmdb_api):
     #import requests

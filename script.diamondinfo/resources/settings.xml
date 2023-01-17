@@ -19,15 +19,15 @@
 		<setting label="Enable Trakt/Kodi Scrobbling with PTN" type="bool" id="trakt_scrobble" default="false"/>
 		<setting label="Reopen Last UI Screen After Playback Ends" type="bool" id="reopen_window_bool" default="false"/>
 		<setting label="Trakt Watched History indicators on items" type="bool" id="trakt_watched_stats" default="false"/>
-		<setting label="Create/Refresh Trakt Watched Data" type="action" action="RunScript(script.extendedinfo,info=setup_trakt_watched)"/>
+		<setting label="Create/Refresh Trakt Watched Data" type="action" action="RunScript(script.diamondinfo,info=setup_trakt_watched)"/>
 		<setting label="Use Context Menus in UI?" type="bool" id="context_menu" default="false"/>
 		<setting label="Use Window Stack?" type="bool" id="window_stack_enable" default="true"/>
 		<setting label="Maintenance" type="lsep"/>
-		<setting label="Clear cache..." type="action" action="RunScript(script.extendedinfo,info=deletecache)"/>
-		<setting label="Auto Clear cache (>14 days)" type="action" action="RunScript(script.extendedinfo,info=auto_clean_cache)"/>
+		<setting label="Clear cache..." type="action" action="RunScript(script.diamondinfo,info=deletecache)"/>
+		<setting label="Auto Clear cache (>14 days)" type="action" action="RunScript(script.diamondinfo,info=auto_clean_cache)"/>
 		<setting label="Auto Clear cache on startup?" type="bool" id="auto_clean_cache_bool" default="true"/>
 		<setting label="Log Plugin URLS" type="bool" id="log_urls" default="false"/>
-		<setting label="TEST ROUTE" type="action" action="RunScript(script.extendedinfo,info=test_route)"/>
+		<setting label="TEST ROUTE" type="action" action="RunScript(script.diamondinfo,info=test_route)"/>
 	</category>
     <category label="Trakt Collection Library Options">
 		<setting label="TMDBHelper Trakt Authentication" type="action" action="RunScript(plugin.video.themoviedb.helper,authenticate_trakt)"/>
@@ -38,14 +38,14 @@
 		<setting label="Collection Library Root Folder" type="folder" id="library_folder" source="files" option="writeable" default=""/>
 		<setting label="Auto Sync TV Collection" type="bool" id="library_tv_sync" default="false"/>
 		<setting label="Auto Sync Movies Collection" type="bool" id="library_movies_sync" default="false"/>
-		<setting label="SETUP SOURCES.XML" type="action" action="RunScript(script.extendedinfo,info=setup_sources)"/>
-		<!---setting label="Setup XML Filenames (Extended)" type="action" action="RunScript(script.extendedinfo,info=setup_xml_filenames)" visible="System.HasAddon(script.extendedinfo)"/--->
-		<setting label="Library Auto Sync" type="action" action="RunScript(script.extendedinfo,info=auto_library)"/>
+		<setting label="SETUP SOURCES.XML" type="action" action="RunScript(script.diamondinfo,info=setup_sources)"/>
+		<!---setting label="Setup XML Filenames (Extended)" type="action" action="RunScript(script.diamondinfo,info=setup_xml_filenames)" visible="System.HasAddon(script.diamondinfo)"/--->
+		<setting label="Library Auto Sync" type="action" action="RunScript(script.diamondinfo,info=auto_library)"/>
 	</category>
 	<category label="Trakt/IMDB Custom Userlists JSON Location">
 		<setting label="Info Screens Recommendations Mode" type="select" values="TMDB Only|IMDB Only|TMDB then IMDB|IMDB then TMDB|IMDB + TMDB Sorted by Popularity" id="imdb_recommendations" default="TMDB Only"/>
 		<setting label="Auto Load Plugin Route ENABLE" type="bool" id="auto_plugin_route_enable" default="false"/>
-		<setting label="Auto Load Plugin Route (use plugin://...)" id="auto_plugin_route" type="text" default="plugin://script.extendedinfo/?info=trakt_watched&trakt_type=tv"/>
+		<setting label="Auto Load Plugin Route (use plugin://...)" id="auto_plugin_route" type="text" default="plugin://script.diamondinfo/?info=trakt_watched&trakt_type=tv"/>
         <setting label="Enable IMDB Plugin Screen Items" type="bool" id="imdb_plugin_list" default="true"/>
         <setting label="Enable Trakt Plugin Screen Items" type="bool" id="trakt_plugin_list" default="true"/>
         <setting label="Enable User Lists Plugin Screen Items" type="bool" id="userlists_plugin_list" default="false"/>
@@ -71,7 +71,7 @@
 		<setting label="RD Bluray Player (Menu) enable" type="bool" id="RD_bluray_player2" default="false" />
 		<setting label="Bluray path? (/media,/storage,d:/???)" type="lsep"/>
 		<setting label="BLURAY_DVD_PATH" type="text" id="bluray_dvd_path" default="/media" />
-		<setting label="SETUP TMDBHelper Players" type="action" action="RunScript(script.extendedinfo,info=setup_players)"/>
+		<setting label="SETUP TMDBHelper Players" type="action" action="RunScript(script.diamondinfo,info=setup_players)"/>
 		<setting id="last_played_tmdb_helper"           type="text"   default="false" visible="false"/>
 	</category>
 
