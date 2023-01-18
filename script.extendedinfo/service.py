@@ -593,7 +593,6 @@ class PlayerMonitor(xbmc.Player):
         Next_EP_ResolvedUrl = xbmcgui.Window(10000).getProperty('Next_EP.ResolvedUrl')
         xbmcgui.Window(10000).clearProperty('Next_EP.ResolvedUrl_playlist')
         xbmcgui.Window(10000).clearProperty('trakt_scrobble_details')
-        xbmcgui.Window(10000).setProperty('plugin.video.seren.runtime.tempSilent', 'False')
         if int(time.time()) < diamond_player_time or Next_EP_ResolvedUrl == 'true':
             diamond_player = True
             xbmcgui.Window(10000).clearProperty('Next_EP.ResolvedUrl')
@@ -661,6 +660,10 @@ class PlayerMonitor(xbmc.Player):
                 xbmc.sleep(100)
                 count = count + 100
 
+        xbmcgui.Window(10000).setProperty('plugin.video.seren.runtime.tempSilent', 'False')
+        try: seren_version = xbmcaddon.Addon('plugin.video.seren').getAddonInfo("version")
+        except: seren_version = ''
+        xbmcgui.Window(10000).setProperty('plugin.video.seren.%s.runtime.tempSilent' % (str(seren_version)), 'False')
         gc.collect()
         if player.isPlaying()==0:
             return
@@ -681,8 +684,23 @@ class PlayerMonitor(xbmc.Player):
         PTN_movie = ''
         PTN_show = ''
         PTN_year = ''
+        try: VideoPlayer_Season = int(json_object['result']['VideoPlayer.Season'])
+        except: VideoPlayer_Season = 0
+        try: VideoPlayer_Episode = int(json_object['result']['VideoPlayer.Episode'])
+        except: VideoPlayer_Episode = 0
         if PTN_season != '' and PTN_episode != '':
             PTN_show = PTN_info['title']
+        elif VideoPlayer_Season > 0 and VideoPlayer_Episode > 0:
+            PTN_show = json_object['result']['VideoPlayer.TVShowTitle']
+            PTN_episode = VideoPlayer_Episode
+            PTN_season = VideoPlayer_Season
+            tv_title = PTN_show
+            tv_season = PTN_season
+            tv_episode = PTN_episode
+            type = 'episode'
+        elif json_object['result']['VideoPlayer.TVShowTitle'] != '' or json_object['result']['VideoPlayer.TVShowTitle'] != None:
+            PTN_show = json_object['result']['VideoPlayer.TVShowTitle']
+            type = 'episode'
         else:
             PTN_movie = PTN_info['title']
             try: PTN_year = PTN_info['year']
@@ -1142,6 +1160,9 @@ class PlayerMonitor(xbmc.Player):
             if prescrape_time < time.time() and prescrape_time != 0 and prescrape == False and diamond_player == True:
                 xbmc.log(str(prescrape_time)+'===>prescrape_time', level=xbmc.LOGINFO)
                 xbmcgui.Window(10000).setProperty('plugin.video.seren.runtime.tempSilent', 'False')
+                try: seren_version = xbmcaddon.Addon('plugin.video.seren').getAddonInfo("version")
+                except: seren_version = ''
+                xbmcgui.Window(10000).setProperty('plugin.video.seren.%s.runtime.tempSilent' % (str(seren_version)), 'False')
                 next_ep_play_details = next_ep_play(show_title=next_ep_details['next_ep_show'], show_season=next_ep_details['next_ep_season'], show_episode=next_ep_details['next_ep_episode'], tmdb=next_ep_details['tmdb_id'])
                 try: 
                     prescrape = True

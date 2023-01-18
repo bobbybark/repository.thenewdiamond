@@ -2,6 +2,7 @@ import xbmc, xbmcgui, xbmcaddon
 from resources.lib import Utils
 from resources.lib.WindowManager import wm
 from resources.lib.OnClickHandler import OnClickHandler
+from resources.lib.library import addon_ID
 from resources.lib.library import addon_ID_short
 
 import urllib
@@ -132,7 +133,7 @@ class DialogBaseList(object):
 			from resources.lib.WindowManager import wm
 			self.close()
 			wm.open_youtube_list(search_str=result)
-			#xbmc.executebuiltin('RunPlugin(plugin://script.diamondinfo/?info=youtube&search_str=' +str(result))
+			#xbmc.executebuiltin('RunScript(%s,info=youtube,search_str=%s)' % (addon_ID(), result))
 			try: self.close()
 			except: pass
 			try: del wm

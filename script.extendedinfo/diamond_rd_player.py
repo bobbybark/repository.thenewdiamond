@@ -295,6 +295,9 @@ def prescrape_seren(tmdb=None, season=None, episode=None):
 	#query = str('RunPlugin(%splugin://plugin.video.seren/?action=preScrape_diamond&action_args=%s&from_widget=true%s)' % ('"',urllib.parse.quote(str(action_args)),'"'))
 	
 	xbmcgui.Window(10000).setProperty('plugin.video.seren.runtime.tempSilent', 'True')
+	try: seren_version = xbmcaddon.Addon('plugin.video.seren').getAddonInfo("version")
+	except: seren_version = ''
+	xbmcgui.Window(10000).setProperty('plugin.video.seren.%s.runtime.tempSilent' % (str(seren_version)), 'True')
 	url = 'plugin://plugin.video.seren/?action=preScrape&action_args=%257B%2522mediatype%2522%253A%2520%2522episode%2522%252C%2520%2522trakt_id%2522%253A%2520'+str(trakt_episode_id)+'%252C%2520%2522trakt_season_id%2522%253A%2520'+str(trakt_season_id)+'%252C%2520%2522trakt_show_id%2522%253A%2520'+str(trakt_show_id)+'%257D&from_widget=true'
 	query = str("RunPlugin(%s)" % (url))
 	#urllib.parse.quote(query)
@@ -1130,6 +1133,9 @@ def next_ep_play(show_title, show_season, show_episode, tmdb):
 		if xbmc.getCondVisibility('System.HasAddon(plugin.video.seren)'):
 			prescrape_seren(tmdb=tmdb, season=show_season, episode=show_episode)
 			xbmcgui.Window(10000).setProperty('plugin.video.seren.runtime.tempSilent', 'True')
+			try: seren_version = xbmcaddon.Addon('plugin.video.seren').getAddonInfo("version")
+			except: seren_version = ''
+			xbmcgui.Window(10000).setProperty('plugin.video.seren.%s.runtime.tempSilent' % (str(seren_version)), 'True')
 		return
 
 	hdclearart, seasonposter, seasonthumb, seasonbanner, tvthumb, tvbanner, showbackground, clearlogo, characterart, tvposter, clearart, hdtvlogo = get_fanart_results(tvdb_id, media_type='tv_tvdb')

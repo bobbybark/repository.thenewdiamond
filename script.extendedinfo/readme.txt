@@ -1,1 +1,1 @@
-in resources/skin/default rename all the script.diamondinfo-DialogInfo to yout script.youraddonidinfo-DialogInfo
+in resources/skin/default rename all the script.extendedinfo-DialogInfo to your script.youraddonid-DialogInfo

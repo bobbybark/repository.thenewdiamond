@@ -18,6 +18,7 @@ class Main:
 			xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_TITLE)
 			xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_VIDEO_YEAR)
 			xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_DURATION)
+			xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_NONE)
 
 			if info.endswith('shows') or '=tv' in str(sys.argv):
 				xbmcplugin.setContent(self.handle, 'tvshows')
@@ -75,6 +76,7 @@ class Main:
 			trakt_items = [
 				('trakt_watched', 'Trakt Watched Movies'),
 				('trakt_watched', 'Trakt Watched TV'),
+				('trakt_unwatched', 'Trakt Unwatched Shows'),
 				('trakt_progress', 'Trakt Shows Progress'),
 				('trakt_coll', 'Trakt Collection Movies'),
 				('trakt_coll', 'Trakt Collection TV'),
@@ -165,7 +167,7 @@ class Main:
 					script = 'False'
 					if value == 'Trakt Watched Movies' or value == 'Trakt Collection Movies' or value == 'Trakt Trending Movies' or value == 'Trakt Popular Movies':
 						trakt_type = 'movie'
-					elif value == 'Trakt Watched TV' or value == 'Trakt Collection TV' or value == 'Trakt Trending Shows' or value == 'Trakt Popular Shows':
+					elif value == 'Trakt Watched TV' or value == 'Trakt Collection TV' or value == 'Trakt Trending Shows' or value == 'Trakt Popular Shows' or value == 'Trakt Unwatched Shows':
 						trakt_type = 'tv'
 					elif key == 'trakt_list':
 						trakt_type = 'movie'

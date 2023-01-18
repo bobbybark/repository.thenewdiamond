@@ -909,7 +909,7 @@ def trakt_next_episode_rewatch(tmdb_id_num=None):
         next_season_to_watch  = ''
         next_ep_to_watch = ''
         import sqlite3
-        import ast
+        #import ast
         addon = xbmcaddon.Addon()
         addon_path = addon.getAddonInfo('path')
         addonID = addon.getAddonInfo('id')
@@ -918,7 +918,10 @@ def trakt_next_episode_rewatch(tmdb_id_num=None):
         cur = con.cursor()
         sql_query = "select * from trakt where trakt  like '%" + str(title) + "%'"
         sql_result = cur.execute(sql_query).fetchall()
-        response1 = ast.literal_eval(sql_result[0][1].replace('\'\'','"'))
+        #try: response1 = ast.literal_eval(sql_result[0][1].replace('\'\'','"'))
+        #except: response1= None
+        try: response1 = eval(sql_result[0][1].replace("'overview': ''",'\'overview\': "').replace("'', 'first_aired':",'", \'first_aired\':').replace("'title': ''",'\'title\': "').replace("'', 'year':",'", \'year\':'))
+        except: response1 = None
         try:
             for i in response1['seasons']:
                 for j in i['episodes']:
@@ -1172,7 +1175,7 @@ def trakt_watched_tv_shows_full():
     cur.close()
     con.close()
 
-
+"""
 def trakt_watched_get(mode=None):
     return None
     from resources.lib.Utils import show_busy
@@ -1210,6 +1213,7 @@ def trakt_watched_get(mode=None):
     trakt_data_file_thread.join()
     trakt_data_file_read = trakt_data_file_thread.trakt_data_file_read 
     return trakt_data_file_read
+"""
 
 def trakt_watched_tv_shows_progress(cache_days=None):
     #import requests

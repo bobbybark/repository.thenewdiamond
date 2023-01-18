@@ -240,6 +240,7 @@ def start_info_actions(infos, params):
 			return
 
 		elif info == 'test_route':
+			import xbmcaddon
 			xbmc.log(str('test_route')+'===>OPEN_INFO', level=xbmc.LOGINFO)
 			return
 			#import json
@@ -385,7 +386,7 @@ def start_info_actions(infos, params):
 				trakt_script = str(params['script'])
 			except:
 				trakt_script = 'True'
-			if trakt_script == 'False' and (info == 'trakt_watched' or info == 'trakt_coll' or info == 'trakt_trend' or info == 'trakt_popular'  or info == 'trakt_progress'):
+			if trakt_script == 'False' and (info == 'trakt_watched' or info == 'trakt_coll' or info == 'trakt_trend' or info == 'trakt_popular'  or info == 'trakt_progress' or info == 'trakt_unwatched'):
 				from resources.lib import TheMovieDB
 				return TheMovieDB.get_trakt(trakt_type=trakt_type,info=info,limit=limit)
 			else:
