@@ -1776,8 +1776,8 @@ def trak_auth():
         xbmcgui.Window(10000).setProperty('diamond_trakt_notice', str(int(time.time())))
         return None
 
-    import xml.etree.ElementTree as ET
-    import json
+    #import xml.etree.ElementTree as ET
+    #import json
 
     file_path = main_file_path()
     tmdb_settings = tmdb_settings_path()
@@ -1785,12 +1785,22 @@ def trak_auth():
     tmdb_traktapi2 = tmdb_traktapi_new_path()
     tmdb_traktapi3 = tmdb_traktapi_new_path2()
 
-    tree = ET.parse(tmdb_settings)
-    root = tree.getroot()
+    import html
+    f = open(tmdb_settings, 'r')
+    for x in f:
+        if 'trakt_token' in x:
+            trakt_token = x.split('</setting>')[0].split('<setting id="trakt_token">')[1]
+            trakt_token = eval(html.unescape(trakt_token))
+    f.close()
+    del html
 
-    for child in root:
-        if (child.attrib)['id'] == 'trakt_token':
-            token = json.loads(child.text)
+    #tree = ET.parse(tmdb_settings)
+    #root = tree.getroot()
+
+    #for child in root:
+    #    if (child.attrib)['id'] == 'trakt_token':
+    #        token = json.loads(child.text)
+    token = trakt_token
 
     try:
         inFile = open(tmdb_traktapi)
