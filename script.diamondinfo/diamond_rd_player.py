@@ -437,9 +437,21 @@ def download_tv_test(meta_info, filename):
 			x265_match_pass = False
 		else:
 			x265_match_pass = True
+	if meta_info['part1_part2_flag'] == 2 and part1_part2_match_flag == False and episode_list_flag ==  True:
+		regex_part_1 = re.compile('(part).*'+str(1))
+		regex_part_1_match = regex_part_1.search(filename)
+		regex_part_i = re.compile('(part).*'+str('i'))
+		regex_part_i_match = regex_part_i.search(filename)
+		regex_part_2 = re.compile('(part).*'+str(2))
+		regex_part_2_match = regex_part_2.search(filename)
+		regex_part_ii = re.compile('(part).*'+str('ii'))
+		regex_part_ii_match = regex_part_ii.search(filename)
+		if regex_part_1_match or regex_part_i_match:
+			if not regex_part_2_match and not regex_part_ii_match:
+				episode_list_flag = False
 	meta_info_flags = {'x265_match_pass': x265_match_pass,'alternate_titles_flag': alternate_titles_flag,'episode_list_flag': episode_list_flag,'season_list_flag': season_list_flag,'episode_name_flag': episode_name_flag,'show_title_flag': show_title_flag,'part1_part2_match_flag': part1_part2_match_flag}
 	#print_log(filename, meta_info)
-	#print_log(meta_info_flags)
+	#print_log(filename, meta_info_flags)
 	return meta_info_flags
 
 def get_next_ep_details(show_title, show_curr_season, show_curr_episode, tmdb):
