@@ -118,7 +118,8 @@ class PlayerMonitor(xbmc.Player):
         xbmcgui.Window(10000).setProperty('trakt_scrobble_details',json.dumps(trakt_meta, sort_keys=True))
 
     def get_trakt_scrobble_details(self):
-        trakt_meta = json.loads(xbmcgui.Window(10000).getProperty('trakt_scrobble_details'))
+        try: trakt_meta = json.loads(xbmcgui.Window(10000).getProperty('trakt_scrobble_details'))
+        except: return {}
         return trakt_meta
 
     def trakt_scrobble_title(self, movie_title, movie_year, percent, action=None):
@@ -1076,6 +1077,7 @@ class PlayerMonitor(xbmc.Player):
         try: play_test = player.isPlaying()==1 and type == 'episode' and playing_file == player.getPlayingFile()
         except: return
 
+        prescrape_time = 0
         while play_test:
             try: 
                 play_test = player.isPlaying()==1 and type == 'episode' and playing_file == player.getPlayingFile()
@@ -1142,8 +1144,7 @@ class PlayerMonitor(xbmc.Player):
                 scrobble_time = int(time.time()) + 10 * 60
             percentage = (resume_position / duration) * 100
 
-            prescrape_time = 0
-            if percentage > 66 and prescrape == False and diamond_player == True:
+            if percentage > 33 and prescrape == False and prescrape_time == 0 and diamond_player == True:
                 #kodi-send --action="RunScript(script.extendedinfo,info=diamond_rd_player,type=tv,show_title=Star Trek: Enterprise,show_season=4,show_episode=20,tmdb=314)"
                 next_ep_play_details = next_ep_play(show_title=next_ep_details['next_ep_show'], show_season=next_ep_details['next_ep_season'], show_episode=next_ep_details['next_ep_episode'], tmdb=next_ep_details['tmdb_id'])
                 #xbmc.log(str(next_ep_play_details)+'next_ep_play_details===>OPENINFO', level=xbmc.LOGINFO)
@@ -1152,12 +1153,11 @@ class PlayerMonitor(xbmc.Player):
                     if next_ep_play_details.get('ResolvedUrl') == True:
                         xbmc.log(str(next_ep_play_details.get('ResolvedUrl'))+'ResolvedUrl_next_ep_play_details===>OPENINFO', level=xbmc.LOGINFO)
                 except:
-                    xbmc.log('NOT_FOUND_PRESCRAPE===>OPENINFO', level=xbmc.LOGINFO)
+                    xbmc.log('NOT_FOUND_PRESCRAPE1===>OPENINFO', level=xbmc.LOGINFO)
                     prescrape = False
-                    if xbmcgui.Window(10000).getProperty('plugin.video.seren.runtime.tempSilent') == 'True':
-                        prescrape_time = time.time() + 120
-            
-            if prescrape_time < time.time() and prescrape_time != 0 and prescrape == False and diamond_player == True:
+                    prescrape_time = time.time() + 120
+
+            if percentage > 66 and prescrape_time != 0 and prescrape == False and diamond_player == True:
                 xbmc.log(str(prescrape_time)+'===>prescrape_time', level=xbmc.LOGINFO)
                 xbmcgui.Window(10000).setProperty('plugin.video.seren.runtime.tempSilent', 'False')
                 try: seren_version = xbmcaddon.Addon('plugin.video.seren').getAddonInfo("version")
@@ -1169,8 +1169,9 @@ class PlayerMonitor(xbmc.Player):
                     if next_ep_play_details.get('ResolvedUrl') == True:
                         xbmc.log(str(next_ep_play_details.get('ResolvedUrl'))+'ResolvedUrl_next_ep_play_details===>OPENINFO', level=xbmc.LOGINFO)
                 except:
-                    xbmc.log('NOT_FOUND_PRESCRAPE===>OPENINFO', level=xbmc.LOGINFO)
+                    xbmc.log('NOT_FOUND_PRESCRAPE2===>OPENINFO', level=xbmc.LOGINFO)
                     prescrape = False
+                    prescrape_time = 0
 
             if player.isPlaying()==1 and percentage > 85 and trakt_watched != 'true':
             #if (percentage > 85) and player.isPlayingVideo()==1 and duration > 300 and trakt_watched != 'true':
