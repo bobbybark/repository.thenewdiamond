@@ -1,5 +1,5 @@
 import os, shutil
-import xbmc, xbmcgui, xbmcaddon
+import xbmc, xbmcgui, xbmcaddon, xbmcvfs
 from resources.lib import Utils
 from resources.lib.WindowManager import wm
 from resources.lib.library import addon_ID
@@ -7,11 +7,14 @@ from resources.lib.library import addon_ID_short
 from resources.lib.library import icon_path
 from resources.autocomplete import AutoCompletion
 from resources.autocomplete import AutoCompletion_plugin
+from urllib.parse import urlencode, quote_plus, unquote, unquote_plus
+
 
 def start_info_actions(infos, params):
 	addonID = addon_ID()
 	addonID_short = addon_ID_short()
-	
+
+
 	if 'imdbid' in params and 'imdb_id' not in params:
 		params['imdb_id'] = params['imdbid']
 	for info in infos:
@@ -21,7 +24,6 @@ def start_info_actions(infos, params):
 		if info == 'getplayingfile':
 			xbmc.log(str(xbmc.Player().getPlayingFile())+'===>OPENINFO', level=xbmc.LOGINFO)
 
-
 		if info == 'get_trakt_playback':
 			from resources.lib import TheMovieDB
 			trakt_type = params.get('trakt_type')
@@ -30,7 +32,7 @@ def start_info_actions(infos, params):
 
 		if info == 'display_dialog':
 			next_ep_url = params.get('next_ep_url')
-			title = params.get('title')
+			title = unquote_plus(params.get('title'))
 			thumb = params.get('thumb')
 			rating = params.get('rating')
 			show = params.get('show')
@@ -48,6 +50,7 @@ def start_info_actions(infos, params):
 				script = 'True'
 			if script == 'False':
 				return local_db.get_db_movies('"sort": {"order": "descending", "method": "dateadded", "limit": %s}' % params.get("limit", "0"))
+			wm.window_stack_empty()
 			return wm.open_video_list(media_type='movie', mode='list_items', filter_label='My TV Shows (Movies)' ,search_str=local_db.get_db_tvshows('"sort": {"order": "descending", "method": "dateadded", "limit": %s}' % params.get("limit", "0")), listitems=[])
 
 		elif info == 'libraryalltvshows':
@@ -58,6 +61,7 @@ def start_info_actions(infos, params):
 				script = 'True'
 			if script == 'False':
 				return local_db.get_db_tvshows('"sort": {"order": "descending", "method": "dateadded", "limit": %s}' % params.get("limit", "0"))
+			wm.window_stack_empty()
 			return wm.open_video_list(media_type='tv', mode='list_items', filter_label='My TV Shows (Library)' ,search_str=local_db.get_db_tvshows('"sort": {"order": "descending", "method": "dateadded", "limit": %s}' % params.get("limit", "0")), listitems=[])
 
 		elif info == 'popularmovies':
@@ -71,6 +75,7 @@ def start_info_actions(infos, params):
 				script = 'True'
 			if script == 'False':
 				return TheMovieDB.get_tmdb_movies(tmdb_var)
+			wm.window_stack_empty()
 			return wm.open_video_list(media_type=media_type, mode='list_items', filter_label=filter_label, search_str=TheMovieDB.get_tmdb_movies(tmdb_var), listitems=[])
 
 		elif info == 'topratedmovies':
@@ -85,6 +90,7 @@ def start_info_actions(infos, params):
 				script = 'False'
 			if script == 'False':
 				return TheMovieDB.get_tmdb_movies(tmdb_var)
+			wm.window_stack_empty()
 			return wm.open_video_list(media_type=media_type, mode='list_items', filter_label=filter_label, search_str=TheMovieDB.get_tmdb_movies(tmdb_var), listitems=[])
 
 		elif info == 'incinemamovies':
@@ -98,6 +104,7 @@ def start_info_actions(infos, params):
 				script = 'True'
 			if script == 'False':
 				return TheMovieDB.get_tmdb_movies(tmdb_var)
+			wm.window_stack_empty()
 			return wm.open_video_list(media_type=media_type, mode='list_items', filter_label=filter_label, search_str=TheMovieDB.get_tmdb_movies(tmdb_var), listitems=[])
 
 		elif info == 'upcomingmovies':
@@ -111,6 +118,7 @@ def start_info_actions(infos, params):
 				script = 'True'
 			if script == 'False':
 				return TheMovieDB.get_tmdb_movies(tmdb_var)
+			wm.window_stack_empty()
 			return wm.open_video_list(media_type=media_type, mode='list_items', filter_label=filter_label, search_str=TheMovieDB.get_tmdb_movies(tmdb_var), listitems=[])
 
 		elif info == 'populartvshows':
@@ -124,6 +132,7 @@ def start_info_actions(infos, params):
 				script = 'True'
 			if script == 'False':
 				return TheMovieDB.get_tmdb_shows(tmdb_var)
+			wm.window_stack_empty()
 			return wm.open_video_list(media_type=media_type, mode='list_items', filter_label=filter_label, search_str=TheMovieDB.get_tmdb_shows(tmdb_var), listitems=[])
 
 
@@ -139,6 +148,7 @@ def start_info_actions(infos, params):
 				script = 'False'
 			if script == 'False':
 				return TheMovieDB.get_tmdb_shows(tmdb_var)
+			wm.window_stack_empty()
 			return wm.open_video_list(media_type=media_type, mode='list_items', filter_label=filter_label, search_str=TheMovieDB.get_tmdb_shows(tmdb_var), listitems=[])
 
 		elif info == 'onairtvshows':
@@ -152,6 +162,7 @@ def start_info_actions(infos, params):
 				script = 'True'
 			if script == 'False':
 				return TheMovieDB.get_tmdb_shows(tmdb_var)
+			wm.window_stack_empty()
 			return wm.open_video_list(media_type=media_type, mode='list_items', filter_label=filter_label, search_str=TheMovieDB.get_tmdb_shows(tmdb_var), listitems=[])
 
 		elif info == 'airingtodaytvshows':
@@ -165,17 +176,21 @@ def start_info_actions(infos, params):
 				script = 'True'
 			if script == 'False':
 				return TheMovieDB.get_tmdb_shows(tmdb_var)
+			wm.window_stack_empty()
 			return wm.open_video_list(media_type=media_type, mode='list_items', filter_label=filter_label, search_str=TheMovieDB.get_tmdb_shows(tmdb_var), listitems=[])
 
 
 		elif info == 'allmovies':
+			wm.window_stack_empty()
 			wm.open_video_list(media_type='movie',mode='filter')
 
 		elif info == 'alltvshows':
+			wm.window_stack_empty()
 			wm.open_video_list(media_type='tv',mode='filter')
 
 		elif info == 'search_menu':
 			search_str = xbmcgui.Dialog().input(heading='Enter search string', type=xbmcgui.INPUT_ALPHANUM)
+			wm.window_stack_empty()
 			return wm.open_video_list(search_str=search_str, mode='search')
 
 		elif info == 'reopen_window':
@@ -186,6 +201,7 @@ def start_info_actions(infos, params):
 
 		elif info == 'youtube':
 			search_str = params.get('search_str')
+			wm.window_stack_empty()
 			return wm.open_youtube_list(search_str=search_str)
 
 		elif info == 'tastedive_search':
@@ -194,6 +210,7 @@ def start_info_actions(infos, params):
 			limit = params.get('limit', 10)
 			from resources.lib import TheMovieDB
 			response = TheMovieDB.get_tastedive_data(query=search_str, limit=limit, media_type=media_type)
+			wm.window_stack_empty()
 			return wm.open_video_list(mode='tastedive&' + str(media_type), listitems=[], search_str=response, filter_label='TasteDive Similar ('+str(search_str)+'):')
 
 		elif info == 'tastedive_movies':
@@ -217,6 +234,7 @@ def start_info_actions(infos, params):
 				for x in response2:
 					if x not in response3:
 						response3.append(x)
+			wm.window_stack_empty()
 			return wm.open_video_list(mode='tastedive&' + str('movie'), listitems=[], search_str=response3, filter_label='TasteDive Based on Recently Watched Movies:')
 
 		elif info == 'tastedive_tv':
@@ -228,6 +246,7 @@ def start_info_actions(infos, params):
 				for x in response2:
 					if x not in response3:
 						response3.append(x)
+			wm.window_stack_empty()
 			return wm.open_video_list(mode='tastedive&' + str('tv'), listitems=[], search_str=response3, filter_label='TasteDive Based on Recently Watched TV:')
 
 		elif info == 'autocomplete' or info == 'selectautocomplete':
@@ -239,9 +258,47 @@ def start_info_actions(infos, params):
 			Utils.hide_busy()
 			return
 
+		elif info == 'play_test_pop_stack':
+			import json
+			tmdbhelper_flag = False
+			reopen_play_fail = xbmcaddon.Addon(addon_ID()).getSetting('reopen_play_fail')
+			if reopen_play_fail == 'false':
+				return
+			xbmc.log(str('start...')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+			for i in range(1, int((90 * 1000)/1000)):
+				window_id = xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"GUI.GetProperties","params":{"properties":["currentwindow", "currentcontrol"]},"id":1}')
+				window_id = json.loads(window_id)
+				xbmc.sleep(1000)
+				window_id2 = xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"GUI.GetProperties","params":{"properties":["currentwindow", "currentcontrol"]},"id":1}')
+				window_id2 = json.loads(window_id2)
+				#xbmc.log(str(window_id)+str(i)+'===>PHIL', level=xbmc.LOGINFO)
+				if xbmc.Player().isPlaying() or xbmc.getCondVisibility('Window.IsActive(12005)'):
+					xbmc.log(str('Playback_Success.......')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+					return
+				if window_id['result']['currentwindow']['label'] == 'Select dialog' or window_id['result']['currentwindow']['id'] == 12000 and window_id2 == window_id and i > 4:
+					if tmdbhelper_flag == False:
+						Utils.hide_busy()
+						xbmc.sleep(500)
+					tmdbhelper_flag = True
+				elif tmdbhelper_flag and ( xbmc.Player().isPlaying() or ( window_id['result']['currentwindow']['label'].lower() == 'fullscreenvideo' or window_id['result']['currentwindow']['id'] == 12005 and window_id2 == window_id and i > 4 ) ):
+					xbmc.log(str('Playback_Success.......')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+					return
+				elif tmdbhelper_flag and (window_id['result']['currentwindow']['label'].lower() in ['home','notification'] or window_id['result']['currentwindow']['id'] in [10000,10107]) and window_id2 == window_id and i > 4:
+					xbmc.log(str(window_id)+str(i)+'===>PHIL', level=xbmc.LOGINFO)
+					if xbmc.Player().isPlaying():
+						xbmc.log(str('Playback_Success')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+						return
+					else:
+						xbmc.log(str('wm.pop_stack()......')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+						return wm.pop_stack()
+			xbmc.log(str('return......')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+			return
+
+
 		elif info == 'test_route':
-			import xbmcaddon
+			import json
 			xbmc.log(str('test_route')+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			Utils.hide_busy()
 			return
 			#import json
 			#json_result_test = xbmc.executeJSONRPC('{"jsonrpc": "2.0","method": "Playlist.GetItems","params": {"properties": ["title", "file"],"playlistid": 1},"id": "1"}')
@@ -255,7 +312,6 @@ def start_info_actions(infos, params):
 			from resources.lib import library
 			#import mediainfo
 			#from resources.lib import TheMovieDB
-			#import xbmcvfs, xbmcaddon
 			#title = 'Game of Thrones'
 			#response = TheMovieDB.get_tmdb_data('search/tv?query=%s&language=en-US&include_adult=%s&' % (title, xbmcaddon.Addon().getSetting('include_adults')), 30)
 			#xbmc.log(str(response['results'][0]['id'])+'===>OPEN_INFO', level=xbmc.LOGINFO)
@@ -280,7 +336,6 @@ def start_info_actions(infos, params):
 			#art_path = library.basedir_movies_path() + '\\' + str(tmdb_id) + '\\' + 'movie.fanart'
 			#library.get_art_fanart_movie(tmdb_id, fanart_api, show_file_path, art_path,tmdb_api)
 		
-			#import xbmcvfs, xbmcaddon
 			#from resources.lib.library import icon_path
 			#xbmc.log(str(library.basedir_movies_path())+'===>OPEN_INFO', level=xbmc.LOGINFO)
 			#xbmc.log(str(addon_ID())+'===>OPEN_INFO', level=xbmc.LOGINFO)
@@ -306,7 +361,6 @@ def start_info_actions(infos, params):
 
 		elif info == 'setup_players':
 			Utils.show_busy()
-			import xbmcvfs, xbmcaddon
 			from pathlib import Path
 			RD_player = xbmcaddon.Addon(addon_ID()).getSetting('RD_player')
 			RD_bluray_player = xbmcaddon.Addon(addon_ID()).getSetting('RD_bluray_player')
@@ -336,7 +390,6 @@ def start_info_actions(infos, params):
 
 
 		elif info == 'setup_sources':
-			import xbmcvfs, xbmcaddon
 			from resources.lib.library import basedir_tv_path
 			from resources.lib.library import basedir_movies_path
 			from resources.lib.library import library_source_exists_tv
@@ -369,7 +422,6 @@ def start_info_actions(infos, params):
 			auto_library()
 
 		elif info == 'trakt_watched' or info == 'trakt_coll' or info == 'trakt_list' or info == 'trakt_trend' or info == 'trakt_popular' or info == 'trakt_progress' or info == 'trakt_unwatched':
-			import xbmcaddon
 			#kodi-send --action='RunPlugin(plugin://'+str(addon_ID())+'/?info=trakt_watched&trakt_type=movie&script=True)'
 			#kodi-send --action='RunPlugin(plugin://'+str(addon_ID())+'/?info=trakt_watched&trakt_type=tv&script=True)'
 			#kodi-send --action='RunPlugin(plugin://'+str(addon_ID())+'/?info=trakt_coll&trakt_type=movie&script=True)'
@@ -447,6 +499,7 @@ def start_info_actions(infos, params):
 					if trakt_script == 'False':
 						return get_trakt_lists(list_name=trakt_label,user_id=trakt_user_id,list_slug=takt_list_slug,sort_by=trakt_sort_by,sort_order=trakt_sort_order,limit=limit)
 					movies = trakt_lists(list_name=trakt_label,user_id=trakt_user_id,list_slug=takt_list_slug,sort_by=trakt_sort_by,sort_order=trakt_sort_order,limit=limit)
+				wm.window_stack_empty()
 				return wm.open_video_list(mode='trakt', listitems=[], search_str=movies, media_type=trakt_type, filter_label=trakt_label)
 
 		elif info == 'imdb_list':
@@ -468,6 +521,7 @@ def start_info_actions(infos, params):
 				#from imdb import IMDb, IMDbError
 				#ia = IMDb()
 				#movies = ia.get_movie_list(list_str)
+				wm.window_stack_empty()
 				wm.open_video_list(mode='imdb2', listitems=[], search_str=movies, filter_label=list_name)
 			elif 'ur' in str(list_str):
 				from resources.lib.TheMovieDB import get_imdb_watchlist_ids
@@ -475,11 +529,13 @@ def start_info_actions(infos, params):
 				if list_script == 'False':
 					from resources.lib.TheMovieDB import get_imdb_watchlist_items
 					return get_imdb_watchlist_items(movies=movies,limit=limit)
+				wm.window_stack_empty()
 				wm.open_video_list(mode='imdb2', listitems=[], search_str=movies, filter_label=list_name)
 			return
 
 		elif info == 'search_string':
 			search_str = params['str']
+			wm.window_stack_empty()
 			return wm.open_video_list(search_str=search_str, mode='search')
 
 		elif info == 'search_person':
@@ -502,11 +558,13 @@ def start_info_actions(infos, params):
 						except KeyError:
 							pass
 					newlist = None
+					wm.window_stack_empty()
 					return wm.open_video_list(mode='person', search_str=movies, listitems=movies['cast_crew'])
 
 		elif info == 'studio':
 			from resources.lib import TheMovieDB
 			if 'id' in params and params['id']:
+				wm.window_stack_empty()
 				return wm.open_video_list(media_type='tv', mode='filter', listitems=TheMovieDB.get_company_data(params['id']))
 			elif 'studio' in params and params['studio']:
 				company_data = TheMovieDB.search_company(params['studio'])
@@ -568,6 +626,7 @@ def start_info_actions(infos, params):
 					xbmcgui.Window(10000).clearProperty('infodialogs.active')
 					return None
 			xbmcgui.Window(10000).clearProperty('infodialogs.active')
+			wm.window_stack_empty()
 			return wm.open_video_list(search_str=search_str, mode='search')
 
 		elif info == 'playmovie':
@@ -618,7 +677,6 @@ def start_info_actions(infos, params):
 			xbmcgui.Window(10000).setProperty('infodialogs.active', 'true')
 			if not params.get('id'):
 				from resources.lib.TheMovieDB import get_movie_info
-				#import xbmcaddon
 				#response = get_tmdb_data('search/%s?query=%s&language=en-US&include_adult=%s&' % ('movie', params.get('name'), xbmcaddon.Addon().getSetting('include_adults')), 30)
 				#params['id'] = response['results'][0]['id']
 				if not params.get('id') and not params.get('dbid') and (not params.get('imdb_id') or not 'tt' in str(params.get('imdb_id'))):
@@ -629,12 +687,14 @@ def start_info_actions(infos, params):
 						xbmcgui.Window(10000).clearProperty('infodialogs.active')
 						Utils.hide_busy()
 						return
+			wm.window_stack_empty()
 			wm.open_movie_info(movie_id=params.get('id'), dbid=params.get('dbid'), imdb_id=params.get('imdb_id'), name=params.get('name'))
 			xbmcgui.Window(10000).clearProperty('infodialogs.active')
 
 		elif info == 'extendedactorinfo':
 			resolve_url(params.get('handle'))
 			xbmcgui.Window(10000).setProperty('infodialogs.active', 'true')
+			wm.window_stack_empty()
 			wm.open_actor_info(actor_id=params.get('id'), name=params.get('name'))
 			xbmcgui.Window(10000).clearProperty('infodialogs.active')
 
@@ -643,7 +703,6 @@ def start_info_actions(infos, params):
 			xbmcgui.Window(10000).setProperty('infodialogs.active', 'true')
 			if not params.get('id'):
 				from resources.lib.TheMovieDB import get_tvshow_info
-				import xbmcaddon
 				#response = get_tmdb_data('search/%s?query=%s&language=en-US&include_adult=%s&' % ('tv', params.get('name'), xbmcaddon.Addon().getSetting('include_adults')), 30)
 				#params['id'] = response['results'][0]['id']
 				if not params.get('id') and not params.get('dbid') and not params.get('tvdb_id') and (not params.get('imdb_id') or not 'tt' in str(params.get('imdb_id'))):
@@ -654,18 +713,21 @@ def start_info_actions(infos, params):
 						xbmcgui.Window(10000).clearProperty('infodialogs.active')
 						Utils.hide_busy()
 						return
+			wm.window_stack_empty()
 			wm.open_tvshow_info(tmdb_id=params.get('id'), tvdb_id=params.get('tvdb_id'), dbid=params.get('dbid'), imdb_id=params.get('imdb_id'), name=params.get('name'))
 			xbmcgui.Window(10000).clearProperty('infodialogs.active')
 
 		elif info == 'seasoninfo':
 			resolve_url(params.get('handle'))
 			xbmcgui.Window(10000).setProperty('infodialogs.active', 'true')
+			wm.window_stack_empty()
 			wm.open_season_info(tvshow=params.get('tvshow'), tvshow_id=params.get('tvshow_id'), dbid=params.get('dbid'), season=params.get('season'))
 			xbmcgui.Window(10000).clearProperty('infodialogs.active')
 
 		elif info == 'extendedepisodeinfo':
 			resolve_url(params.get('handle'))
 			xbmcgui.Window(10000).setProperty('infodialogs.active', 'true')
+			wm.window_stack_empty()
 			wm.open_episode_info(tvshow=params.get('tvshow'), tvshow_id=params.get('tvshow_id'), tvdb_id=params.get('tvdb_id'), dbid=params.get('dbid'), season=params.get('season'), episode=params.get('episode'))
 			xbmcgui.Window(10000).clearProperty('infodialogs.active')
 
@@ -818,6 +880,7 @@ def resolve_url(handle):
 def reopen_window():
 	while xbmc.Player().isPlaying():
 		xbmc.sleep(500)
+	wm.window_stack_empty()
 	return wm.open_video_list(search_str='', mode='reopen_window')
 
 def auto_clean_cache(days=None):
@@ -832,6 +895,8 @@ def auto_clean_cache(days=None):
 		days = int(days)*-1
 
 	today = datetime.datetime.today()#gets current time
+	if not xbmcvfs.exists(path):
+		xbmcvfs.mkdir(path)
 	os.chdir(path) #changing path to current path(same as cd command)
 
 	#we are taking current folder, directory and files 
@@ -852,8 +917,6 @@ def auto_library():
 	Utils.hide_busy()
 	#xbmc.log(str('auto_library')+'===>OPEN_INFO', level=xbmc.LOGINFO)
 	#return
-
-	import xbmcaddon
 	from resources.lib.library import library_auto_tv
 	from resources.lib.library import library_auto_movie
 	from resources.lib.library import trakt_calendar_list

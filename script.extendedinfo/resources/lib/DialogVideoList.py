@@ -29,6 +29,8 @@ from resources.lib.library import trakt_popular_shows
 from resources.lib.library import trakt_lists
 from resources.lib.library import trakt_watched_tv_shows_progress
 
+from inspect import currentframe, getframeinfo
+#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 ch = OnClickHandler()
 SORTS = {
     'movie': {
@@ -87,8 +89,14 @@ def get_tmdb_window(window_type):
             self.sort_label = kwargs.get('sort_label', 'Popularity')
             self.order = kwargs.get('order', 'desc')
             self.mode2 = None
+            self.curr_window = None
+            self.prev_window = None
+            self.filter_url = None
+            self.filter = None
             xbmcgui.Window(10000).clearProperty('ImageFilter')
             xbmcgui.Window(10000).clearProperty('ImageColor')
+
+            #xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 
             if self.listitem_list:
                 self.listitems = Utils.create_listitems(self.listitem_list)
@@ -125,6 +133,7 @@ def get_tmdb_window(window_type):
                 'person': 'Persons'
                 }
             self.setProperty('Type', types[self.type])
+            #xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
             self.getControl(5006).setVisible(self.type != 'tv')
             self.getControl(5008).setVisible(self.type != 'tv')
             self.getControl(5009).setVisible(self.type != 'tv')
@@ -232,21 +241,25 @@ def get_tmdb_window(window_type):
             xbmcgui.Window(10000).setProperty('tmdbhelper_tvshow.poster', str(self.listitem.getProperty('poster')))
             if selection_text == 'Last Played URL':
                 xbmc.executebuiltin('Dialog.Close(busydialog)')
+                xbmc.executebuiltin('Dialog.Close(all,true)')
                 PLAYER.play_from_button(last_played_tmdb_helper, listitem=None, window=self, dbid=0)
             if selection_text == 'Play first episode' or selection_text == 'Play':
                 if self.listitem.getProperty('TVShowTitle'):
                     url = 'plugin://plugin.video.themoviedb.helper?info=play&amp;type=episode&amp;tmdb_id=%s&amp;season=1&amp;episode=1' % item_id
                     xbmc.executebuiltin('Dialog.Close(busydialog)')
+                    xbmc.executebuiltin('Dialog.Close(all,true)')
                     PLAYER.play_from_button(url, listitem=None, window=self, dbid=0)
                 else:
                     xbmc.executebuiltin('Dialog.Close(busydialog)')
                     if self.listitem.getProperty('dbid'):
                         dbid = self.listitem.getProperty('dbid')
                         url = ''
+                        xbmc.executebuiltin('Dialog.Close(all,true)')
                         PLAYER.play_from_button(url, listitem=None, window=self, type='movieid', dbid=dbid)
                     else:
                         dbid = 0
                         url = 'plugin://plugin.video.themoviedb.helper?info=play&amp;type=movie&amp;tmdb_id=%s' % item_id
+                        xbmc.executebuiltin('Dialog.Close(all,true)')
                         PLAYER.play_from_button(url, listitem=None, window=self, dbid=0)
 
             if selection_text == 'Remove from library' or selection_text == 'Add to library':
@@ -289,14 +302,17 @@ def get_tmdb_window(window_type):
                             Utils.notify(header='[B]%s[/B] added to library' % self.listitem.getProperty('title'), message='Exit & re-enter to refresh', icon=self.listitem.getProperty('poster'), time=1000, sound=False)
             if selection_text == 'Play Kodi Next Episode':
                 url = next_episode_show(tmdb_id_num=item_id,dbid_num=dbid)
+                xbmc.executebuiltin('Dialog.Close(all,true)')
                 PLAYER.play_from_button(url, listitem=None, window=self, dbid=0)
 
             if selection_text == 'Play Trakt Next Episode':
                 url = trakt_next_episode_normal(tmdb_id_num=item_id)
+                xbmc.executebuiltin('Dialog.Close(all,true)')
                 PLAYER.play_from_button(url, listitem=None, window=self, dbid=0)
 
             if selection_text == 'Play Trakt Next Episode (Rewatch)':
                 url = trakt_next_episode_rewatch(tmdb_id_num=item_id)
+                xbmc.executebuiltin('Dialog.Close(all,true)')
                 PLAYER.play_from_button(url, listitem=None, window=self, dbid=0)
 
             if selection_text == 'Search item':
@@ -319,6 +335,7 @@ def get_tmdb_window(window_type):
                 if bluray_cmd:
                     #xbmc.executebuiltin('RunPlugin(%s)' % (bluray_cmd))
                     url = bluray_cmd
+                    xbmc.executebuiltin('Dialog.Close(all,true)')
                     PLAYER.play_from_button(url, listitem=None, window=self, dbid=0)
 
             if selection_text == 'Eject/Load DVD':
@@ -973,6 +990,11 @@ def get_tmdb_window(window_type):
             self.update()
             Utils.hide_busy()
 
+        @ch.click(5018)
+        def close_all(self):
+            xbmc.executebuiltin('Dialog.Close(all,true)')
+            wm.window_stack_empty()
+
         def fetch_data(self, force=False):
             from pathlib import Path
             addon = xbmcaddon.Addon()
@@ -980,6 +1002,37 @@ def get_tmdb_window(window_type):
             addonID = addon.getAddonInfo('id')
             addonUserDataFolder = xbmcvfs.translatePath("special://profile/addon_data/"+addonID)
             Utils.show_busy()
+
+            """
+            try:
+                xbmc.log(str(wm.pop_video_list)+'pop_video_list_fetch_data===>PHIL', level=xbmc.LOGINFO)
+                xbmc.log(str(self.page)+'page_fetch_data===>PHIL', level=xbmc.LOGINFO)
+                xbmc.log(str(wm.curr_window['params']['mode'])+'curr_window_filter_page_fetch_data===>PHIL', level=xbmc.LOGINFO)
+                xbmc.log(str(wm.curr_window['params']['type'])+'curr_window_type_page_fetch_data===>PHIL', level=xbmc.LOGINFO)
+            except:
+                pass
+            """
+
+            if wm.pop_video_list == True:
+                self.page = int(wm.prev_window['params']['page'])
+                self.mode = wm.prev_window['params']['mode']
+                self.type = wm.prev_window['params']['type']
+                self.order = wm.prev_window['params']['order']
+                self.search_str =wm.prev_window['params']['search_str']
+                self.filter_label =wm.prev_window['params']['filter_label']
+                self.list_id = wm.prev_window['params']['list_id']
+                self.filter_url = wm.prev_window['params']['filter_url']
+                self.media_type = wm.prev_window['params']['media_type']
+                self.filters = wm.prev_window['params']['filters']
+                self.filter = wm.prev_window['params']['filter']
+                info = {
+                    'listitems': wm.prev_window['params']['listitems'],
+                    'results_per_page': wm.prev_window['params']['total_pages'],
+                    'total_results': wm.prev_window['params']['total_items']
+                    }
+                wm.pop_video_list = False
+                return info
+
             if self.mode == 'reopen_window':
                 fetch_data_dict_file = open(Path(addonUserDataFolder + '/fetch_data_dict'), "r")
                 import ast

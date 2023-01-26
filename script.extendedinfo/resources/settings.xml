@@ -22,6 +22,7 @@
 		<setting label="Create/Refresh Trakt Watched Data" type="action" action="RunScript(script.extendedinfo,info=setup_trakt_watched)"/>
 		<setting label="Use Context Menus in UI?" type="bool" id="context_menu" default="false"/>
 		<setting label="Use Window Stack?" type="bool" id="window_stack_enable" default="true"/>
+		<setting label="Enable reopen window on playack fail within 90s" type="bool" id="reopen_play_fail" default="true"/>
 		<setting label="Maintenance" type="lsep"/>
 		<setting label="Clear cache..." type="action" action="RunScript(script.extendedinfo,info=deletecache)"/>
 		<setting label="Auto Clear cache (>14 days)" type="action" action="RunScript(script.extendedinfo,info=auto_clean_cache)"/>
@@ -32,6 +33,7 @@
     <category label="Trakt Collection Library Options">
 		<setting label="TMDBHelper Trakt Authentication" type="action" action="RunScript(plugin.video.themoviedb.helper,authenticate_trakt)"/>
 		<setting label="Trakt/Kodi Collection mode" type="select" values="Trakt and Kodi|Trakt Only" id="trakt_kodi_mode" default="Trakt and Kodi"/>
+        <setting label="Auto Add Trakt Calendar items to collection" type="bool" id="trakt_calendar_auto_sync" default="false"/>
         <setting label="Auto Sync Trakt Collection to library" type="bool" id="library_auto_sync" default="false"/>
 		<setting label="Library Sync Period (hours - default = 8)" type="number" id="library_sync_hours" default="8"/>
 		<setting label="Root folder for ./Movies + ./TVShows STRM files with tmdb.nfo" type="lsep"/>
@@ -45,7 +47,7 @@
 	<category label="Trakt/IMDB Custom Userlists JSON Location">
 		<setting label="Info Screens Recommendations Mode" type="select" values="TMDB Only|IMDB Only|TMDB then IMDB|IMDB then TMDB|IMDB + TMDB Sorted by Popularity" id="imdb_recommendations" default="TMDB Only"/>
 		<setting label="Auto Load Plugin Route ENABLE" type="bool" id="auto_plugin_route_enable" default="false"/>
-		<setting label="Auto Load Plugin Route (use plugin://...)" id="auto_plugin_route" type="text" default="plugin://script.extendedinfo/?info=trakt_watched&trakt_type=tv"/>
+		<setting label="Auto Load Plugin Route (use plugin://...)" id="auto_plugin_route" type="text" default="script.extendedinfo,info=trakt_watched,trakt_type=tv"/>
         <setting label="Enable IMDB Plugin Screen Items" type="bool" id="imdb_plugin_list" default="true"/>
         <setting label="Enable Trakt Plugin Screen Items" type="bool" id="trakt_plugin_list" default="true"/>
         <setting label="Enable User Lists Plugin Screen Items" type="bool" id="userlists_plugin_list" default="false"/>
@@ -67,11 +69,12 @@
 		<setting label="RD => https://real-debrid.com/apitoken" type="lsep"/>
 		<setting label="RD API Token" type="text" id="RD_api" default="" />
 		<setting label="RD Player Enable" type="bool" id="RD_player" default="false" />
-		<setting label="RD Bluray Player (Direct) enable" type="bool" id="RD_bluray_player" default="false" />
-		<setting label="RD Bluray Player (Menu) enable" type="bool" id="RD_bluray_player2" default="false" />
+		<setting label="Bluray Player (Direct) enable" type="bool" id="RD_bluray_player" default="false" />
+		<setting label="Bluray Player (Menu) enable" type="bool" id="RD_bluray_player2" default="false" />
 		<setting label="Bluray path? (/media,/storage,d:/???)" type="lsep"/>
 		<setting label="BLURAY_DVD_PATH" type="text" id="bluray_dvd_path" default="/media" />
 		<setting label="SETUP TMDBHelper Players" type="action" action="RunScript(script.extendedinfo,info=setup_players)"/>
+		<setting label="RD Player Seren Prescrape fallback" type="bool" id="rd_seren_prescrape" default="false" />
 		<setting id="last_played_tmdb_helper"           type="text"   default="false" visible="false"/>
 	</category>
 

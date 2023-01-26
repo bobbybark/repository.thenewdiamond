@@ -19,6 +19,8 @@ class DialogBaseInfo(object):
 		self.bouncing = False
 		self.data = None
 		self.yt_listitems = []
+		self.total_items = 0
+		self.position = 0
 		self.info = {}
 
 	def onInit(self, *args, **kwargs):
@@ -35,16 +37,38 @@ class DialogBaseInfo(object):
 		except: clearlogo = ''
 		xbmcgui.Window(self.window_id).setProperty('movie.logo', str(clearlogo))
 		#xbmcgui.Window(10000).setProperty('movie.tmdbid', str(self.info['tmdb_id']))
-
 		xbmcgui.Window(10000).setProperty(str(addon_ID_short())+'_fanart', self.info.get('fanart', ''))
+		xbmc.sleep(500)
+
+
+	@ch.action('left', '*')
+	@ch.action('right', '*')
+	@ch.action('up', '*')
+	@ch.action('down', '*')
+	def save_position(self):
+		try: self.position = self.getControl(self.focus_id).getSelectedPosition()
+		except: self.position = xbmc.getInfoLabel("Container.Position")
+		xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
+		try:
+			int_test = int(self.position)
+			xbmcgui.Window(10000).setProperty('position', str(self.position))
+		except:
+			self.position = 'No Position'
+			xbmcgui.Window(10000).setProperty('position', str('No Position'))
 
 	def onAction(self, action):
+		xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
+		xbmcgui.Window(10000).setProperty('position', str(self.position))
 		ch.serve_action(action, self.getFocusId(), self)
 
 	def onClick(self, control_id):
+		xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
+		xbmcgui.Window(10000).setProperty('position', str(self.position))
 		ch.serve(control_id, self)
 
 	def onFocus(self, control_id):
+		self.focus_id = self.getFocusId()
+		self.save_position()
 		if control_id == 20000:
 			if not self.bouncing:
 				self.bounce('up')
@@ -75,6 +99,27 @@ class DialogBaseInfo(object):
 				self.getControl(container_id).addItems(Utils.create_listitems(listitems,preload_images=0, enable_clearlogo=False, info=self.info))
 			#except:
 			#	Utils.log('Notice: No container with id %i available' % container_id)
+		xbmc.sleep(100)
+		self.focus_id = xbmcgui.Window(10000).getProperty('focus_id')
+		self.position = xbmcgui.Window(10000).getProperty('position')
+		pop_stack_focus_id = xbmcgui.Window(10000).getProperty('pop_stack_focus_id')
+		pop_stack_position = xbmcgui.Window(10000).getProperty('pop_stack_position')
+		##xbmc.log(str(self.focus_id)+'focus_id_fill_lists===>OPENINFO', level=xbmc.LOGINFO)
+		##xbmc.log(str(self.position)+'position_fill_lists===>OPENINFO', level=xbmc.LOGINFO)
+		##xbmc.log(str(pop_stack_focus_id)+'pop_stack_focus_id_fill_lists===>OPENINFO', level=xbmc.LOGINFO)
+		##xbmc.log(str(pop_stack_position)+'pop_stack_position_fill_lists===>OPENINFO', level=xbmc.LOGINFO)
+		if pop_stack_focus_id != 500:
+			self.focus_id = pop_stack_focus_id
+			self.position = pop_stack_position
+		try: focus_id_int = int(self.focus_id)
+		except: focus_id_int = 0
+		if str(self.focus_id) != '':
+			xbmc.sleep(100)
+			##xbmc.log(str(self.focus_id)+'focus_id_fill_lists===>OPENINFO', level=xbmc.LOGINFO)
+			##xbmc.log(str(self.position)+'position_fill_lists===>OPENINFO', level=xbmc.LOGINFO)
+			self.setFocusId(int(self.focus_id))
+			if str(self.position) != 'No position':
+				xbmc.executebuiltin('Control.SetFocus(%s,%s)' % (self.focus_id,self.position))
 
 	@ch.click(1250)
 	@ch.click(1350)
@@ -111,7 +156,6 @@ class DialogBaseInfo(object):
 	#@ch.action('back', '*')
 	def previous_menu(self):
 		import sys
-		#xbmc.log(str(sys.argv)+'===>OPENINFO', level=xbmc.LOGINFO)
 		if 'script=false' in str(sys.argv).lower() or 'diamondinfo' in str(sys.argv) or 'extendedinfo' in str(sys.argv) or 'extendedactorinfo' in str(sys.argv) or 'extendedtvinfo' in str(sys.argv) or 'seasoninfo' in str(sys.argv) or 'extendedepisodeinfo' in str(sys.argv):
 			window_stack_enable2 = False
 			if 'script=true' in str(sys.argv).lower() or 'reopen_window' in str(sys.argv).lower() :
@@ -133,7 +177,7 @@ class DialogBaseInfo(object):
 		if onback:
 			xbmc.executebuiltin(onback)
 		else:
-			self.close()
+			#self.close()
 			self.close()
 			wm.pop_stack()
 

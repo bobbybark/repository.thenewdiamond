@@ -1,13 +1,18 @@
-import xbmc, xbmcgui, xbmcaddon
+import xbmc, xbmcgui, xbmcaddon, xbmcvfs
 from resources.lib import Utils
 from resources.lib.WindowManager import wm
 from resources.lib.OnClickHandler import OnClickHandler
 from resources.lib.library import addon_ID
 from resources.lib.library import addon_ID_short
 
-import urllib
+import os
+import sqlite3
+from urllib.parse import urlencode, quote_plus, unquote, unquote_plus
 
 ch = OnClickHandler()
+
+from inspect import currentframe, getframeinfo
+#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 
 class DialogBaseList(object):
 
@@ -18,16 +23,21 @@ class DialogBaseList(object):
 		self.filter_label = kwargs.get('filter_label', '')
 		self.mode = kwargs.get('mode', 'filter')
 		self.filters = kwargs.get('filters', [])
+		self.list_id = kwargs.get('list_id', False)
 		self.color = kwargs.get('color', 'FFAAAAAA')
+		self.media_type = kwargs.get('media_type', 'tv')
 		self.page = 1
 		self.column = None
 		self.last_position = 0
 		self.total_pages = 1
 		self.total_items = 0
 		self.position = 0
+		self.window_stack_len2 = 0
 		self.page_token = ''
 		self.next_page_token = ''
 		self.prev_page_token = ''
+
+		#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 
 	def onInit(self):
 		super(DialogBaseList, self).onInit()
@@ -37,11 +47,19 @@ class DialogBaseList(object):
 		self.setProperty('WindowColor', self.color)
 		if xbmcaddon.Addon().getSetting('alt_browser_layout') == 'true':
 			self.setProperty('alt_layout', 'true')
+
 		self.update_ui()
 		xbmc.sleep(100)
-		if self.total_items > 0 and self.position == 0:
+		#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
+
+		if self.total_items > 0 and self.position == 0 and xbmcgui.Window(10000).getProperty(str(addon_ID_short())+'_running') == 'True':
 			self.setFocusId(500)
-			self.setCurrentListPosition(self.last_position)
+			self.focus_id = xbmcgui.Window(10000).getProperty('focus_id')
+			self.position = xbmcgui.Window(10000).getProperty('position')
+			##xbmc.log(str(self.focus_id)+'BASE_LIST_focus_id===>OPENINFO', level=xbmc.LOGINFO)
+			##xbmc.log(str(self.position)+'BASE_LIST_position===>OPENINFO', level=xbmc.LOGINFO)
+			xbmc.executebuiltin('Control.SetFocus(%s,%s)' % (self.focus_id,self.position))
+			#self.setCurrentListPosition(int(self.position))
 			self.position == self.last_position
 		elif self.total_items == 0:
 			self.setFocusId(6000)
@@ -69,6 +87,13 @@ class DialogBaseList(object):
 			Utils.hide_busy()
 			return
 		onback = self.getProperty('%i_onback' % self.control_id)
+		if self.window_stack_len2 > 0:
+			onback = None
+			self.window_stack_len2 = self.window_stack_len2 - 1
+			xbmcgui.Window(10000).setProperty('diamond_info_started','True')
+			self.close()
+			self.pop_window_stack_table()
+			return
 		if onback:
 			xbmc.executebuiltin(onback)
 		else:
@@ -86,11 +111,17 @@ class DialogBaseList(object):
 	@ch.action('down', '*')
 	def save_position(self):
 		self.position = self.getControl(500).getSelectedPosition()
+		xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
+		xbmcgui.Window(10000).setProperty('position', str(self.position))
 
 	def onAction(self, action):
+		xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
+		xbmcgui.Window(10000).setProperty('position', str(self.position))
 		ch.serve_action(action, self.getFocusId(), self)
 
 	def onFocus(self, control_id):
+		self.focus_id = self.getFocusId()
+		self.save_position()
 		old_page = self.page
 		if control_id == 600:
 			self.go_to_next_page()
@@ -98,6 +129,11 @@ class DialogBaseList(object):
 			self.go_to_prev_page()
 		if self.page != old_page:
 			self.update()
+
+	def onClick(self, control_id):
+		xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
+		xbmcgui.Window(10000).setProperty('position', str(self.position))
+		ch.serve(control_id, self)
 
 	@ch.click(5005)
 	def reset_filters(self):
@@ -131,8 +167,15 @@ class DialogBaseList(object):
 		result = xbmcgui.Dialog().input(heading='Enter search string', type=xbmcgui.INPUT_ALPHANUM)
 		if result and len(result) > -1:
 			from resources.lib.WindowManager import wm
-			self.close()
-			wm.open_youtube_list(search_str=result)
+			#self.append_window_stack_table('curr_window')
+			self.prev_window = self.curr_window 
+			#self.curr_window = {'function': 'open_youtube_list', 'params': {'search_str': result, 'filters': self.filters, 'filter_label': self.filter_label, 'media_type': self.media_type}}
+			self.curr_window = {'function': 'open_youtube_list', 'params': {'listitems': self.listitems2, 'filters': self.filters, 'mode': self.mode, 'list_id': self.list_id, 'filter_label': self.filter_label, 'media_type': self.media_type, 'search_str': result, 'page': self.page, 'total_pages': self.total_pages, 'total_items': self.total_items, 'type': self.type, 'filter_url': self.filter_url, 'order': self.order, 'filter': self.filter }}
+			if wm.pop_video_list == False:
+				wm.update_windows(curr_window=self.curr_window, prev_window=self.prev_window)
+			else:
+				wm.pop_video_list = False
+			wm.open_youtube_list(prev_window=self, search_str=result, curr_window=self.prev_window)
 			#xbmc.executebuiltin('RunScript(%s,info=youtube,search_str=%s)' % (addon_ID(), result))
 			try: self.close()
 			except: pass
@@ -145,9 +188,6 @@ class DialogBaseList(object):
 		if self.total_items > 0:
 			self.setFocusId(500)
 		Utils.hide_busy()
-
-	def onClick(self, control_id):
-		ch.serve(control_id, self)
 
 	def search(self, label):
 		if not label:
@@ -180,21 +220,24 @@ class DialogBaseList(object):
 
 	def update_content(self, force_update=False):
 		data = self.fetch_data(force=force_update)
-
+		#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 		if not data:
 			return None
 		self.listitems = data.get('listitems', [])
+		self.listitems2 = self.listitems
 		self.total_pages = data.get('results_per_page', '')
 		self.total_items = data.get('total_results', '')
 		self.next_page_token = data.get('next_page_token', '')
 		self.prev_page_token = data.get('prev_page_token', '')
-		#xbmc.log(str('update_content')+'===>OPENINFO', level=xbmc.LOGINFO)
+
 		if Utils.NETFLIX_VIEW == 'true':
 			self.listitems = Utils.create_listitems(self.listitems,preload_images=0, enable_clearlogo=True, info=None)
 		else:
 			self.listitems = Utils.create_listitems(self.listitems,preload_images=0, enable_clearlogo=False, info=None)
 
 	def update_ui(self):
+
+		#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 		try: self.position = int(xbmc.getInfoLabel('Container(500).CurrentItem'))-1
 		except: self.position = 0
 		if self.position > 1:
@@ -224,11 +267,174 @@ class DialogBaseList(object):
 			self.setProperty('Order_Label', 'Ascending')
 		else:
 			self.setProperty('Order_Label', 'Descending')
+		if 'youtubevideo' in str(self.listitems2):
+			function = 'open_youtube_list'
+		else:
+			function = 'open_video_list'
+		self.curr_window = {'function': function, 'params': {'listitems': self.listitems2, 'filters': self.filters, 'mode': self.mode, 'list_id': self.list_id, 'filter_label': self.filter_label, 'media_type': self.media_type, 'search_str': self.search_str, 'page': self.page, 'total_pages': self.total_pages, 'total_items': self.total_items, 'type': self.type, 'filter_url': self.filter_url, 'order': self.order, 'filter': self.filter }}
+		#if wm.pop_video_list == False:
+		#	wm.update_windows(curr_window=self.curr_window, prev_window=self.prev_window)
+		#else:
+		#	wm.pop_video_list = False
+		wm.update_windows(curr_window=self.curr_window, prev_window=self.prev_window)
+		#xbmc.log(str(self.curr_window['params']['mode'])+'BASE_LIST_update_ui===>OPENINFO', level=xbmc.LOGINFO)
+		#xbmc.log(str(self.curr_window['params']['type'])+'BASE_LIST_update_ui===>OPENINFO', level=xbmc.LOGINFO)
+
+	def pop_window_stack_table(self):
+		xbmc.log(str('BASE_LIST')+'pop_window_stack_table_BASE_LIST===>OPENINFO', level=xbmc.LOGINFO)
+		if xbmc.Player().isPlayingVideo()==1 or xbmc.getCondVisibility('Window.IsActive(12005)'):
+			return
+		con = self.window_stack_connection()
+		cur = con.cursor()
+
+		sql_result = """
+		select * from window_stack 
+		order by inc_id desc limit 1
+		"""
+		sql_result = cur.execute(sql_result).fetchall()
+
+
+
+		if len(sql_result) == 0:
+			return
+		window = sql_result[0][1]
+		window_number = int(sql_result[0][0])
+		window = '{' + unquote_plus(window).replace('function=',"'function': '").replace('&params=',"', 'params': ") + '}'
+		window = eval(window)
+		self.curr_window = window
+		wm.update_windows(curr_window=self.curr_window, prev_window=self.prev_window)
+		wm.pop_video_list = True
+
+		sql_result = """
+		DELETE FROM window_stack
+		WHERE inc_id = '%s';
+		""" % int(window_number)
+		sql_result = cur.execute(sql_result).fetchall()
+		con.commit()
+
+		sql_result = """
+		delete from sqlite_sequence where name='window_stack';
+		"""
+		sql_result = cur.execute(sql_result).fetchall()
+		con.commit()
+		
+		#sql_result = """
+		#select * from window_stack 
+		#"""
+		#sql_result = cur.execute(sql_result).fetchall()
+		self.window_stack_len2 = self.window_stack_len2 - 1
+
+		cur.close()
+		#print(window_number, window['function'], window['params'])
+		self.focus_id = self.curr_window['params']['focus_id']
+		self.position = self.curr_window['params']['position']
+		xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
+		xbmcgui.Window(10000).setProperty('position', str(self.position))
+		xbmcgui.Window(10000).setProperty('pop_stack_focus_id', str(self.focus_id))
+		xbmcgui.Window(10000).setProperty('pop_stack_position', str(self.position))
+
+		#xbmc.log(str(self.curr_window['params']['mode'])+'BASE_LIST_pop_window_stack_table===>OPENINFO', level=xbmc.LOGINFO)
+		#xbmc.log(str(self.curr_window['params']['type'])+'BASE_LIST_pop_window_stack_table===>OPENINFO', level=xbmc.LOGINFO)
+		##xbmc.log(str(self.focus_id)+'focus_id===POP_STACK===>OPENINFO', level=xbmc.LOGINFO)
+		##xbmc.log(str(self.position)+'position===POP_STACK===>OPENINFO', level=xbmc.LOGINFO)
+		##xbmc.log(str(window)+'BASE_LIST===POP_STACK===>OPENINFO', level=xbmc.LOGINFO)
+
+		if window['function'] == 'open_movie_info':
+			wm.open_movie_info(movie_id=window['params']['movie_id'],dbid=window['params']['dbid'],name=window['params']['name'],imdb_id=window['params']['imdb_id'])
+		elif window['function'] == 'open_tvshow_info':
+			wm.open_tvshow_info(tmdb_id=window['params']['tmdb_id'],dbid=window['params']['dbid'],tvdb_id=window['params']['tvdb_id'],imdb_id=window['params']['imdb_id'],name=window['params']['name'])
+		elif window['function'] == 'open_season_info':
+			wm.open_season_info(tvshow_id=window['params']['tvshow_id'],season=window['params']['season'],tvshow=window['params']['tvshow'],dbid=window['params']['dbid'])
+		elif window['function'] == 'open_episode_info':
+			wm.open_episode_info(tvshow_id=window['params']['tvshow_id'], tvdb_id=window['params']['tvdb_id'],season=window['params']['season'],episode=window['params']['episode'],tvshow=window['params']['tvshow'],dbid=window['params']['dbid'])
+		elif window['function'] == 'open_actor_info':
+			wm.open_actor_info(actor_id=window['params']['actor_id'],name=window['params']['name'])
+		elif window['function'] == 'open_video_list':
+
+			self.focus_id = self.curr_window['params']['focus_id']
+			self.position = self.curr_window['params']['position']
+			if str(self.focus_id) != '500':
+				self.focus_id = '500'
+				self.position = '0'
+			xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
+			xbmcgui.Window(10000).setProperty('position', str(self.position))
+			xbmcgui.Window(10000).setProperty('pop_stack_focus_id', str(self.focus_id))
+			xbmcgui.Window(10000).setProperty('pop_stack_position', str(self.position))
+
+			wm.open_video_list(listitems=window['params']['listitems'],filters=window['params']['filters'],mode=window['params']['mode'],list_id=window['params']['list_id'],filter_label=window['params']['filter_label'],media_type=window['params']['media_type'],search_str=window['params']['search_str'])
+		elif window['function'] == 'open_youtube_list':
+			wm.open_youtube_list(search_str=window['params']['search_str'],filters=window['params']['filters'],filter_label=window['params']['filter_label'],media_type=window['params']['media_type'])
+		return con
+
+	def window_stack_connection(self):
+		window_stack = str(xbmcvfs.translatePath("special://profile/addon_data/"+addon_ID()+ '/window_stack.db'))
+		if not os.path.exists(window_stack):
+			create_window_stack = True
+		else:
+			create_window_stack = False
+
+		con = sqlite3.connect(window_stack)
+		cur = con.cursor()
+
+		if create_window_stack:
+			sql_result = cur.execute("""
+			CREATE TABLE window_stack (
+				inc_id INTEGER PRIMARY KEY AUTOINCREMENT,
+				window VARCHAR NOT NULL
+			);
+			""").fetchall()
+			con.commit()
+
+		return con
+
+	def append_window_stack_table(self, mode=None):
+		con = self.window_stack_connection()
+		cur = con.cursor()
+		if mode == 'curr_window':
+			self.prev_window = self.curr_window
+
+		self.focus_id = xbmcgui.Window(10000).getProperty('focus_id')
+		self.position = xbmcgui.Window(10000).getProperty('position')
+		self.prev_window['params']['focus_id'] = self.focus_id
+		self.prev_window['params']['position'] = self.position
+		window = urlencode(self.prev_window)
+		sql_result = """
+		INSERT INTO window_stack (window)
+		VALUES( '%s');
+		""" % (window)
+		sql_result = cur.execute(sql_result).fetchall()
+
+		con.commit()
+		cur.close()
+		self.window_stack_len2 = self.window_stack_len2 + 1
+		#try:
+		#	self.last_control = xbmc.getInfoLabel('System.CurrentControlId').decode('utf-8')
+		#except:
+		#	self.last_control = xbmc.getInfoLabel('System.CurrentControlId')
+		#if mode == 'curr_window':
+		#	#xbmc.executebuiltin('Dialog.Close(all)')
+		#	xbmc.executebuiltin('Dialog.Close(all,true)')
+
+		#xbmc.log(str('BASE_LIST')+'append_window_stack_table_BASE_LIST===>OPENINFO', level=xbmc.LOGINFO)
+		#xbmc.log(str(mode)+'BASE_mode_append_window_stack_table_BASE_LIST===>OPENINFO', level=xbmc.LOGINFO)
+		return con
+
 
 	@Utils.busy_dialog
 	def update(self, force_update=False):
+		self.prev_window = self.curr_window
+		if self.page == 1:
+			self.append_window_stack_table('curr_window')
+		else:
+			if wm.pop_video_list == False:
+				wm.update_windows(curr_window=self.curr_window, prev_window=self.prev_window)
+			else:
+				wm.pop_video_list = False
+
 		self.update_content(force_update=force_update)
 		self.update_ui()
+		self.curr_window = {'function': 'open_video_list', 'params': {'listitems': self.listitems2, 'filters': self.filters, 'mode': self.mode, 'list_id': self.list_id, 'filter_label': self.filter_label, 'media_type': self.media_type, 'search_str': self.search_str, 'page': self.page, 'total_pages': self.total_pages, 'total_items': self.total_items ,'type': self.type, 'filter_url': self.filter_url, 'order': self.order, 'filter': self.filter}}
+
 
 	def get_column(self):
 		for i in range(0, 10):
@@ -256,14 +462,14 @@ class DialogBaseList(object):
 			self.filters.append(new_filter)
 			return None
 		if force_overwrite:
-			self.filters[index]['id'] = urllib.parse.quote_plus(str(value))
+			self.filters[index]['id'] = quote_plus(str(value))
 			self.filters[index]['label'] = str(label)
 			return None
 		dialog = xbmcgui.Dialog()
 		ret = dialog.yesno(heading='Filter', message='Choose filter behaviour', nolabel='OR', yeslabel='AND')
 		if ret:
-			self.filters[index]['id'] = str(self.filters[index]['id']) + ',' + urllib.parse.quote_plus(str(value))
+			self.filters[index]['id'] = str(self.filters[index]['id']) + ',' + quote_plus(str(value))
 			self.filters[index]['label'] = self.filters[index]['label'] + ',' + label
 		else:
-			self.filters[index]['id'] = str(self.filters[index]['id']) + '|' + urllib.parse.quote_plus(str(value))
+			self.filters[index]['id'] = str(self.filters[index]['id']) + '|' + quote_plus(str(value))
 			self.filters[index]['label'] = self.filters[index]['label'] + '|' + label

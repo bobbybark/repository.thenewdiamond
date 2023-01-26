@@ -133,6 +133,7 @@ def get_season_window(window_type):
 			Utils.hide_busy()
 			if selection == 0:
 				url = 'plugin://plugin.video.themoviedb.helper?info=play&amp;tmdb_id=%s&amp;type=episode&amp;season=%s&amp;episode=%s' % (self.tvshow_id, self.listitem.getProperty('season'), episode_id)
+				xbmc.executebuiltin('Dialog.Close(all,true)')
 				PLAYER.play_from_button(url, listitem=None, window=self)
 			if selection == 1:
 				wm.open_tvshow_info(prev_window=self, tmdb_id=self.tvshow_id, dbid=0)
@@ -143,6 +144,7 @@ def get_season_window(window_type):
 		def play_episode(self):
 			episode_id = self.listitem.getProperty('episode')
 			url = 'plugin://plugin.video.themoviedb.helper?info=play&amp;tmdb_id=%s&amp;type=episode&amp;season=%s&amp;episode=%s' % (self.tvshow_id, self.listitem.getProperty('season'), episode_id)
+			xbmc.executebuiltin('Dialog.Close(all,true)')
 			PLAYER.play_from_button(url, listitem=None, window=self)
 
 		@ch.click(10)

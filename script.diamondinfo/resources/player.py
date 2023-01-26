@@ -1,6 +1,7 @@
 import xbmc
 import xbmcaddon
 import xbmcgui
+import sys
 
 #PlayerDialogs().display_dialog()
 

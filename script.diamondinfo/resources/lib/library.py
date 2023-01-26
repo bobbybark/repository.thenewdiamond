@@ -688,7 +688,7 @@ def next_episode_show3(tmdb_id_num=None,dbid_num=None):
     tmdb_id=tmdb_id_num
     regex = re.compile('[^0-9a-zA-Z]')
 
-    con = sqlite3.connect('/home/osmc/.kodi/userdata/Database/MyVideos119.db')
+    con = sqlite3.connect(db_path())
     cur = con.cursor()
 
     temp_show_id = temp_dbid
@@ -724,7 +724,7 @@ def next_episode_show(tmdb_id_num=None,dbid_num=None):
     tmdb_id=tmdb_id_num
     regex = re.compile('[^0-9a-zA-Z]')
 
-    con = sqlite3.connect('/home/osmc/.kodi/userdata/Database/MyVideos119.db')
+    con = sqlite3.connect(db_path())
     cur = con.cursor()
 
     temp_show_id = temp_dbid

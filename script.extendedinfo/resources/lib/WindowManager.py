@@ -1,5 +1,5 @@
 import re, urllib.request, urllib.parse, urllib.error
-import xbmc, xbmcgui, xbmcaddon
+import xbmc, xbmcgui, xbmcaddon, xbmcvfs
 from resources.lib import Utils
 import sys
 import gc
@@ -7,6 +7,12 @@ import importlib
 import json
 from resources.lib.library import addon_ID
 from resources.lib.library import addon_ID_short
+
+import time
+import sqlite3
+
+import os
+from urllib.parse import urlencode, quote_plus, unquote, unquote_plus
 
 global dialog
 dialog = None
@@ -21,6 +27,20 @@ class WindowManager(object):
         self.reopen_window = False
         self.last_control = None
         self.active_dialog = None
+        self.curr_window = None
+        self.prev_window = None
+        self.pop_video_list = False
+        self.page = None
+        self.total_items = None
+        self.total_pages = None
+        self.filter_url = None
+        self.order = None
+        self.type = None
+        self.filter = None
+        try: self.window_stack_len = self.window_stack_len
+        except: self.window_stack_len = 0
+        self.focus_id = None
+        self.position = None
         osAndroid = xbmc.getCondVisibility('system.platform.android')
         if osAndroid:
             self.osAndroid_path = '-android'
@@ -29,9 +49,221 @@ class WindowManager(object):
     if 'estuary' in str(Utils.SKIN_DIR):
              Utils.SKIN_DIR = 'skin.estuary'
 
-    def add_to_stack(self, window):
+
+    def window_stack_connection(self):
+        window_stack = str(xbmcvfs.translatePath("special://profile/addon_data/"+addon_ID()+ '/window_stack.db'))
+        if not os.path.exists(window_stack):
+            create_window_stack = True
+        else:
+            create_window_stack = False
+
+        con = sqlite3.connect(window_stack)
+        cur = con.cursor()
+
+        if create_window_stack:
+            sql_result = cur.execute("""
+            CREATE TABLE window_stack (
+                inc_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                window VARCHAR NOT NULL
+            );
+            """).fetchall()
+            con.commit()
+
+        return con
+
+    def window_stack_empty(self):
+        self.window_stack_length()
+        con = self.window_stack_connection()
+        cur = con.cursor()
+        sql_result = """
+        DELETE FROM window_stack;
+        """
+        sql_result = cur.execute(sql_result).fetchall()
+        con.commit()
+        self.window_stack_len = 0
+        cur.close()
+        con.close()
+        xbmcgui.Window(10000).clearProperty('focus_id')
+        xbmcgui.Window(10000).clearProperty('position')
+        xbmcgui.Window(10000).clearProperty('pop_stack_focus_id')
+        xbmcgui.Window(10000).clearProperty('pop_stack_position')
+        return
+
+    def window_stack_length(self):
+        con = self.window_stack_connection()
+        cur = con.cursor()
+        sql_result = """
+        select * from window_stack 
+        """
+        sql_result = cur.execute(sql_result).fetchall()
+        self.window_stack_len = len(sql_result)
+        diamond_info_started = xbmcgui.Window(10000).getProperty('diamond_info_started')
+        if diamond_info_started != 'True':
+            self.window_stack_len = 0
+        cur.close()
+        con.close()
+        return
+
+    def update_windows(self, curr_window, prev_window):
+        self.curr_window = curr_window
+        self.prev_window = prev_window
+        self.page = curr_window['params']['page']
+        self.total_pages = curr_window['params']['total_pages']
+        self.total_items = curr_window['params']['total_items']
+        self.type = wm.curr_window['params']['type']
+        self.order = wm.curr_window['params']['order']
+        self.filter_url = wm.curr_window['params']['filter_url']
+        self.filter = wm.curr_window['params']['filter']
+        self.mode = wm.curr_window['params']['mode']
+        self.filter_label =wm.curr_window['params']['filter_label']
+        self.list_id = wm.curr_window['params']['list_id']
+        self.media_type = wm.curr_window['params']['media_type']
+        self.filters = wm.curr_window['params']['filters']
+        return
+
+    def append_window_stack_table(self, mode=None):
+        #try:
+        #    container = xbmc.getInfoLabel('System.CurrentControlId')
+        #    position = int(xbmc.getInfoLabel('Container('+str(container)+').CurrentItem'))-1
+        #    xbmc.log(str(container)+'container===>OPENINFO', level=xbmc.LOGINFO)
+        #    xbmc.log(str(position)+'position===>OPENINFO', level=xbmc.LOGINFO)
+        #except:
+        #    pass
+        #window_id = xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"GUI.GetProperties","params":{"properties":["currentwindow", "currentcontrol"]},"id":1}')
+        #window_id = json.loads(window_id)
+        #xbmc.log(str(window_id)+'window_id===>OPENINFO', level=xbmc.LOGINFO)
+        #xbmc.log(str(self.last_control)+'self.last_control===>OPENINFO', level=xbmc.LOGINFO)
+
+        con = self.window_stack_connection()
+        cur = con.cursor()
+        if mode == 'curr_window':
+            self.prev_window = self.curr_window
+
+        self.focus_id = xbmcgui.Window(10000).getProperty('focus_id')
+        self.position = xbmcgui.Window(10000).getProperty('position')
+        self.prev_window['params']['focus_id'] = self.focus_id
+        self.prev_window['params']['position'] = self.position
+
+        #fetch_data_dict_read = self.fetch_data_dict_check()
+        #if self.prev_window['params']['search_str'] != fetch_data_dict_read['self.search_str']:
+        #    self.prev_window['params']['search_str'] = fetch_data_dict_read['self.search_str']
+        #    self.prev_window['params']['mode'] = fetch_data_dict_read['self.mode']
+        #    self.prev_window['params']['filter_label'] = fetch_data_dict_read['self.filter_label']
+
+        window = urlencode(self.prev_window)
+        sql_result = """
+        INSERT INTO window_stack (window)
+        VALUES( '%s');
+        """ % (window)
+        sql_result = cur.execute(sql_result).fetchall()
+
+        con.commit()
+        cur.close()
+        self.window_stack_len = self.window_stack_len + 1
+        try:
+            self.last_control = xbmc.getInfoLabel('System.CurrentControlId').decode('utf-8')
+        except:
+            self.last_control = xbmc.getInfoLabel('System.CurrentControlId')
+        if mode == 'curr_window':
+            #xbmc.executebuiltin('Dialog.Close(all)')
+            xbmc.executebuiltin('Dialog.Close(all,true)')
+        #xbmc.log(str('WM')+'append_window_stack_table===>OPENINFO', level=xbmc.LOGINFO)
+        #xbmc.log(str(self.prev_window['params']['page'])+'append_window_stack_table===>OPENINFO', level=xbmc.LOGINFO)
+        return con
+
+    def pop_window_stack_table(self):
+        con = self.window_stack_connection()
+        cur = con.cursor()
+
+        sql_result = """
+        select * from window_stack 
+        order by inc_id desc limit 1
+        """
+        sql_result = cur.execute(sql_result).fetchall()
+
+
+        if len(sql_result) == 0:
+            return
+        window = sql_result[0][1]
+        window_number = int(sql_result[0][0])
+        window = '{' + unquote_plus(window).replace('function=',"'function': '").replace('&params=',"', 'params': ") + '}'
+        window = eval(window)
+        self.curr_window = window
+
+        sql_result = """
+        DELETE FROM window_stack
+        WHERE inc_id = '%s';
+        """ % int(window_number)
+        sql_result = cur.execute(sql_result).fetchall()
+        con.commit()
+
+        sql_result = """
+        delete from sqlite_sequence where name='window_stack';
+        """
+        sql_result = cur.execute(sql_result).fetchall()
+        con.commit()
+        
+        #sql_result = """
+        #select * from window_stack 
+        #"""
+        #sql_result = cur.execute(sql_result).fetchall()
+        self.window_stack_len = self.window_stack_len - 1
+
+        cur.close()
+        con.close()
+        #print(window_number, window['function'], window['params'])
+        self.focus_id = self.curr_window['params']['focus_id']
+        self.position = self.curr_window['params']['position']
+        xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
+        xbmcgui.Window(10000).setProperty('position', str(self.position))
+        xbmcgui.Window(10000).setProperty('pop_stack_focus_id', str(self.focus_id))
+        xbmcgui.Window(10000).setProperty('pop_stack_position', str(self.position))
+
+        ##xbmc.log(str(self.focus_id)+'focus_id===POP_STACK===>OPENINFO', level=xbmc.LOGINFO)
+        ##xbmc.log(str(self.position)+'position===POP_STACK===>OPENINFO', level=xbmc.LOGINFO)
+        #xbmc.log(str(window)+'pop_window_stack_table===POP_STACK===>OPENINFO', level=xbmc.LOGINFO)
+        #xbmc.log(str('WM')+'pop_window_stack_table===POP_STACK===>OPENINFO', level=xbmc.LOGINFO)
+
+        if window['function'] == 'open_movie_info':
+            return self.open_movie_info(movie_id=window['params']['movie_id'],dbid=window['params']['dbid'],name=window['params']['name'],imdb_id=window['params']['imdb_id'])
+        elif window['function'] == 'open_tvshow_info':
+            return self.open_tvshow_info(tmdb_id=window['params']['tmdb_id'],dbid=window['params']['dbid'],tvdb_id=window['params']['tvdb_id'],imdb_id=window['params']['imdb_id'],name=window['params']['name'])
+        elif window['function'] == 'open_season_info':
+            return self.open_season_info(tvshow_id=window['params']['tvshow_id'],season=window['params']['season'],tvshow=window['params']['tvshow'],dbid=window['params']['dbid'])
+        elif window['function'] == 'open_episode_info':
+            return self.open_episode_info(tvshow_id=window['params']['tvshow_id'], tvdb_id=window['params']['tvdb_id'],season=window['params']['season'],episode=window['params']['episode'],tvshow=window['params']['tvshow'],dbid=window['params']['dbid'])
+        elif window['function'] == 'open_actor_info':
+            return self.open_actor_info(actor_id=window['params']['actor_id'],name=window['params']['name'])
+        elif window['function'] == 'open_video_list':
+            #fetch_data_dict_read = self.fetch_data_dict_check()
+            #if window['params']['search_str'] != fetch_data_dict_read['self.search_str']:
+            #    window['params']['search_str'] = fetch_data_dict_read['self.search_str']
+            #    window['params']['mode'] = fetch_data_dict_read['self.mode']
+            #    window['params']['filter_label'] = fetch_data_dict_read['self.filter_label']
+            #xbmc.log(str(self.curr_window['params']['page'])+'pop_window_stack_table===self.curr_window[params][page]===>OPENINFO', level=xbmc.LOGINFO)
+            self.pop_video_list = True
+            return self.open_video_list(listitems=window['params']['listitems'],filters=window['params']['filters'],mode=window['params']['mode'],list_id=window['params']['list_id'],filter_label=window['params']['filter_label'],media_type=window['params']['media_type'],search_str=window['params']['search_str'])
+        elif window['function'] == 'open_youtube_list':
+            return self.open_youtube_list(search_str=window['params']['search_str'],filters=window['params']['filters'],filter_label=window['params']['filter_label'],media_type=window['params']['media_type'])
+
+
+    #def fetch_data_dict_check(self):
+    #    fetch_data_dict_file = xbmcvfs.translatePath("special://profile/addon_data/"+addon_ID()+'/fetch_data_dict')
+    #    fetch_data_dict_file = open(fetch_data_dict_file, "r")
+    #    import ast
+    #    fetch_data_dict_read = ast.literal_eval(fetch_data_dict_file.read())
+    #    return fetch_data_dict_read
+
+    def add_to_stack(self, window, mode=None):
+        import xbmc
         if Utils.window_stack_enable == 'true':
-            self.window_stack.append(window)
+            #self.window_stack.append(window)
+            xbmc.executebuiltin('Dialog.Close(all,true)')
+            con = self.append_window_stack_table(mode)
+            self.window_stack_length()
+            #self.focus_id = window.getFocusId()
+            #self.position = window.control.getSelectedPosition()
+            con.close()
         if Utils.window_stack_enable == 'false':
             try: window_stack = []
             except: pass
@@ -57,59 +289,28 @@ class WindowManager(object):
                 pass
             return
 
-    #def global_dialog(self):
-    #    global dialog
-    #    return dialog
-
-    def close_stack(self, window):
-        window.close()
-        try:
-            self.active_dialog.close()
-        except:
-            pass
-        self.reopen_window = False
-        self.last_control = None
-        self.active_dialog = None
-        try: window = None
-        except: pass
-        try: del window
-        except: pass
-        self.window_stack = []
-        gc.collect()
-        try:
-            for k,v in sys.modules.items():
-                if k.startswith('xbmc'):
-                    importlib.reload(v)
-            import xbmc, xbmcgui, xbmcaddon
-        except:
-            pass
-        try: del self.active_dialog
-        except: pass
-        gc.collect()
-        return
-
-    def pop_stack2(self, window):
-        self.active_dialog = window
-        window = None
-        try: del window
-        except: pass
-        gc.collect()
-        self.active_dialog.doModal()
-        try: del self.active_dialog
-        except: pass
-        gc.collect()
-        #if self.last_control:
-        #    xbmc.sleep(100)
-        #    xbmc.executebuiltin('SetFocus(%s)' % self.last_control)
-        #return
-
-
     def pop_stack(self):
+        xbmc.log(str('wm_pop_stack')+'wm_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+        if xbmc.Player().isPlaying() or xbmc.getCondVisibility('Window.IsActive(12005)'):
+            return
         xbmcgui.Window(10000).setProperty(str(addon_ID_short())+'_running', 'True')
-        if self.window_stack and Utils.window_stack_enable == 'true':
-            self.active_dialog = self.window_stack.pop()
+        self.window_stack_length()
+        if (self.window_stack or self.window_stack_len > 0) and Utils.window_stack_enable == 'true':
+            #self.active_dialog = self.window_stack.pop()
+            self.pop_window_stack_table()
+            if self.last_control:
+                xbmc.sleep(100)
+                xbmc.executebuiltin('SetFocus(%s)' % self.last_control)
+            if self.focus_id and self.position:
+                xbmc.sleep(100)
+                xbmc.executebuiltin('Control.SetFocus(%s,%s)' % (self.focus_id, self.position))
+
+            try: window_stack = []
+            except: pass
+            try: self.window_stack = window_stack
+            except: pass
             xbmc.sleep(250)
-            self.active_dialog.doModal()
+            #self.active_dialog.doModal()
         elif self.reopen_window:
             xbmc.sleep(500)
             xbmc.executebuiltin('Action(Info)')
@@ -118,6 +319,12 @@ class WindowManager(object):
                 xbmc.executebuiltin('SetFocus(%s)' % self.last_control)
 
     def open_movie_info(self, prev_window=None, movie_id=None, dbid=None, name=None, imdb_id=None):
+        xbmc.executebuiltin('Dialog.Close(all,true)')
+        Utils.show_busy()
+        xbmcgui.Window(10000).setProperty('diamond_info_started', 'True')
+        self.prev_window = self.curr_window 
+        self.curr_window = {'function': 'open_movie_info', 'params': {'movie_id': movie_id, 'dbid': dbid, 'name': name, 'imdb_id': imdb_id}}
+
         #global dialog
         #dialog = None
         from resources.lib.library import addon_ID
@@ -140,15 +347,21 @@ class WindowManager(object):
             else:
                 dialog = movieclass(str(addon_ID())+'-DialogVideoInfo.xml', Utils.ADDON_PATH, id=movie_id, dbid=dbid)
         self.open_dialog(dialog, prev_window)
-        try: del dialog
-        except: pass
-        try: del movieclass
-        except: pass
-        try: del get_movie_window
-        except: pass
+        #try: del dialog
+        #except: pass
+        #try: del movieclass
+        #except: pass
+        #try: del get_movie_window
+        #except: pass
         gc.collect()
 
     def open_tvshow_info(self, prev_window=None, tmdb_id=None, dbid=None, tvdb_id=None, imdb_id=None, name=None):
+        xbmc.executebuiltin('Dialog.Close(all,true)')
+        Utils.show_busy()
+        xbmcgui.Window(10000).setProperty('diamond_info_started', 'True')
+        self.prev_window = self.curr_window 
+        self.curr_window = {'function': 'open_tvshow_info', 'params': {'tmdb_id': tmdb_id, 'dbid': dbid, 'tvdb_id': tvdb_id, 'imdb_id': imdb_id, 'name': name}}
+
         #global dialog
         #dialog = None
         from resources.lib.library import addon_ID
@@ -207,15 +420,21 @@ class WindowManager(object):
             else:
                 dialog = tvshow_class(str(addon_ID())+'-DialogVideoInfo.xml', Utils.ADDON_PATH, tmdb_id=tmdb_id, dbid=dbid)
         self.open_dialog(dialog, prev_window)
-        try: del dialog
-        except: pass
-        try: del tvshow_class
-        except: pass
-        try: del get_tvshow_window
-        except: pass
+        #try: del dialog
+        #except: pass
+        #try: del tvshow_class
+        #except: pass
+        #try: del get_tvshow_window
+        #except: pass
         gc.collect()
 
     def open_season_info(self, prev_window=None, tvshow_id=None, season=None, tvshow=None, dbid=None):
+        xbmc.executebuiltin('Dialog.Close(all,true)')
+        Utils.show_busy()
+        xbmcgui.Window(10000).setProperty('diamond_info_started', 'True')
+        self.prev_window = self.curr_window 
+        self.curr_window = {'function': 'open_season_info', 'params': {'tvshow_id': tvshow_id, 'season': season, 'tvshow': tvshow, 'dbid': dbid}}
+
         #global dialog
         #dialog = None
         from resources.lib.library import addon_ID
@@ -241,15 +460,21 @@ class WindowManager(object):
             else:
                 dialog = season_class(str(addon_ID())+'-DialogVideoInfo.xml', Utils.ADDON_PATH, tvshow_id=tvshow_id, season=season, dbid=dbid)
         self.open_dialog(dialog, prev_window)
-        try: del dialog
-        except: pass
-        try: del season_class
-        except: pass
-        try: del get_season_window
-        except: pass
+        #try: del dialog
+        #except: pass
+        #try: del season_class
+        #except: pass
+        #try: del get_season_window
+        #except: pass
         gc.collect()
 
     def open_episode_info(self, prev_window=None, tvshow_id=None, tvdb_id=None, season=None, episode=None, tvshow=None, dbid=None):
+        xbmc.executebuiltin('Dialog.Close(all,true)')
+        Utils.show_busy()
+        xbmcgui.Window(10000).setProperty('diamond_info_started', 'True')
+        self.prev_window = self.curr_window 
+        self.curr_window = {'function': 'open_episode_info', 'params': {'tvshow_id': tvshow_id, 'tvdb_id': tvdb_id, 'season': season, 'episode': episode, 'tvshow': tvshow, 'dbid': dbid}}
+
         #global dialog
         #dialog = None
         from resources.lib.library import addon_ID
@@ -278,16 +503,22 @@ class WindowManager(object):
             else:
                 dialog = ep_class(str(addon_ID())+'-DialogVideoInfo.xml', Utils.ADDON_PATH, tvshow_id=tvshow_id, season=season, episode=episode, dbid=dbid)
         self.open_dialog(dialog, prev_window)
-        prev_window = None
-        try: del dialog
-        except: pass
-        try: del ep_class
-        except: pass
-        try: del get_episode_window
-        except: pass
+        #prev_window = None
+        #try: del dialog
+        #except: pass
+        #try: del ep_class
+        #except: pass
+        #try: del get_episode_window
+        #except: pass
         gc.collect()
 
     def open_actor_info(self, prev_window=None, actor_id=None, name=None):
+        xbmc.executebuiltin('Dialog.Close(all,true)')
+        Utils.show_busy()
+        xbmcgui.Window(10000).setProperty('diamond_info_started', 'True')
+        self.prev_window = self.curr_window 
+        self.curr_window = {'function': 'open_actor_info', 'params': {'actor_id': actor_id, 'name': name}}
+
         #global dialog
         #dialog = None
         from resources.lib.DialogActorInfo import get_actor_window
@@ -316,21 +547,29 @@ class WindowManager(object):
             Utils.show_busy()
         actor_class = get_actor_window(DialogXML)
         if Utils.SKIN_DIR == 'skin.estuary':
-            dialog = actor_class(str(addon_ID())+self.osAndroid_path+'-DialogInfo-Estuary.xml', Utils.ADDON_PATH, id=actor_id)
+            dialog = actor_class(str(addon_ID())+'-DialogInfo-Estuary.xml', Utils.ADDON_PATH, id=actor_id)
         elif Utils.SKIN_DIR == 'skin.aura' or Utils.SKIN_DIR == 'skin.auramod' or Utils.SKIN_DIR == 'skin.xonfluence' or Utils.SKIN_DIR == 'skin.xenon18':
             dialog = actor_class(str(addon_ID())+'-DialogInfo-Aura.xml', Utils.ADDON_PATH, id=actor_id)
         else:
             dialog = actor_class(str(addon_ID())+'-DialogInfo.xml', Utils.ADDON_PATH, id=actor_id)
         self.open_dialog(dialog, prev_window)
-        try: del dialog
-        except: pass
-        try: del actor_class
-        except: pass
-        try: del get_actor_window
-        except: pass
+        #try: del dialog
+        #except: pass
+        #try: del actor_class
+        #except: pass
+        #try: del get_actor_window
+        #except: pass
         gc.collect()
 
     def open_video_list(self, prev_window=None, listitems=None, filters=[], mode='filter', list_id=False, filter_label='', media_type='movie', search_str=''):
+        xbmc.executebuiltin('Dialog.Close(all,true)')
+        Utils.show_busy()
+        xbmcgui.Window(10000).setProperty('diamond_info_started', 'True')
+        self.prev_window = self.curr_window 
+        self.curr_window = {'function': 'open_video_list', 'params': {'listitems': listitems, 'filters': filters, 'mode': mode, 'list_id': list_id, 'filter_label': filter_label, 'media_type': media_type, 'search_str': search_str, 'page': self.page, 'total_pages': self.total_pages, 'total_items': self.total_items,'type': self.type, 'filter_url': self.filter_url, 'order': self.order, 'filter': self.filter}}
+        if mode == 'reopen_window':
+            self.window_stack_empty()
+            prev_window = None
         #global dialog
         #dialog = None
         #if mode == 'reopen_window':
@@ -346,6 +585,14 @@ class WindowManager(object):
         from resources.lib.library import addon_ID
         from resources.lib.DialogVideoList import get_tmdb_window
         browser_class = get_tmdb_window(DialogXML)
+        try: prev_window.close()
+        except: pass
+        #xbmc.executebuiltin('Dialog.Close(all,true)')
+        if prev_window:
+            self.add_to_stack(prev_window, 'prev_window')
+            prev_window = None
+            try: del prev_window
+            except: pass
         if Utils.NETFLIX_VIEW == 'true':
             dialog = browser_class(str(addon_ID())+'-VideoList-Netflix.xml', Utils.ADDON_PATH, listitems=listitems, filters=filters, mode=mode, list_id=list_id, filter_label=filter_label, type=media_type, search_str=search_str)
         else:
@@ -355,34 +602,60 @@ class WindowManager(object):
                 dialog = browser_class(str(addon_ID())+'-VideoList-Aura.xml', Utils.ADDON_PATH, listitems=listitems, filters=filters, mode=mode, list_id=list_id, filter_label=filter_label, type=media_type, search_str=search_str)
             else:
                 dialog = browser_class(str(addon_ID())+'-VideoList.xml', Utils.ADDON_PATH, listitems=listitems, filters=filters, mode=mode, list_id=list_id, filter_label=filter_label, type=media_type, search_str=search_str)
-        if prev_window:
-            self.add_to_stack(prev_window)
-            prev_window.close()
-            prev_window = None
-            try: del prev_window
-            except: pass
         Utils.hide_busy()
         gc.collect()
         dialog.doModal()
-        try: dialog.close()
-        except: pass
-        try: del dialog
-        except: pass
-        try: del browser_class
-        except: pass
-        del get_tmdb_window
-        try: del self
-        except: pass
-        gc.collect()
+        if xbmcgui.Window(10000).getProperty(str(addon_ID_short())+'_running') == 'True':
+            #xbmc.log(str(time.time())+'AFTER_dialog.doModal()_1===>OPENINFO', level=xbmc.LOGINFO)
+            self.focus_id = xbmcgui.Window(10000).getProperty('focus_id')
+            self.position = xbmcgui.Window(10000).getProperty('position')
+            xbmcgui.Window(10000).clearProperty('focus_id')
+            xbmcgui.Window(10000).clearProperty('position')
+            xbmcgui.Window(10000).clearProperty('pop_stack_focus_id')
+            xbmcgui.Window(10000).clearProperty('pop_stack_position')
+            xbmc.executebuiltin('Dialog.Close(all,true)')
+            xbmcgui.Window(10000).setProperty(str(addon_ID_short())+'_running', 'False')
+            #quit()
+            try: dialog.close()
+            except: pass
+            try: del dialog
+            except: pass
+            #try: del browser_class
+            #except: pass
+            #del get_tmdb_window
+            #try: del self
+            #except: pass
+            #gc.collect()
+            #return
+        else:
+            xbmc.executebuiltin('Dialog.Close(all,true)')
 
-    def open_youtube_list(self, search_str="", filters=None, filter_label="", media_type="video"):
+    def open_youtube_list(self, prev_window=None, search_str="", filters=None, filter_label="", media_type="video", curr_window=None):
         """
         open video list, deal with window stack
         """
+        #xbmc.executebuiltin('Dialog.Close(all,true)')
+        Utils.show_busy()
+        xbmcgui.Window(10000).setProperty('diamond_info_started', 'True')
+        #self.pop_window_stack_table(mode='youtube')
+        if curr_window:
+            self.prev_window = curr_window
+        else:
+            self.prev_window = self.curr_window 
+        self.curr_window = {'function': 'open_youtube_list', 'params': {'search_str': search_str, 'filters': filters, 'filter_label': filter_label, 'media_type': media_type}}
+
         from resources.lib.library import addon_ID
         from resources.lib.DialogYoutubeList import get_youtube_window
+        if prev_window:
+            prev_window.close()
+            #xbmc.executebuiltin('Dialog.Close(all,true)')
+            self.add_to_stack(prev_window, 'prev_window')
+            prev_window = None
+            try: del prev_window
+            except: pass
         browser_class = get_youtube_window(DialogXML)
         dialog = browser_class(str(addon_ID())+'-YoutubeList.xml', Utils.ADDON_PATH, search_str=search_str, filters=[] if not filters else filters, type='video')
+        """
         #self.open_dialog(dialog)
         dialog.doModal()
         try: dialog.close()
@@ -395,6 +668,32 @@ class WindowManager(object):
         try: del self
         except: pass
         gc.collect()
+        """
+        Utils.hide_busy()
+        gc.collect()
+        dialog.doModal()
+        if xbmcgui.Window(10000).getProperty(str(addon_ID_short())+'_running') == 'True':
+            #xbmc.log(str(time.time())+'AFTER_dialog.doModal()_2===>OPENINFO', level=xbmc.LOGINFO)
+            self.focus_id = xbmcgui.Window(10000).getProperty('focus_id')
+            self.position = xbmcgui.Window(10000).getProperty('position')
+            xbmcgui.Window(10000).clearProperty('focus_id')
+            xbmcgui.Window(10000).clearProperty('position')
+            xbmcgui.Window(10000).clearProperty('pop_stack_focus_id')
+            xbmcgui.Window(10000).clearProperty('pop_stack_position')
+            xbmcgui.Window(10000).setProperty(str(addon_ID_short())+'_running', 'False')
+            #try: dialog.close()
+            #except: pass
+            #try: del dialog
+            #except: pass
+            #try: del browser_class
+            #except: pass
+            #del get_youtube_window
+            #try: del self
+            #except: pass
+            gc.collect()
+            return
+        else:
+            xbmc.executebuiltin('Dialog.Close(all,true)')
 
     def open_slideshow(self, listitems, index):
         from resources.lib.library import addon_ID
@@ -424,6 +723,7 @@ class WindowManager(object):
 
     def open_dialog(self, dialog, prev_window):
         #global dialog
+        xbmcgui.Window(10000).setProperty('diamond_info_started', 'True')
         if dialog.data:
             if Utils.window_stack_enable == 'true':
                 self.active_dialog = dialog
@@ -434,28 +734,42 @@ class WindowManager(object):
                 except:
                     self.last_control = xbmc.getInfoLabel('System.CurrentControlId')
                 xbmc.executebuiltin('Dialog.Close(movieinformation)')
+            xbmc.executebuiltin('Dialog.Close(all,true)')
             if prev_window:
+                prev_window.close()
                 if xbmc.Player().isPlayingVideo() and not xbmc.getCondVisibility('VideoPlayer.IsFullscreen'):
                     xbmc.Player().stop()
-                self.add_to_stack(prev_window)
-                prev_window.close()
+                xbmc.executebuiltin('Dialog.Close(all,true)')
+                self.add_to_stack(prev_window, 'prev_window')
                 prev_window = None
                 del prev_window
             Utils.hide_busy()
             gc.collect()
             dialog.doModal()
-            dialog.close()
-            try: del dialog
-            except: pass
-            try: del prev_window
-            except: pass
-            try: self.active_dialog.close()
-            except: pass
-            try: del self.active_dialog
-            except: pass
-            try: del self
-            except: pass
-            gc.collect()
+            if xbmcgui.Window(10000).getProperty(str(addon_ID_short())+'_running') == 'True':
+                #xbmc.log(str(time.time())+'AFTER_dialog.doModal()_3===>OPENINFO', level=xbmc.LOGINFO)
+                self.focus_id = xbmcgui.Window(10000).getProperty('focus_id')
+                self.position = xbmcgui.Window(10000).getProperty('position')
+                xbmcgui.Window(10000).clearProperty('focus_id')
+                xbmcgui.Window(10000).clearProperty('position')
+                xbmcgui.Window(10000).clearProperty('pop_stack_focus_id')
+                xbmcgui.Window(10000).clearProperty('pop_stack_position')
+                xbmcgui.Window(10000).setProperty(str(addon_ID_short())+'_running', 'False')
+                #dialog.close()
+                #try: del dialog
+                #except: pass
+                #try: del prev_window
+                #except: pass
+                #try: self.active_dialog.close()
+                #except: pass
+                #try: del self.active_dialog
+                #except: pass
+                #try: del self
+                #except: pass
+                gc.collect()
+                return
+            else:
+                xbmc.executebuiltin('Dialog.Close(all,true)')
         else:
             Utils.hide_busy()
             self.active_dialog = None
@@ -465,9 +779,9 @@ class WindowManager(object):
             except: pass
             try: del prev_window
             except: pass
-            self.active_dialog.close()
-            try: del self.active_dialog
-            except: pass
+            #self.active_dialog.close()
+            #try: del self.active_dialog
+            #except: pass
             gc.collect()
             Utils.notify('Could not find item at MovieDB')
 
@@ -482,6 +796,7 @@ class DialogXML(xbmcgui.WindowXMLDialog):
     def onInit(self):
         self.window_id = xbmcgui.getCurrentWindowDialogId()
         self.window = xbmcgui.Window(self.window_id)
+
 
 class TextViewerDialog(xbmcgui.WindowXMLDialog):
 

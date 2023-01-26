@@ -1,5 +1,4 @@
-import xbmc, xbmcaddon, xbmcgui
-import xbmc, xbmcaddon, xbmcgui
+import xbmc, xbmcaddon, xbmcgui, xbmcvfs
 from threading import Thread
 import datetime
 import time
@@ -13,9 +12,11 @@ from resources.lib.library import addon_ID_short
 from resources.lib.library import get_trakt_data
 from resources.lib.WindowManager import wm
 import gc
+import os
 from pathlib import Path
 
 from resources.lib import TheMovieDB
+from urllib.parse import urlencode, quote, quote_plus, unquote, unquote_plus
 
 from resources import PTN
 import functools
@@ -50,7 +51,7 @@ class MyMonitor(xbmc.Monitor):
 
         if sender == addon_ID_short():
             command_info = json.loads(data)
-            #xbmc.log(str(command_info)+'onNotification===>OPEN_INFO', level=xbmc.LOGINFO)
+            xbmc.log(str(command_info)+'onNotification===>OPEN_INFO', level=xbmc.LOGINFO)
             container = command_info['command_params']['container']
             position = command_info['command_params']['position']
             xbmc.sleep(550)
@@ -385,13 +386,16 @@ class PlayerMonitor(xbmc.Player):
         reopen_window_bool = str(xbmcaddon.Addon(library.addon_ID()).getSetting('reopen_window_bool'))
         window_stack_enable = str(xbmcaddon.Addon(library.addon_ID()).getSetting('window_stack_enable'))
         window_open = xbmcgui.Window(10000).getProperty(str(addon_ID_short())+'_running')
-        if window_stack_enable == 'true' and window_open == 'False':
+        diamond_info_started = xbmcgui.Window(10000).getProperty('diamond_info_started')
+        if window_stack_enable == 'true' and (window_open == 'False' or diamond_info_started == 'True'):
             xbmc.sleep(100)
             if xbmc.Player().isPlaying()==0:
                 if xbmcgui.Window(10000).getProperty('diamond_info_started') == 'True':
+                    #return wm.open_video_list(search_str='', mode='reopen_window')
+                    wm.pop_stack()
                     diamond_info_started = False
                     xbmcgui.Window(10000).setProperty('diamond_info_started',str(diamond_info_started))
-                    return wm.open_video_list(search_str='', mode='reopen_window')
+                    return
                 else:
                     return
         elif reopen_window_bool == 'true' and xbmcgui.Window(10000).getProperty('diamond_info_started') == 'True' and not xbmc.getCondVisibility('Window.IsActive(10138)'):
@@ -465,7 +469,7 @@ class PlayerMonitor(xbmc.Player):
 
         xbmc.sleep(100)
         gc.collect()
-        self.reopen_window()
+        #self.reopen_window()
         """
         if trakt_scrobble == 'false':
             if reopen_window_bool == 'true' and xbmcgui.Window(10000).getProperty('diamond_info_started') == 'True' and not xbmc.getCondVisibility('Window.IsActive(10138)'):
@@ -1134,12 +1138,14 @@ class PlayerMonitor(xbmc.Player):
                 except: self.trakt_scrobble_details(trakt_watched=trakt_watched, movie_title=None, movie_year=None, resume_position=resume_position, resume_duration=resume_duration, tmdb_id=None, tv_title=tv_title, season=tv_season, episode=tv_episode)
                 trakt_watched = self.trakt_meta_scrobble(action='pause')
                 if trakt_watched != 'true':
+                    xbmc.sleep(250)
                     trakt_watched = self.trakt_meta_scrobble(action='start')
                 speed_time = time.time()
             if int(time.time()) >  int(scrobble_time) and percentage < 80 and trakt_watched != 'true':
                 xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
                 trakt_watched = self.trakt_meta_scrobble(action='pause')
                 if trakt_watched != 'true':
+                    xbmc.sleep(250)
                     trakt_watched = self.trakt_meta_scrobble(action='start')
                 scrobble_time = int(time.time()) + 10 * 60
             percentage = (resume_position / duration) * 100
@@ -1157,21 +1163,31 @@ class PlayerMonitor(xbmc.Player):
                     prescrape = False
                     prescrape_time = time.time() + 120
 
-            if percentage > 66 and prescrape_time != 0 and prescrape == False and diamond_player == True:
+            if percentage > 66 and prescrape_time > 0 and time.time() > prescrape_time and prescrape == False and diamond_player == True:
+                rd_seren_prescrape = xbmcaddon.Addon(addon_ID()).getSetting('rd_seren_prescrape')
                 xbmc.log(str(prescrape_time)+'===>prescrape_time', level=xbmc.LOGINFO)
-                xbmcgui.Window(10000).setProperty('plugin.video.seren.runtime.tempSilent', 'False')
+                #xbmcgui.Window(10000).setProperty('plugin.video.seren.runtime.tempSilent', 'False')
                 try: seren_version = xbmcaddon.Addon('plugin.video.seren').getAddonInfo("version")
                 except: seren_version = ''
-                xbmcgui.Window(10000).setProperty('plugin.video.seren.%s.runtime.tempSilent' % (str(seren_version)), 'False')
-                next_ep_play_details = next_ep_play(show_title=next_ep_details['next_ep_show'], show_season=next_ep_details['next_ep_season'], show_episode=next_ep_details['next_ep_episode'], tmdb=next_ep_details['tmdb_id'])
-                try: 
-                    prescrape = True
-                    if next_ep_play_details.get('ResolvedUrl') == True:
-                        xbmc.log(str(next_ep_play_details.get('ResolvedUrl'))+'ResolvedUrl_next_ep_play_details===>OPENINFO', level=xbmc.LOGINFO)
-                except:
-                    xbmc.log('NOT_FOUND_PRESCRAPE2===>OPENINFO', level=xbmc.LOGINFO)
-                    prescrape = False
-                    prescrape_time = 0
+                if seren_version != '' and rd_seren_prescrape == 'true':
+                    if xbmcgui.Window(10000).getProperty('plugin.video.seren.%s.runtime.tempSilent' % (str(seren_version))) == 'True' and xbmcgui.Window(10000).getProperty('plugin.video.seren.runtime.tempSilent')  == 'True':
+                        prescrape_time = time.time() + 120
+                    else:
+                        xbmcgui.Window(10000).setProperty('plugin.video.seren.%s.runtime.tempSilent' % (str(seren_version)), 'False')
+                        xbmcgui.Window(10000).setProperty('plugin.video.seren.runtime.tempSilent', 'False')
+                        next_ep_play_details = next_ep_play(show_title=next_ep_details['next_ep_show'], show_season=next_ep_details['next_ep_season'], show_episode=next_ep_details['next_ep_episode'], tmdb=next_ep_details['tmdb_id'])
+                        try: 
+                            prescrape = True
+                            if next_ep_play_details.get('ResolvedUrl') == True:
+                                xbmc.log(str(next_ep_play_details.get('ResolvedUrl'))+'ResolvedUrl_next_ep_play_details===>OPENINFO', level=xbmc.LOGINFO)
+                        except:
+                            xbmc.log('NOT_FOUND_PRESCRAPE2===>OPENINFO', level=xbmc.LOGINFO)
+                            prescrape = False
+                            prescrape_time = -1
+                else:
+                    xbmcgui.Window(10000).setProperty('plugin.video.seren.%s.runtime.tempSilent' % (str(seren_version)), 'False')
+                    xbmcgui.Window(10000).setProperty('plugin.video.seren.runtime.tempSilent', 'False')
+                    prescrape_time = -1
 
             if player.isPlaying()==1 and percentage > 85 and trakt_watched != 'true':
             #if (percentage > 85) and player.isPlayingVideo()==1 and duration > 300 and trakt_watched != 'true':
@@ -1216,7 +1232,7 @@ class PlayerMonitor(xbmc.Player):
                     next_ep_url = next_ep_play_details.get('PTN_download')
                 except:
                     return
-                title = next_ep_play_details.get('episode_name')
+                title = str(next_ep_play_details.get('episode_name'))
                 thumb = next_ep_details.get('next_ep_thumb2')
                 if thumb == '':
                     thumb = next_ep_play_details.get('thumb')
@@ -1227,7 +1243,7 @@ class PlayerMonitor(xbmc.Player):
                 season = next_ep_play_details.get('PTN_season')
                 episode = next_ep_play_details.get('PTN_episode')
                 year = next_ep_play_details.get('year')
-                kodi_url = 'RunScript(%s,info=display_dialog,next_ep_url=%s,title=%s,thumb=%s,rating=%s,show=%s,season=%s,episode=%s,year=%s)' % (str(addon_ID()), str(next_ep_url), str(title), str(thumb), str(rating), str(show), str(season), str(episode), str(year))
+                kodi_url = 'RunScript(%s,info=display_dialog,next_ep_url=%s,title=%s,thumb=%s,rating=%s,show=%s,season=%s,episode=%s,year=%s)' % (str(addon_ID()), str(next_ep_url), quote_plus(title), str(thumb), str(rating), str(show), str(season), str(episode), str(year))
                 xbmc.log(str(kodi_url)+'kodi_url===>OPENINFO', level=xbmc.LOGINFO)
                 xbmc.executebuiltin(kodi_url)
                 playing_file = None
@@ -1247,6 +1263,7 @@ class CronJobMonitor(Thread):
         self.next_time = 0
         library_auto_sync = str(xbmcaddon.Addon(library.addon_ID()).getSetting('library_auto_sync'))
         trakt_kodi_mode = str(xbmcaddon.Addon(library.addon_ID()).getSetting('trakt_kodi_mode'))
+        trakt_calendar_auto_sync = str(xbmcaddon.Addon(library.addon_ID()).getSetting('trakt_calendar_auto_sync')).lower()
         if library_auto_sync == 'true':
             library_auto_sync = True
         if library_auto_sync == 'false':
@@ -1269,7 +1286,8 @@ class CronJobMonitor(Thread):
                 try: trakt_token = xbmcaddon.Addon('plugin.video.themoviedb.helper').getSetting('trakt_token')
                 except: trakt_token = None
                 if trakt_token:
-                    trakt_calendar_list()
+                    if trakt_calendar_auto_sync == 'true' or trakt_calendar_auto_sync == True:
+                        trakt_calendar_list()
                 library_update_period = int(xbmcaddon.Addon(library.addon_ID()).getSetting('library_sync_hours'))
                 self.next_time = self.curr_time + library_update_period*60*60
 
@@ -1381,6 +1399,10 @@ class ServiceMonitor(object):
     def run(self):
         xbmc.log(str('run_diamond_info_service_started')+'===>___OPEN_INFO', level=xbmc.LOGINFO)
         ServiceStarted = 'True'
+        window_stack = xbmcvfs.translatePath('special://profile/addon_data/'+addon_ID()+ '/window_stack.db')
+        if xbmcvfs.exists(window_stack):
+            os.remove(window_stack)
+
         auto_plugin_route = xbmcaddon.Addon().getSetting('auto_plugin_route')
         auto_plugin_route_enable = xbmcaddon.Addon().getSetting('auto_plugin_route_enable')
         if auto_plugin_route_enable == 'true':

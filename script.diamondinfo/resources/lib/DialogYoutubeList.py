@@ -90,7 +90,10 @@ def get_youtube_window(window_type):
             #self.page = None
             #self.total_items = None
             #self.total_pages = None
-            
+            self.curr_window = None
+            self.prev_window = None
+            self.filter_url = None
+            self.filter = None
             #self.setProperty('TotalPages', str(self.total_pages))
             #self.setProperty('TotalItems', str(self.total_items))
             #self.window_id = xbmcgui.getCurrentWindowDialogId()
@@ -275,6 +278,11 @@ def get_youtube_window(window_type):
             if not self.choose_sort_method(self.type):
                 return None
             self.update()
+
+        @ch.click(5018)
+        def close_all(self):
+            xbmc.executebuiltin('Dialog.Close(all,true)')
+            wm.window_stack_empty()
 
         #@ch.context("video")
         @ch.action('contextmenu', 500)
