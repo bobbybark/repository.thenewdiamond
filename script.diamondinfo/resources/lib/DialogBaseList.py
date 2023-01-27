@@ -271,7 +271,7 @@ class DialogBaseList(object):
 			function = 'open_youtube_list'
 		else:
 			function = 'open_video_list'
-		self.curr_window = {'function': function, 'params': {'listitems': self.listitems2, 'filters': self.filters, 'mode': self.mode, 'list_id': self.list_id, 'filter_label': self.filter_label, 'media_type': self.media_type, 'search_str': self.search_str, 'page': self.page, 'total_pages': self.total_pages, 'total_items': self.total_items, 'type': self.type, 'filter_url': self.filter_url, 'order': self.order, 'filter': self.filter }}
+		self.curr_window = {'function': function, 'params': {'listitems': self.listitems2, 'filters': self.filters, 'mode': self.mode, 'list_id': self.list_id, 'filter_label': self.filter_label, 'media_type': self.media_type, 'search_str': self.search_str, 'page': self.page, 'total_pages': self.total_pages, 'total_items': self.total_items, 'type': self.type, 'filter_url': self.filter_url, 'order': self.order, 'filter': self.filter, 'next_page_token': self.next_page_token, 'prev_page_token': self.prev_page_token }}
 		#if wm.pop_video_list == False:
 		#	wm.update_windows(curr_window=self.curr_window, prev_window=self.prev_window)
 		#else:
@@ -363,6 +363,17 @@ class DialogBaseList(object):
 
 			wm.open_video_list(listitems=window['params']['listitems'],filters=window['params']['filters'],mode=window['params']['mode'],list_id=window['params']['list_id'],filter_label=window['params']['filter_label'],media_type=window['params']['media_type'],search_str=window['params']['search_str'])
 		elif window['function'] == 'open_youtube_list':
+
+			self.focus_id = self.curr_window['params']['focus_id']
+			self.position = self.curr_window['params']['position']
+			if str(self.focus_id) != '500':
+				self.focus_id = '500'
+				self.position = '0'
+			xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
+			xbmcgui.Window(10000).setProperty('position', str(self.position))
+			xbmcgui.Window(10000).setProperty('pop_stack_focus_id', str(self.focus_id))
+			xbmcgui.Window(10000).setProperty('pop_stack_position', str(self.position))
+
 			wm.open_youtube_list(search_str=window['params']['search_str'],filters=window['params']['filters'],filter_label=window['params']['filter_label'],media_type=window['params']['media_type'])
 		return con
 

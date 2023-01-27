@@ -410,6 +410,29 @@ def get_youtube_window(window_type):
             return self.yt_listitems
 
         def fetch_data(self, force=False):
+
+            if wm.pop_video_list == True:
+                self.page = int(wm.prev_window['params']['page'])
+                self.mode = wm.prev_window['params']['mode']
+                self.type = wm.prev_window['params']['type']
+                self.order = wm.prev_window['params']['order']
+                self.search_str =wm.prev_window['params']['search_str']
+                self.filter_label =wm.prev_window['params']['filter_label']
+                self.list_id = wm.prev_window['params']['list_id']
+                self.filter_url = wm.prev_window['params']['filter_url']
+                self.media_type = wm.prev_window['params']['media_type']
+                self.filters = wm.prev_window['params']['filters']
+                self.filter = wm.prev_window['params']['filter']
+                info = {
+                    'listitems': wm.prev_window['params']['listitems'],
+                    'results_per_page': wm.prev_window['params']['total_pages'],
+                    'total_results': wm.prev_window['params']['total_items'],
+                    'next_page_token': wm.prev_window['params']['next_page_token'],
+                    'prev_page_token': wm.prev_window['params']['prev_page_token']
+                    }
+                wm.pop_video_list = False
+                return info
+
             yt_listitems = self.get_youtube_vids(self.search_str)
 
             self.set_filter_label()

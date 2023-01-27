@@ -244,6 +244,7 @@ class WindowManager(object):
             self.pop_video_list = True
             return self.open_video_list(listitems=window['params']['listitems'],filters=window['params']['filters'],mode=window['params']['mode'],list_id=window['params']['list_id'],filter_label=window['params']['filter_label'],media_type=window['params']['media_type'],search_str=window['params']['search_str'])
         elif window['function'] == 'open_youtube_list':
+            self.pop_video_list = True
             return self.open_youtube_list(search_str=window['params']['search_str'],filters=window['params']['filters'],filter_label=window['params']['filter_label'],media_type=window['params']['media_type'])
 
 
@@ -290,7 +291,7 @@ class WindowManager(object):
             return
 
     def pop_stack(self):
-        xbmc.log(str('wm_pop_stack')+'wm_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+        xbmc.log(str('wm_pop_stack')+'WindowManager===>OPENINFO', level=xbmc.LOGINFO)
         if xbmc.Player().isPlaying() or xbmc.getCondVisibility('Window.IsActive(12005)'):
             return
         xbmcgui.Window(10000).setProperty(str(addon_ID_short())+'_running', 'True')
