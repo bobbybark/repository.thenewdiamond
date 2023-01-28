@@ -37,6 +37,8 @@ class WindowManager(object):
         self.order = None
         self.type = None
         self.filter = None
+        self.prev_page_flag = False
+        self.prev_page_num = 0
         try: self.window_stack_len = self.window_stack_len
         except: self.window_stack_len = 0
         self.focus_id = None
@@ -119,6 +121,8 @@ class WindowManager(object):
         self.list_id = wm.curr_window['params']['list_id']
         self.media_type = wm.curr_window['params']['media_type']
         self.filters = wm.curr_window['params']['filters']
+        self.position = xbmcgui.Window(10000).getProperty('position')
+        self.focus_id = xbmcgui.Window(10000).getProperty('focus_id')
         return
 
     def append_window_stack_table(self, mode=None):
@@ -134,6 +138,7 @@ class WindowManager(object):
         #xbmc.log(str(window_id)+'window_id===>OPENINFO', level=xbmc.LOGINFO)
         #xbmc.log(str(self.last_control)+'self.last_control===>OPENINFO', level=xbmc.LOGINFO)
 
+        #xbmc.log(str('WM')+'append_window_stack_table===>OPENINFO', level=xbmc.LOGINFO)
         con = self.window_stack_connection()
         cur = con.cursor()
         if mode == 'curr_window':
@@ -159,6 +164,7 @@ class WindowManager(object):
 
         con.commit()
         cur.close()
+        con.close()
         self.window_stack_len = self.window_stack_len + 1
         try:
             self.last_control = xbmc.getInfoLabel('System.CurrentControlId').decode('utf-8')
@@ -260,11 +266,10 @@ class WindowManager(object):
         if Utils.window_stack_enable == 'true':
             #self.window_stack.append(window)
             xbmc.executebuiltin('Dialog.Close(all,true)')
-            con = self.append_window_stack_table(mode)
+            self.append_window_stack_table(mode)
             self.window_stack_length()
             #self.focus_id = window.getFocusId()
             #self.position = window.control.getSelectedPosition()
-            con.close()
         if Utils.window_stack_enable == 'false':
             try: window_stack = []
             except: pass
@@ -291,11 +296,12 @@ class WindowManager(object):
             return
 
     def pop_stack(self):
-        xbmc.log(str('wm_pop_stack')+'WindowManager===>OPENINFO', level=xbmc.LOGINFO)
+        #xbmc.log(str('wm_pop_stack')+'WindowManager===>OPENINFO', level=xbmc.LOGINFO)
         if xbmc.Player().isPlaying() or xbmc.getCondVisibility('Window.IsActive(12005)'):
             return
         xbmcgui.Window(10000).setProperty(str(addon_ID_short())+'_running', 'True')
         self.window_stack_length()
+        #xbmc.log(str(self.window_stack_len)+'self.window_stack_lenWindowManager===>OPENINFO', level=xbmc.LOGINFO)
         if (self.window_stack or self.window_stack_len > 0) and Utils.window_stack_enable == 'true':
             #self.active_dialog = self.window_stack.pop()
             self.pop_window_stack_table()

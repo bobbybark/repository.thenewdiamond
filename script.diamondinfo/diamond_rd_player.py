@@ -1500,7 +1500,8 @@ def next_ep_play(show_title, show_season, show_episode, tmdb):
 			infolabels['premiered'] = str(premiered)+'T00:00:00'
 			infolabels['aired'] = str(premiered)+'T00:00:00'
 			infolabels['imdbnumber'] = imdb
-			infolabels['duration'] = int(duration)
+			try: infolabels['duration'] = int(duration)
+			except: infolabels['duration'] = int(runtime_seconds)
 			infolabels['dateadded'] = str(premiered)+'T00:00:00'
 			infolabels['rating'] = float(rating)
 			infolabels['votes'] = int(extended_tvshow_info_response[0]['Votes'])
@@ -1666,6 +1667,7 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 
 	#response = requests.get('https://api.themoviedb.org/3/movie/'+str(tmdb_id)+'/alternative_titles?api_key='+str(tmdb_api())+'&language=en-US').json()
 	response = single_movie_info(movie_id=tmdb_id)
+
 	#print_log(response)
 	alternate_titles = []
 	y = 0
@@ -2098,9 +2100,74 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 
 		li.setProperty('IsPlayable', 'true')
 		li.setProperty('IsFolder', 'false')
+		"""
 		#li.setInfo('video', {'title': title,'genre': genre, 'plotoutline': plotoutline, 'plot': plot, 'path': PTN_download,'premiered': premiered, 'dbid': dbid, 'mediatype': dbtype, 'writer': writer, 'director': director, 'duration': duration, 'IMDBNumber': imdb, 'MPAA': MPAA, 'Rating': rating, 'Studio': studio, 'Year': year, 'Tagline': tagline, 'Set': set, 'SetID': setid})
 		li.setInfo('video', {'title': title, 'MovieTitle': movie_title, 'genre': genre, 'plotoutline': plotoutline, 'plot': plot, 'path': PTN_download,'premiered': premiered, 'dbid': dbid, 'mediatype': dbtype, 'duration': duration, 'IMDBNumber': imdb, 'Rating': rating, 'Year': year})
+		"""
 		li.setPath(PTN_download)
+
+		infolabels = {'year': None, 'premiered': None, 'aired': None, 'mpaa': None, 'genre': None, 'imdbnumber': None, 'duration': None, 'dateadded': None, 'rating': None, 'votes': None, 'tagline': None, 'mediatype': None, 'title': None, 'originaltitle': None, 'sorttitle': None, 'plot': None, 'plotoutline': None, 'studio': None, 'country': None, 'director': None, 'writer': None, 'status': None, 'trailer': None}
+
+		response_extended_movie_info = extended_movie_info(movie_id=tmdb_id)
+		actors = []
+		actor_name = []
+		actor_role = []
+		actor_thumbnail = []
+		actor_order = []
+		for idx, i in enumerate(response_extended_movie_info[1]['actors']):
+			actor = {'name': i['name'], 'role': i['character'],'thumbnail': i.get('thumb'), 'order': idx+1}
+			actors.append(actor)
+			actor_name.append(i['name'])
+			actor_role.append(i['character'])
+			actor_thumbnail.append(i.get('thumb'))
+			actor_order.append(idx+1)
+		#print_log(str(list(zip(actor_name,actor_role,actor_thumbnail,actor_order))),'zip_list')
+		if len(actors) > 0:
+			li.setCast(actors)
+			li.setProperty('Cast', str(actors))
+			li.setProperty('CastAndRole', str(actors))
+			infolabels['Cast'] = list(zip(actor_name,actor_role,actor_thumbnail,actor_order))
+			infolabels['CastAndRole'] = list(zip(actor_name,actor_role,actor_thumbnail,actor_order))
+			#li.setInfo('video', {'Cast': list(zip(actor_name,actor_role,actor_thumbnail,actor_order)), 'CastAndRole': list(zip(actor_name,actor_role,actor_thumbnail,actor_order)) })
+		director = []
+		writer = []
+		for i in response_extended_movie_info[1]['crew']:
+			if 'Director' == str(i['job']):
+				director.append(i['name'])
+			if 'Writer' == str(i['job']):
+				writer.append(i['name'])
+		studio = []
+		for i in response_extended_movie_info[1]['studios']:
+			studio.append(i['title'])
+
+		infolabels['year'] = str(year)
+		infolabels['premiered'] = str(premiered)+'T00:00:00'
+		infolabels['aired'] = str(premiered)+'T00:00:00'
+		infolabels['imdbnumber'] = imdb
+		try: infolabels['duration'] = int(duration)
+		except: infolabels['duration'] = int(runtime_seconds)
+		infolabels['dateadded'] = str(premiered)+'T00:00:00'
+		infolabels['rating'] = float(rating)
+		infolabels['votes'] = int(response_extended_movie_info[0]['Votes'])
+		infolabels['tagline'] = response_extended_movie_info[0]['Tagline']
+		infolabels['mediatype'] = 'movie'
+		infolabels['title'] = movie_title
+		infolabels['originaltitle'] = movie_title
+		infolabels['sorttitle'] = movie_title
+		infolabels['plot'] = plot
+		infolabels['plotoutline'] = plot
+		infolabels['playcount'] = 0
+		infolabels['director'] = director
+		infolabels['writer'] = writer
+		infolabels['status'] = response_extended_movie_info[0]['Status']
+		infolabels['mpaa'] = response_extended_movie_info[0]['mpaa']
+		infolabels['genre'] = genre
+		infolabels['studio'] = studio
+		infolabels['country'] = None
+		infolabels['FileNameAndPath'] = PTN_download
+		infolabels['path'] = PTN_download
+
+		li.setInfo(type='Video', infoLabels = infolabels)
 
 		if 'test=True' in str(sys.argv):
 			#print_log(sys.argv)

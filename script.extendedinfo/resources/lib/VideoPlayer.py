@@ -40,6 +40,7 @@ class VideoPlayer(xbmc.Player):
 		#window.close()
 		#super(VideoPlayer, self).play(item=url, listitem=listitem, windowed=False, startpos=-1)
 		xbmcgui.Window(10000).setProperty(str(addon_ID_short())+'_running', 'False')
+		xbmcgui.Window(10000).setProperty('diamond_info_started', 'True')
 		wm.add_to_stack(window, 'curr_window')
 		window.close()
 		xbmc.executebuiltin('Dialog.Close(all,true)')
@@ -88,6 +89,7 @@ class VideoPlayer(xbmc.Player):
 			#except: pass
 			return
 		xbmcgui.Window(10000).setProperty(str(addon_ID_short())+'_running', 'False')
+		xbmcgui.Window(10000).setProperty('diamond_info_started', 'True')
 		wm.add_to_stack(window, 'curr_window')
 		window.close()
 		xbmc.executebuiltin('Dialog.Close(all,true)')

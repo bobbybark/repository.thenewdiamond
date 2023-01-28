@@ -150,6 +150,8 @@ def get_tmdb_window(window_type):
 
         def go_to_prev_page(self):
             self.get_column()
+            wm.prev_page_flag = True
+            wm.prev_page_num = self.page -1 
             if self.page > 1:
                 self.page -= 1
                 self.next_page_token = self.page_token
@@ -1030,6 +1032,10 @@ def get_tmdb_window(window_type):
                     'results_per_page': wm.prev_window['params']['total_pages'],
                     'total_results': wm.prev_window['params']['total_items']
                     }
+                self.focus_id = xbmcgui.Window(10000).getProperty('focus_id')
+                self.position = xbmcgui.Window(10000).getProperty('position')
+                if str(self.position) != 'No position':
+                    xbmc.executebuiltin('Control.SetFocus(%s,%s)' % (self.focus_id,self.position))
                 wm.pop_video_list = False
                 return info
 

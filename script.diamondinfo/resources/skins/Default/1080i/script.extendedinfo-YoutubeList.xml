@@ -22,15 +22,21 @@
 			<animation effect="fade" start="0" end="100" time="200">VisibleChange</animation>
 			<visible>String.IsEqual(Window.Property(type),channel)</visible>
 		</control>
-		<control type="image">
+		<!---control type="image">
 			<texture colordiffuse="FF12B2E7">diffuseoverlay.jpg</texture>
 			<animation effect="fade" start="100" end="85" time="0" condition="true">Conditional</animation>
 			<width>1920</width>
 			<height>1080</height>
 			<animation effect="fade" end="100" time="360">WindowOpen</animation>
 			<animation effect="fade" start="100" end="0" time="250">WindowClose</animation>
+		</control--->
+		<control type="image">
+			<texture>common/diffuseoverlay.jpg</texture>
+			<animation effect="fade" start="100" end="80" time="0" condition="true">Conditional</animation>
+			<width>1920</width>
+			<height>1080</height>
+			<animation effect="fade" end="100" time="360">WindowOpen</animation>
 		</control>
-		
 		<control type="group">
 
 			<animation type="WindowOpen" reversible="false">

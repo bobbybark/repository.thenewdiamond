@@ -87,7 +87,7 @@ def get_youtube_window(window_type):
             self.sort = None
             self.sort_label = None
             self.order = 'asc'
-            #self.page = None
+            self.page = 1
             #self.total_items = None
             #self.total_pages = None
             self.curr_window = None
@@ -335,6 +335,8 @@ def get_youtube_window(window_type):
 
         def go_to_prev_page(self):
             self.get_column()
+            wm.prev_page_flag = True
+            wm.prev_page_num = self.page -1 
             Utils.show_busy()
             if self.page > 1:
                 self.page -= 1
@@ -430,6 +432,10 @@ def get_youtube_window(window_type):
                     'next_page_token': wm.prev_window['params']['next_page_token'],
                     'prev_page_token': wm.prev_window['params']['prev_page_token']
                     }
+                self.focus_id = xbmcgui.Window(10000).getProperty('focus_id')
+                self.position = xbmcgui.Window(10000).getProperty('position')
+                if str(self.position) != 'No position':
+                    xbmc.executebuiltin('Control.SetFocus(%s,%s)' % (self.focus_id,self.position))
                 wm.pop_video_list = False
                 return info
 

@@ -262,9 +262,11 @@ def start_info_actions(infos, params):
 			import json
 			tmdbhelper_flag = False
 			reopen_play_fail = xbmcaddon.Addon(addon_ID()).getSetting('reopen_play_fail')
+			xbmcgui.Window(10000).setProperty('diamond_info_started', 'True')
 			if reopen_play_fail == 'false':
 				return
 			xbmc.log(str('start...')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+			home_count = 0
 			for i in range(1, int((90 * 1000)/1000)):
 				window_id = xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"GUI.GetProperties","params":{"properties":["currentwindow", "currentcontrol"]},"id":1}')
 				window_id = json.loads(window_id)
@@ -272,6 +274,11 @@ def start_info_actions(infos, params):
 				window_id2 = xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"GUI.GetProperties","params":{"properties":["currentwindow", "currentcontrol"]},"id":1}')
 				window_id2 = json.loads(window_id2)
 				#xbmc.log(str(window_id)+str(i)+'===>PHIL', level=xbmc.LOGINFO)
+				if (window_id['result']['currentwindow']['label'].lower() in ['home','notification'] or window_id['result']['currentwindow']['id'] in [10000,10107]) and window_id2 == window_id:
+					home_count = home_count + 1
+					if home_count > 10:
+						xbmc.log(str('return......')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+						return
 				if xbmc.Player().isPlaying() or xbmc.getCondVisibility('Window.IsActive(12005)'):
 					xbmc.log(str('Playback_Success.......')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
 					return
@@ -284,7 +291,7 @@ def start_info_actions(infos, params):
 					xbmc.log(str('Playback_Success.......')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
 					return
 				elif tmdbhelper_flag and (window_id['result']['currentwindow']['label'].lower() in ['home','notification'] or window_id['result']['currentwindow']['id'] in [10000,10107]) and window_id2 == window_id and i > 4:
-					xbmc.log(str(window_id)+str(i)+'===>PHIL', level=xbmc.LOGINFO)
+					#xbmc.log(str(window_id)+str(i)+'===>PHIL', level=xbmc.LOGINFO)
 					if xbmc.Player().isPlaying():
 						xbmc.log(str('Playback_Success')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
 						return

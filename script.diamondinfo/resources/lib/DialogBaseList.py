@@ -248,7 +248,15 @@ class DialogBaseList(object):
 		if self.listitems:
 			self.getControl(500).addItems(self.listitems)
 			if self.column is not None and self.position == 0:
-				self.getControl(500).selectItem(self.column)
+				if wm.prev_page_flag == True or wm.prev_page_num == self.page:
+					if 'info=youtube' in str(wm.curr_window):
+						self.getControl(500).selectItem(48+self.column)
+						self.column = 48+self.column
+					else:
+						self.getControl(500).selectItem(16+self.column)
+						self.column = 16+self.column
+				else:
+					self.getControl(500).selectItem(self.column)
 				self.position = self.column
 		self.setProperty('TotalPages', str(self.total_pages))
 		self.setProperty('TotalItems', str(self.total_items))
@@ -281,7 +289,7 @@ class DialogBaseList(object):
 		#xbmc.log(str(self.curr_window['params']['type'])+'BASE_LIST_update_ui===>OPENINFO', level=xbmc.LOGINFO)
 
 	def pop_window_stack_table(self):
-		xbmc.log(str('BASE_LIST')+'pop_window_stack_table_BASE_LIST===>OPENINFO', level=xbmc.LOGINFO)
+		#xbmc.log(str('BASE_LIST')+'pop_window_stack_table_BASE_LIST===>OPENINFO', level=xbmc.LOGINFO)
 		if xbmc.Player().isPlayingVideo()==1 or xbmc.getCondVisibility('Window.IsActive(12005)'):
 			return
 		con = self.window_stack_connection()
@@ -325,6 +333,7 @@ class DialogBaseList(object):
 		self.window_stack_len2 = self.window_stack_len2 - 1
 
 		cur.close()
+		con.close()
 		#print(window_number, window['function'], window['params'])
 		self.focus_id = self.curr_window['params']['focus_id']
 		self.position = self.curr_window['params']['position']
@@ -375,7 +384,7 @@ class DialogBaseList(object):
 			xbmcgui.Window(10000).setProperty('pop_stack_position', str(self.position))
 
 			wm.open_youtube_list(search_str=window['params']['search_str'],filters=window['params']['filters'],filter_label=window['params']['filter_label'],media_type=window['params']['media_type'])
-		return con
+		return
 
 	def window_stack_connection(self):
 		window_stack = str(xbmcvfs.translatePath("special://profile/addon_data/"+addon_ID()+ '/window_stack.db'))
@@ -417,6 +426,7 @@ class DialogBaseList(object):
 
 		con.commit()
 		cur.close()
+		con.close()
 		self.window_stack_len2 = self.window_stack_len2 + 1
 		#try:
 		#	self.last_control = xbmc.getInfoLabel('System.CurrentControlId').decode('utf-8')
@@ -428,15 +438,19 @@ class DialogBaseList(object):
 
 		#xbmc.log(str('BASE_LIST')+'append_window_stack_table_BASE_LIST===>OPENINFO', level=xbmc.LOGINFO)
 		#xbmc.log(str(mode)+'BASE_mode_append_window_stack_table_BASE_LIST===>OPENINFO', level=xbmc.LOGINFO)
-		return con
+		return
 
 
 	@Utils.busy_dialog
 	def update(self, force_update=False):
 		self.prev_window = self.curr_window
-		if self.page == 1:
+		if self.page == 1 and wm.prev_page_num != self.page:
 			self.append_window_stack_table('curr_window')
 		else:
+			if wm.prev_page_flag == False:
+				wm.prev_page_num = 0
+			if wm.prev_page_num != 0 and wm.prev_page_flag == True:
+				wm.prev_page_flag = False
 			if wm.pop_video_list == False:
 				wm.update_windows(curr_window=self.curr_window, prev_window=self.prev_window)
 			else:
