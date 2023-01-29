@@ -152,7 +152,7 @@ class WindowManager(object):
         self.prev_window['params']['focus_id'] = self.focus_id
         self.prev_window['params']['position'] = self.position
 
-        if 'youtubevideo' in str(self.prev_window['params']['listitems']):
+        if 'youtubevideo' in str(self.prev_window['params'].get('listitems')):
             self.prev_window['function'] = 'open_youtube_list'
 
         self.page_position = None
