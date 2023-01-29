@@ -64,6 +64,7 @@ class DialogBaseInfo(object):
 	def onClick(self, control_id):
 		xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
 		xbmcgui.Window(10000).setProperty('position', str(self.position))
+		self.save_position()
 		ch.serve(control_id, self)
 
 	def onFocus(self, control_id):
