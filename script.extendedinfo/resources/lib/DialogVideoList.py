@@ -142,6 +142,7 @@ def get_tmdb_window(window_type):
 
         def go_to_next_page(self):
             self.get_column()
+            wm.page_position = self.position -16
             if self.page < self.total_pages:
                 self.page += 1
                 self.prev_page_token = self.page_token
@@ -152,6 +153,7 @@ def get_tmdb_window(window_type):
             self.get_column()
             wm.prev_page_flag = True
             wm.prev_page_num = self.page -1 
+            wm.page_position = self.position +16
             if self.page > 1:
                 self.page -= 1
                 self.next_page_token = self.page_token

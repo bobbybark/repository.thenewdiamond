@@ -39,6 +39,9 @@ class WindowManager(object):
         self.filter = None
         self.prev_page_flag = False
         self.prev_page_num = 0
+        self.page_position = None
+        self.position = None
+        self.focus_id = None
         try: self.window_stack_len = self.window_stack_len
         except: self.window_stack_len = 0
         self.focus_id = None
@@ -148,6 +151,7 @@ class WindowManager(object):
         self.position = xbmcgui.Window(10000).getProperty('position')
         self.prev_window['params']['focus_id'] = self.focus_id
         self.prev_window['params']['position'] = self.position
+        self.page_position = None
 
         #fetch_data_dict_read = self.fetch_data_dict_check()
         #if self.prev_window['params']['search_str'] != fetch_data_dict_read['self.search_str']:

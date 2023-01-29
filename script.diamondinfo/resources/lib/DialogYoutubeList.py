@@ -320,6 +320,7 @@ def get_youtube_window(window_type):
         def go_to_next_page(self):
             self.get_column()
             Utils.show_busy()
+            wm.page_position = self.position -44
             if self.page < self.total_pages:
                 self.page += 1
                 self.prev_page_token = self.page_token
@@ -337,6 +338,7 @@ def get_youtube_window(window_type):
             self.get_column()
             wm.prev_page_flag = True
             wm.prev_page_num = self.page -1 
+            wm.page_position = self.position +44
             Utils.show_busy()
             if self.page > 1:
                 self.page -= 1
@@ -376,13 +378,13 @@ def get_youtube_window(window_type):
             #xbmc.log(str(filter_str)+'===>OPENINFO', level=xbmc.LOGINFO)
             filter_str = filter_str.replace('regionCode','relevanceLanguage')
             if self.page ==1:
-                result = YouTube.search_youtube(search_str, limit = 1000, filter_str=filter_str)
+                result = YouTube.search_youtube(search_str, limit = 48, filter_str=filter_str)
             else:
-                result = YouTube.search_youtube(search_str, limit = 1000, page = self.page_token, filter_str=filter_str)
+                result = YouTube.search_youtube(search_str, limit = 48, page = self.page_token, filter_str=filter_str)
             #result = YouTube.search_youtube(search_str=search_str, hd=True, limit=1000, extended=False, page=str(self.page), filter_str='')
             #xbmc.log(str(result)+'===>OPENINFO', level=xbmc.LOGINFO)
-            self.total_items = int(50)
-            try: self.total_pages = int(result['total_results']/50)
+            self.total_items = int(48)
+            try: self.total_pages = int(result['total_results']/48)
             except: return None
             self.prev_page_token = str(result['prev_page_token'])
             self.next_page_token = str(result['next_page_token'])

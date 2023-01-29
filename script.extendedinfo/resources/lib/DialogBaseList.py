@@ -111,6 +111,7 @@ class DialogBaseList(object):
 	@ch.action('down', '*')
 	def save_position(self):
 		self.position = self.getControl(500).getSelectedPosition()
+		wm.position = self.position
 		xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
 		xbmcgui.Window(10000).setProperty('position', str(self.position))
 
@@ -121,6 +122,7 @@ class DialogBaseList(object):
 
 	def onFocus(self, control_id):
 		self.focus_id = self.getFocusId()
+		wm.focus_id = self.focus_id
 		self.save_position()
 		old_page = self.page
 		if control_id == 600:
@@ -133,6 +135,7 @@ class DialogBaseList(object):
 	def onClick(self, control_id):
 		xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
 		xbmcgui.Window(10000).setProperty('position', str(self.position))
+		wm.page_position = None
 		ch.serve(control_id, self)
 
 	@ch.click(5005)
@@ -240,13 +243,21 @@ class DialogBaseList(object):
 		#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 		try: self.position = int(xbmc.getInfoLabel('Container(500).CurrentItem'))-1
 		except: self.position = 0
-		if self.position > 1:
+		if self.position > 1 or wm.page_position == -1:
 			return
 		if not self.listitems and self.getFocusId() == 500:
 			self.setFocusId(6000)
 		self.getControl(500).reset()
 		if self.listitems:
 			self.getControl(500).addItems(self.listitems)
+			if wm.page_position:
+				self.getControl(500).selectItem(wm.page_position)
+				self.position = wm.page_position
+				wm.page_position = -1
+			else:
+				self.getControl(500).selectItem(0)
+
+			"""
 			if self.column is not None and self.position == 0:
 				if wm.prev_page_flag == True or wm.prev_page_num == self.page:
 					if 'info=youtube' in str(wm.curr_window):
@@ -258,6 +269,7 @@ class DialogBaseList(object):
 				else:
 					self.getControl(500).selectItem(self.column)
 				self.position = self.column
+			"""
 		self.setProperty('TotalPages', str(self.total_pages))
 		self.setProperty('TotalItems', str(self.total_items))
 		self.setProperty('CurrentPage', str(self.page))
@@ -292,6 +304,7 @@ class DialogBaseList(object):
 		#xbmc.log(str('BASE_LIST')+'pop_window_stack_table_BASE_LIST===>OPENINFO', level=xbmc.LOGINFO)
 		if xbmc.Player().isPlayingVideo()==1 or xbmc.getCondVisibility('Window.IsActive(12005)'):
 			return
+		wm.page_position = None
 		con = self.window_stack_connection()
 		cur = con.cursor()
 
@@ -300,8 +313,6 @@ class DialogBaseList(object):
 		order by inc_id desc limit 1
 		"""
 		sql_result = cur.execute(sql_result).fetchall()
-
-
 
 		if len(sql_result) == 0:
 			return
@@ -364,7 +375,7 @@ class DialogBaseList(object):
 			self.position = self.curr_window['params']['position']
 			if str(self.focus_id) != '500':
 				self.focus_id = '500'
-				self.position = '0'
+				#self.position = '0'
 			xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
 			xbmcgui.Window(10000).setProperty('position', str(self.position))
 			xbmcgui.Window(10000).setProperty('pop_stack_focus_id', str(self.focus_id))
@@ -377,7 +388,7 @@ class DialogBaseList(object):
 			self.position = self.curr_window['params']['position']
 			if str(self.focus_id) != '500':
 				self.focus_id = '500'
-				self.position = '0'
+				#self.position = '0'
 			xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
 			xbmcgui.Window(10000).setProperty('position', str(self.position))
 			xbmcgui.Window(10000).setProperty('pop_stack_focus_id', str(self.focus_id))
