@@ -273,12 +273,18 @@ def start_info_actions(infos, params):
 				xbmc.sleep(1000)
 				window_id2 = xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"GUI.GetProperties","params":{"properties":["currentwindow", "currentcontrol"]},"id":1}')
 				window_id2 = json.loads(window_id2)
-				#xbmc.log(str(window_id)+str(i)+'===>PHIL', level=xbmc.LOGINFO)
+				#xbmc.log(str(window_id)+str(i)+'===>OPENINFO', level=xbmc.LOGINFO)
 				if (window_id['result']['currentwindow']['label'].lower() in ['home','notification'] or window_id['result']['currentwindow']['id'] in [10000,10107]) and window_id2 == window_id:
 					home_count = home_count + 1
 					if home_count > 10:
-						xbmc.log(str('return......')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
-						return
+						xbmc.log(str('wm.pop_stack()......')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+						return wm.pop_stack()
+				if (window_id['result']['currentwindow']['label'].lower() in ['busydialognocancel'] or window_id['result']['currentwindow']['id'] in [10160]) and window_id2 == window_id:
+					error_flag = get_log_error_flag()
+					if error_flag:
+						xbmc.executebuiltin('Dialog.Close(all,true)')
+						xbmc.log(str('wm.pop_stack()......')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+						return wm.pop_stack()
 				if xbmc.Player().isPlaying() or xbmc.getCondVisibility('Window.IsActive(12005)'):
 					xbmc.log(str('Playback_Success.......')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
 					return
@@ -291,7 +297,7 @@ def start_info_actions(infos, params):
 					xbmc.log(str('Playback_Success.......')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
 					return
 				elif tmdbhelper_flag and (window_id['result']['currentwindow']['label'].lower() in ['home','notification'] or window_id['result']['currentwindow']['id'] in [10000,10107]) and window_id2 == window_id and i > 4:
-					#xbmc.log(str(window_id)+str(i)+'===>PHIL', level=xbmc.LOGINFO)
+					#xbmc.log(str(window_id)+str(i)+'===>OPENINFO', level=xbmc.LOGINFO)
 					if xbmc.Player().isPlaying():
 						xbmc.log(str('Playback_Success')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
 						return
@@ -878,6 +884,39 @@ def start_info_actions(infos, params):
 			xbmcgui.Window(10000).clearProperty(str(addon_ID_short())+'_running')
 			auto_clean_cache(days=days)
 			Utils.notify('Cache deleted')
+
+def get_log_error_flag():
+	"""
+	Retrieves dimensions and framerate information from XBMC.log
+	Will likely fail if XBMC in debug mode - could be remedied by increasing the number of lines read
+	Props: http://stackoverflow.com/questions/260273/most-efficient-way-to-search-the-last-x-lines-of-a-file-in-python
+	@return: dict() object with the following keys:
+								'pwidth' (int)
+								'pheight' (int)
+								'par' (float)
+								'dwidth' (int)
+								'dheight' (int)
+								'dar' (float)
+								'fps' (float)
+	@rtype: dict()
+	"""
+	logfn = xbmcvfs.translatePath(r'special://home/temp\kodi.log')
+	#logfn = '/home/osmc/.kodi/temp/kodi.log'
+	xbmc.sleep(250)  # found originally that it wasn't written yet
+	with open(logfn, 'r') as f:
+		f.seek(0, 2)           # seek @ EOF
+		fsize = f.tell()        # Get Size
+		f.seek(max(fsize - 9024, 0), 0)  # Set pos @ last n chars
+		lines = f.readlines()       # Read to end
+	lines = lines[-45:]    # Get last 10 lines
+	#xbmc.log(str(lines)+'===>PHIL', level=xbmc.LOGINFO)
+	ret = None
+	error_flag = False
+	for line in lines:
+		if 'EXCEPTION Thrown' in line:
+			error_flag = True
+			return error_flag
+	return error_flag
 
 def resolve_url(handle):
 	import xbmcplugin
