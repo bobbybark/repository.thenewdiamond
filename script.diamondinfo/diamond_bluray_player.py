@@ -541,12 +541,15 @@ def next_ep_play_movie(movie_year, movie_title, tmdb, menu):
 	if resumeTimeInSeconds == None:
 		resumeTimeInSeconds = 0
 	try:
-		file_name = BDMV.split('/')[5]
+		file_name = BDMV.split('/')[-1]
 		delete_result = cur.execute("DELETE FROM files WHERE strFilename = '"+str(file_name)+"' ;")
 		con.commit()
+		#delete_result = cur.execute("DELETE FROM files WHERE strFilename = '"+str('index.bdmv')+"' ;")
+		#con.commit()
 	except:
 		pass
 	cur.close()
+	con.close()
 
 	try: movie_release_date = str(movie_release_date).replace('b\'','').replace('\'','')
 	except: pass
@@ -643,6 +646,7 @@ def next_ep_play_movie(movie_year, movie_title, tmdb, menu):
 		xbmcgui.Window(10000).setProperty('Next_EP.resumetime', str(resumetime))
 
 		xbmcplugin.setContent(-1, 'movies')
+
 		if (resumetime == None or resumetime == '' or resumetime == 0) and resume_progress_seconds > 0:
 			resumetime = resume_progress_seconds
 			resumeTimeInSeconds = resume_progress_seconds
@@ -690,8 +694,73 @@ def next_ep_play_movie(movie_year, movie_title, tmdb, menu):
 		li.setPath(BDMV)
 		print_log(str(BDMV),'BDMV_path')
 
+		"""
 		li.setInfo('video', {'title': title, 'MovieTitle': movie_title, 'genre': genre, 'plotoutline': plotoutline, 'plot': plot, 'path': BDMV,'premiered': premiered, 'dbid': dbid, 'mediatype': dbtype, 'duration': duration, 'IMDBNumber': imdb, 'Rating': rating, 'Year': year})
-		xbmcplugin.setContent(-1, 'movies')
+		"""
+		infolabels = {'year': None, 'premiered': None, 'aired': None, 'mpaa': None, 'genre': None, 'imdbnumber': None, 'duration': None, 'dateadded': None, 'rating': None, 'votes': None, 'tagline': None, 'mediatype': None, 'title': None, 'originaltitle': None, 'sorttitle': None, 'plot': None, 'plotoutline': None, 'studio': None, 'country': None, 'director': None, 'writer': None, 'status': None, 'trailer': None}
+
+		response_extended_movie_info = extended_movie_info(movie_id=tmdb_id)
+		actors = []
+		actor_name = []
+		actor_role = []
+		actor_thumbnail = []
+		actor_order = []
+		for idx, i in enumerate(response_extended_movie_info[1]['actors']):
+			actor = {'name': i['name'], 'role': i['character'],'thumbnail': i.get('thumb'), 'order': idx+1}
+			actors.append(actor)
+			actor_name.append(i['name'])
+			actor_role.append(i['character'])
+			actor_thumbnail.append(i.get('thumb'))
+			actor_order.append(idx+1)
+		#print_log(str(list(zip(actor_name,actor_role,actor_thumbnail,actor_order))),'zip_list')
+		if len(actors) > 0:
+			li.setCast(actors)
+			li.setProperty('Cast', str(actors))
+			li.setProperty('CastAndRole', str(actors))
+			infolabels['Cast'] = list(zip(actor_name,actor_role,actor_thumbnail,actor_order))
+			infolabels['CastAndRole'] = list(zip(actor_name,actor_role,actor_thumbnail,actor_order))
+			#li.setInfo('video', {'Cast': list(zip(actor_name,actor_role,actor_thumbnail,actor_order)), 'CastAndRole': list(zip(actor_name,actor_role,actor_thumbnail,actor_order)) })
+		director = []
+		writer = []
+		for i in response_extended_movie_info[1]['crew']:
+			if 'Director' == str(i['job']):
+				director.append(i['name'])
+			if 'Writer' == str(i['job']):
+				writer.append(i['name'])
+		studio = []
+		for i in response_extended_movie_info[1]['studios']:
+			studio.append(i['title'])
+
+		infolabels['year'] = str(year)
+		infolabels['premiered'] = str(premiered)+'T00:00:00'
+		infolabels['aired'] = str(premiered)+'T00:00:00'
+		infolabels['imdbnumber'] = imdb
+		try: infolabels['duration'] = int(duration)
+		except: infolabels['duration'] = int(runtime_seconds)
+		infolabels['dateadded'] = str(premiered)+'T00:00:00'
+		infolabels['rating'] = float(rating)
+		infolabels['votes'] = int(response_extended_movie_info[0]['Votes'])
+		infolabels['tagline'] = response_extended_movie_info[0]['Tagline']
+		infolabels['mediatype'] = 'movie'
+		infolabels['title'] = movie_title
+		infolabels['originaltitle'] = movie_title
+		infolabels['sorttitle'] = movie_title
+		infolabels['plot'] = plot
+		infolabels['plotoutline'] = plot
+		infolabels['playcount'] = 0
+		infolabels['director'] = director
+		infolabels['writer'] = writer
+		infolabels['status'] = response_extended_movie_info[0]['Status']
+		infolabels['mpaa'] = response_extended_movie_info[0]['mpaa']
+		infolabels['genre'] = genre
+		infolabels['studio'] = studio
+		infolabels['country'] = None
+		infolabels['FileNameAndPath'] = BDMV
+		infolabels['path'] = BDMV
+
+		#print_log(infolabels)
+		li.setInfo(type='Video', infoLabels = infolabels)
+
 		playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 		current_action = xbmcgui.Window(10000).getProperty('Next_EP.TMDB_action')
 		playlist.clear()
@@ -700,7 +769,8 @@ def next_ep_play_movie(movie_year, movie_title, tmdb, menu):
 		##xbmcplugin.addDirectoryItem(handle=-1, url=PTN_download , listitem=li, isFolder=False)
 		#xbmcplugin.setResolvedUrl(-1, False, li)
 
-		xbmcplugin.addDirectoryItem(handle=-1, url=BDMV, listitem=li, isFolder=True)
+		#xbmcplugin.addDirectoryItem(handle=-1, url=BDMV, listitem=li, isFolder=True)
+		playlist.add(BDMV, li)
 		xbmcplugin.setResolvedUrl(-1, True, li)
 		xbmcplugin.endOfDirectory(-1)
 
@@ -709,10 +779,12 @@ def next_ep_play_movie(movie_year, movie_title, tmdb, menu):
 		xbmcgui.Window(10000).setProperty('diamond_player_time', str(int(time.time())+120))
 		if dvd_flag == 'False':
 			xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
-			xbmc.Player().play(item=BDMV, listitem=li)
+			#xbmc.Player().play(item=BDMV, listitem=li)
+			xbmc.Player().play(playlist)
 		if dvd_flag == 'True':
 			xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
-			xbmc.Player().play(item=BDMV, listitem=li)
+			#xbmc.Player().play(item=BDMV, listitem=li)
+			xbmc.Player().play(playlist)
 			xbmc.Player().setSubtitleStream(0)
 		
 		##xbmc.Player().play(item=PTN_download, listitem=li)

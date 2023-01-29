@@ -133,8 +133,17 @@ class DialogBaseList(object):
 			self.update()
 
 	def onClick(self, control_id):
+		self.save_position()
 		xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
 		xbmcgui.Window(10000).setProperty('position', str(self.position))
+		wm.focus_id = self.focus_id
+		wm.position = self.position
+		if 'youtubevideo' in str(self.listitems2):
+			function = 'open_youtube_list'
+		else:
+			function = 'open_video_list'
+		self.curr_window = {'function': function, 'params': {'listitems': self.listitems2, 'filters': self.filters, 'mode': self.mode, 'list_id': self.list_id, 'filter_label': self.filter_label, 'media_type': self.media_type, 'search_str': self.search_str, 'page': self.page, 'total_pages': self.total_pages, 'total_items': self.total_items, 'type': self.type, 'filter_url': self.filter_url, 'order': self.order, 'filter': self.filter, 'next_page_token': self.next_page_token, 'prev_page_token': self.prev_page_token }}
+		wm.update_windows(curr_window=self.curr_window, prev_window=self.prev_window)
 		wm.page_position = None
 		ch.serve(control_id, self)
 
