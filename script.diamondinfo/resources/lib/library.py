@@ -1024,7 +1024,8 @@ def trakt_calendar_hide_show(tmdb_id_num=None, unhide=False):
 
 
 def trakt_lists(list_name=None,user_id=None,list_slug=None,sort_by=None,sort_order=None, limit=0):
-    #import requests
+    from resources.lib import Utils
+    import urllib.parse
     #import json
     #headers = trak_auth()
     if list_slug.lower() == 'watchlist':
@@ -1041,7 +1042,12 @@ def trakt_lists(list_name=None,user_id=None,list_slug=None,sort_by=None,sort_ord
     try: 
         response = sorted(response, key=lambda k: k[sort_by], reverse=reverse_order)
     except:
-        response = sorted(response, key=lambda k: k['listed_at'], reverse=False)
+        try: 
+            response = sorted(response, key=lambda k: k['listed_at'], reverse=False)
+        except: 
+            message = str('%s - List missing') % (urllib.parse.unquote(list_name))
+            Utils.notify(message=message, time=1000, sound=False)
+            return
     movies = []
     x = 0
     for i in response:

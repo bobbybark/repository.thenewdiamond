@@ -1448,6 +1448,8 @@ def get_trakt_lists(list_name=None,user_id=None,list_slug=None,sort_by=None,sort
     movies = trakt_lists(list_name,user_id,list_slug,sort_by,sort_order)
     listitems = None
     x = 0
+    if movies == None:
+        return listitems
     for i in movies:
         imdb_id = i['ids']['imdb']
         response = get_tmdb_data('find/%s?language=%s&external_source=imdb_id&' % (imdb_id, xbmcaddon.Addon().getSetting('LanguageID')), 13)

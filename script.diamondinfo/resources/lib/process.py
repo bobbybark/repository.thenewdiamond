@@ -913,7 +913,7 @@ def get_log_error_flag():
 	ret = None
 	error_flag = False
 	for line in lines:
-		if 'EXCEPTION Thrown' in line:
+		if 'EXCEPTION Thrown' in line or 'Traceback (most recent call last):' in line:
 			error_flag = True
 			return error_flag
 	return error_flag
