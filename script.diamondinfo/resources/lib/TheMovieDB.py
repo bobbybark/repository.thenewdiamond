@@ -1044,14 +1044,15 @@ def get_set_movies(set_id):
 def get_imdb_recommendations(imdb_id=None, return_items=False):
     import requests
     imdb_url = 'https://www.imdb.com/title/' + str(imdb_id)
-    imdb_response = requests.get(imdb_url)
-    #imdb_response.text
+    imdb_header = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
+    imdb_response = requests.get(imdb_url, headers=imdb_header)
 
+    #imdb_response.text
     list_container = str(imdb_response.text).split('<')
     toggle = False
     movies = []
     for i in list_container:
-        if 'StaticFeature_MoreLikeThis' in str(i):
+        if 'StaticFeature_MoreLikeThis' in str(i) or 'MoreLikeThis' in str(i):
             toggle = True
         if toggle == True:
             if '/title/tt' in str(i):
@@ -1061,7 +1062,7 @@ def get_imdb_recommendations(imdb_id=None, return_items=False):
                             if 'tt' in str(j) and str(j).replace('tt','').isnumeric():
                                 if str(j) not in str(movies):
                                     movies.append(j)
-        if 'StaticFeature_Storyline' in str(i):
+        if 'StaticFeature_Storyline' in str(i) or 'Storyline' in str(i):
             toggle = False
     if return_items == False:
         return movies
@@ -1073,7 +1074,8 @@ def get_imdb_watchlist_ids_1(ur_list_str=None, limit=0):
     list_str=ur_list_str
 
     imdb_url = 'https://www.imdb.com/user/'+str(list_str)+'/watchlist'
-    imdb_response = requests.get(imdb_url)
+    imdb_header = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
+    imdb_response = requests.get(imdb_url, headers=imdb_header)
 
     from bs4 import BeautifulSoup
 
@@ -1106,7 +1108,8 @@ def get_imdb_list_ids(list_str=None, limit=0):
         movies = imdb_top_1000()
         return movies
     imdb_url = 'https://www.imdb.com/list/title/'+str(list_str)+'/_ajax'
-    imdb_response = requests.get(imdb_url)
+    imdb_header = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
+    imdb_response = requests.get(imdb_url, headers=imdb_header)
 
     #from bs4 import BeautifulSoup
 
@@ -1297,7 +1300,8 @@ def get_imdb_userlists():
         return None
     import requests
     imdb_url = 'https://www.imdb.com/user/'+str(imdb_id)+'/lists'
-    imdb_response = requests.get(imdb_url)
+    imdb_header = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
+    imdb_response = requests.get(imdb_url, headers=imdb_header)
     list_container = str(imdb_response.text,).split('<')
     imdb_list = {}
     imdb_list['imdb_list'] = []
@@ -1322,7 +1326,8 @@ def get_imdb_userlists_search(imdb_id=None):
         return None
     import requests
     imdb_url = 'https://www.imdb.com/user/'+str(imdb_id)+'/lists'
-    imdb_response = requests.get(imdb_url)
+    imdb_header = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
+    imdb_response = requests.get(imdb_url, headers=imdb_header)
     list_container = str(imdb_response.text,).split('<')
     imdb_list = {}
     imdb_list['imdb_list'] = []
@@ -1347,8 +1352,8 @@ def get_imdb_watchlist_ids(ur_list_str=None, limit=0):
     list_str=ur_list_str
 
     imdb_url = 'https://www.imdb.com/user/'+str(list_str)+'/watchlist'
-    imdb_response = requests.get(imdb_url)
-    xbmc.log(str(imdb_url)+'===>OPENINFO', level=xbmc.LOGINFO)
+    imdb_header = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
+    imdb_response = requests.get(imdb_url, headers=imdb_header)
     #from bs4 import BeautifulSoup
 
     #html_soup = BeautifulSoup(imdb_response.text, 'html.parser')

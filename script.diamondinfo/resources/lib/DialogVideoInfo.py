@@ -25,6 +25,7 @@ def get_movie_window(window_type):
 			#xbmc.log(str(kwargs.get('id'))+'===>OPENINFO', level=xbmc.LOGINFO)
 			data = TheMovieDB.extended_movie_info(movie_id=kwargs.get('id'), dbid=self.dbid)
 			imdb_recommendations = Utils.imdb_recommendations
+
 			if 'IMDB' in str(imdb_recommendations):
 				imdb_id = data[0]['imdb_id']
 				#xbmc.log(str(data[0]['imdb_id'])+'===>OPENINFO', level=xbmc.LOGINFO)
@@ -56,21 +57,21 @@ def get_movie_window(window_type):
 					self.data['similar'] = [i for i in self.data['similar'] if i['id'] not in sets_thread.id_list]
 				elif imdb_recommendations == 'TMDB then IMDB' and imdb_similar:
 					for i in imdb_similar:
-						if str(i) not in str(self.data['similar']):
+						if str(i['title']) not in str(self.data['similar']):
 							self.data['similar'].append(i)
 					self.data['similar'] = [i for i in self.data['similar'] if i['id'] not in sets_thread.id_list]
 				elif imdb_recommendations == 'IMDB then TMDB' and imdb_similar:
 					for i in self.data['similar']:
-						if str(i) not in str(imdb_similar):
+						if str(i['title']) not in str(imdb_similar):
 							imdb_similar.append(i)
 					self.data['similar'] = imdb_similar
 					self.data['similar'] = [i for i in self.data['similar'] if i['id'] not in sets_thread.id_list]
 				elif imdb_recommendations == 'IMDB + TMDB Sorted by Popularity' and imdb_similar:
 					for i in imdb_similar:
-						if str(i) not in str(self.data['similar']):
+						if str(i['title']) not in str(self.data['similar']):
 							self.data['similar'].append(i)
 					self.data['similar'] = [i for i in self.data['similar'] if i['id'] not in sets_thread.id_list]
-					self.data['similar'] = sorted(self.data['similar'], key=lambda k: k['Popularity'], reverse=True)
+					self.data['similar'] = sorted(self.data['similar'], key=lambda k: (k['Popularity'],k['Votes']), reverse=True)
 
 				#if imdb_similar:
 				#	for i in imdb_similar:
@@ -127,21 +128,21 @@ def get_movie_window(window_type):
 					self.data['similar'] = [i for i in self.data['similar'] if i['id'] not in sets_thread.id_list]
 				elif imdb_recommendations == 'TMDB then IMDB' and imdb_similar:
 					for i in imdb_similar:
-						if str(i) not in str(self.data['similar']):
+						if str(i['title']) not in str(self.data['similar']):
 							self.data['similar'].append(i)
 					self.data['similar'] = [i for i in self.data['similar'] if i['id'] not in sets_thread.id_list]
 				elif imdb_recommendations == 'IMDB then TMDB' and imdb_similar:
 					for i in self.data['similar']:
-						if str(i) not in str(imdb_similar):
+						if str(i['title']) not in str(imdb_similar):
 							imdb_similar.append(i)
 					self.data['similar'] = imdb_similar
 					self.data['similar'] = [i for i in self.data['similar'] if i['id'] not in sets_thread.id_list]
 				elif imdb_recommendations == 'IMDB + TMDB Sorted by Popularity' and imdb_similar:
 					for i in imdb_similar:
-						if str(i) not in str(self.data['similar']):
+						if str(i['title']) not in str(self.data['similar']):
 							self.data['similar'].append(i)
 					self.data['similar'] = [i for i in self.data['similar'] if i['id'] not in sets_thread.id_list]
-					self.data['similar'] = sorted(self.data['similar'], key=lambda k: k['Popularity'], reverse=True)
+					self.data['similar'] = sorted(self.data['similar'], key=lambda k: (k['Popularity'],k['Votes']), reverse=True)
 
 				self.listitems = [
 					(250, sets_thread.listitems),
