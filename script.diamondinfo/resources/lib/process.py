@@ -314,8 +314,12 @@ def start_info_actions(infos, params):
 						xbmc.log(str('Playback_Success')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
 						return
 					else:
-						xbmc.log(str('wm.pop_stack()......')+'3play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
-						#xbmc.executebuiltin('RunPlugin(plugin://%s/?info=play_test_call_pop_stack)' % addon_ID())
+						xbmc.sleep(1000)
+						window_id2 = xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"GUI.GetProperties","params":{"properties":["currentwindow", "currentcontrol"]},"id":1}')
+						window_id2 = json.loads(window_id2)
+						if window_id == window_id2:
+							xbmc.log(str('wm.pop_stack()......')+'3play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+							#xbmc.executebuiltin('RunPlugin(plugin://%s/?info=play_test_call_pop_stack)' % addon_ID())
 						return wm.pop_stack()
 			xbmc.log(str('return......')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
 			return
