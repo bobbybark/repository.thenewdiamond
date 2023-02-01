@@ -288,10 +288,11 @@ def start_info_actions(infos, params):
 				if xbmc.Player().isPlaying() or xbmc.getCondVisibility('Window.IsActive(12005)'):
 					xbmc.log(str('Playback_Success.......')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
 					return
-				if window_id['result']['currentwindow']['label'] == 'Select dialog' or window_id['result']['currentwindow']['id'] == 12000 and window_id2 == window_id and i > 4:
+				if window_id['result']['currentwindow']['label'] == 'Select dialog' or window_id['result']['currentwindow']['id'] == 12000:
 					if tmdbhelper_flag == False:
 						Utils.hide_busy()
 						xbmc.sleep(500)
+						Utils.hide_busy()
 					tmdbhelper_flag = True
 				elif tmdbhelper_flag and ( xbmc.Player().isPlaying() or ( window_id['result']['currentwindow']['label'].lower() == 'fullscreenvideo' or window_id['result']['currentwindow']['id'] == 12005 and window_id2 == window_id and i > 4 ) ):
 					xbmc.log(str('Playback_Success.......')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)

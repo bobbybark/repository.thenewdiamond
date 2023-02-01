@@ -533,9 +533,9 @@ def get_next_ep_details(show_title, show_curr_season, show_curr_episode, tmdb):
 	if next_ep_title[-1] == '\'' and next_ep_title[:2] == 'b\'':
 		next_ep_title = next_ep_title[:-1]
 		next_ep_title = next_ep_title[2:]
-	next_ep_rating = response['_embedded']['show']['rating']['average']
+	next_ep_rating = response['rating']['average']
 	response2 = extended_episode_info(tvshow_id=tmdb_id, season=next_ep_season, episode=next_ep_episode, cache_time=7)
-	next_ep_rating = str(response2[0]['Rating'])
+	next_ep_rating2 = str(response2[0]['Rating'])
 	next_ep_thumb2 = str(response2[0]['still_original'])
 
 	next_ep_year = response['airdate'][0:4]
@@ -562,6 +562,7 @@ def get_next_ep_details(show_title, show_curr_season, show_curr_episode, tmdb):
 	next_ep_details['strm_title'] = strm_title
 	next_ep_details['next_ep_thumb2'] = next_ep_thumb2
 	next_ep_details['next_ep_rating'] = next_ep_rating
+	next_ep_details['next_ep_rating2'] = next_ep_rating2
 	print_log(next_ep_details)
 	return next_ep_details
 
@@ -886,6 +887,7 @@ def next_ep_play(show_title, show_season, show_episode, tmdb):
 		episode_name = episode_name[2:]
 	clean_episode_name = regex.sub(' ', episode_name.replace('\'s','s').replace('&','and')).replace('  ',' ').lower()
 	clean_episode_name2 = str(clean_episode_name).lower().replace('part ii','').replace('part 1','').replace('part 2','').replace('part i','').strip()
+	tv_maze_rating = response['rating']['average']
 	if clean_episode_name2 != clean_episode_name:
 		if '2' in clean_episode_name.lower() or 'ii' in clean_episode_name.lower():
 			part1_part2_flag = 2
@@ -916,8 +918,11 @@ def next_ep_play(show_title, show_season, show_episode, tmdb):
 	if genre[-1] == '\'' and genre[:2] == 'b\'':
 		genre = genre[:-1]
 		genre = genre[2:]
-	try: rating = tmdb_rating
-	except: rating = ''
+	try: 
+		rating = float(tv_maze_rating)
+	except: 
+		try: rating =  float(tmdb_rating)
+		except: rating = float(0.0)
 	try: runtime = response['_embedded']['show']['runtime']
 	except: runtime = ''
 	try:

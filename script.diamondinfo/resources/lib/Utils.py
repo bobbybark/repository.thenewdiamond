@@ -28,9 +28,9 @@ def show_busy():
 	#if not window_id['result']['currentwindow']['id'] == 10025 and not window_id['result']['currentwindow']['id'] > 13000:
 	if 'widget=true' in str(sys.argv) or 'autocomplete' in str(sys.argv) or xbmc.getCondVisibility('Window.IsActive(12000)'):
 		return
-	if xbmc.Player().isPlaying():
+	elif xbmc.Player().isPlaying():
 		return
-	if int(xbmc.getInfoLabel('System.BuildVersion')[:2]) > 17:
+	elif int(xbmc.getInfoLabel('System.BuildVersion')[:2]) > 17:
 		xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
 	else:
 		xbmc.executebuiltin('ActivateWindow(busydialog)')
