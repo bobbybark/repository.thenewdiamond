@@ -258,6 +258,9 @@ def start_info_actions(infos, params):
 			Utils.hide_busy()
 			return
 
+		elif info == 'play_test_call_pop_stack':
+			wm.pop_stack()
+
 		elif info == 'play_test_pop_stack':
 			import json
 			tmdbhelper_flag = False
@@ -277,21 +280,29 @@ def start_info_actions(infos, params):
 				if (window_id['result']['currentwindow']['label'].lower() in ['home','notification'] or window_id['result']['currentwindow']['id'] in [10000,10107]) and window_id2 == window_id:
 					home_count = home_count + 1
 					if home_count > 10:
-						xbmc.log(str('wm.pop_stack()......')+'home_count_play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+						xbmc.log(str('wm.pop_stack()......')+'1play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+						#xbmc.executebuiltin('RunPlugin(plugin://%s/?info=play_test_call_pop_stack)' % addon_ID())
 						return wm.pop_stack()
 				if (window_id['result']['currentwindow']['label'].lower() in ['busydialognocancel'] or window_id['result']['currentwindow']['id'] in [10160]) and window_id2 == window_id:
-					error_flag = get_log_error_flag()
+					error_flag = get_log_error_flag(mode='Exception')
 					if error_flag:
 						xbmc.executebuiltin('Dialog.Close(all,true)')
-						xbmc.log(str('wm.pop_stack()......')+'error_flag_play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+						xbmc.log(str('wm.pop_stack()......')+'2play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+						#xbmc.executebuiltin('RunPlugin(plugin://%s/?info=play_test_call_pop_stack)' % addon_ID())
 						return wm.pop_stack()
 				if xbmc.Player().isPlaying() or xbmc.getCondVisibility('Window.IsActive(12005)'):
 					xbmc.log(str('Playback_Success.......')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
 					return
+
+				if tmdbhelper_flag == True and window_id != window_id2:
+					xbmc.sleep(500)
+					error_flag = get_log_error_flag(mode='tmdb_helper')
+					if error_flag:
+						xbmc.log(str('tmdb_helper_error_flag.......SLEEP......')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+						xbmc.sleep(7500)
+
 				if window_id['result']['currentwindow']['label'] == 'Select dialog' or window_id['result']['currentwindow']['id'] == 12000:
 					if tmdbhelper_flag == False:
-						Utils.hide_busy()
-						xbmc.sleep(500)
 						Utils.hide_busy()
 					tmdbhelper_flag = True
 				elif tmdbhelper_flag and ( xbmc.Player().isPlaying() or ( window_id['result']['currentwindow']['label'].lower() == 'fullscreenvideo' or window_id['result']['currentwindow']['id'] == 12005 and window_id2 == window_id and i > 4 ) ):
@@ -299,12 +310,12 @@ def start_info_actions(infos, params):
 					return
 				elif tmdbhelper_flag and (window_id['result']['currentwindow']['label'].lower() in ['home','notification'] or window_id['result']['currentwindow']['id'] in [10000,10107]) and window_id2 == window_id and i > 4:
 					#xbmc.log(str(window_id)+str(i)+'===>OPENINFO', level=xbmc.LOGINFO)
-					xbmc.sleep(1000)
 					if xbmc.Player().isPlaying():
 						xbmc.log(str('Playback_Success')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
 						return
 					else:
-						xbmc.log(str('wm.pop_stack()......')+'home_notification_play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+						xbmc.log(str('wm.pop_stack()......')+'3play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+						#xbmc.executebuiltin('RunPlugin(plugin://%s/?info=play_test_call_pop_stack)' % addon_ID())
 						return wm.pop_stack()
 			xbmc.log(str('return......')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
 			return
@@ -887,7 +898,7 @@ def start_info_actions(infos, params):
 			auto_clean_cache(days=days)
 			Utils.notify('Cache deleted')
 
-def get_log_error_flag():
+def get_log_error_flag(mode=None):
 	"""
 	Retrieves dimensions and framerate information from XBMC.log
 	Will likely fail if XBMC in debug mode - could be remedied by increasing the number of lines read
@@ -910,12 +921,17 @@ def get_log_error_flag():
 		fsize = f.tell()        # Get Size
 		f.seek(max(fsize - 9024, 0), 0)  # Set pos @ last n chars
 		lines = f.readlines()       # Read to end
-	lines = lines[-45:]    # Get last 10 lines
-	#xbmc.log(str(lines)+'===>PHIL', level=xbmc.LOGINFO)
+	lines = lines[-25:]    # Get last 10 lines
+	#xbmc.log(str(lines)+'===>OPENINFO', level=xbmc.LOGINFO)
 	ret = None
 	error_flag = False
-	for line in lines:
-		if 'EXCEPTION Thrown' in line or 'Traceback (most recent call last):' in line:
+	if mode == 'Exception':
+		for line in lines:
+			if 'EXCEPTION Thrown' in line or 'Traceback (most recent call last):' in line:
+				error_flag = True
+				return error_flag
+	if mode == 'tmdb_helper':
+		if 'lib.player - playing' in str(lines) and 'plugin://' in str(lines) and 'plugin.video.themoviedb.helper/plugin.py): script successfully run' in str(lines):
 			error_flag = True
 			return error_flag
 	return error_flag
