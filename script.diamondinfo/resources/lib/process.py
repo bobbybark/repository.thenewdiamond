@@ -901,7 +901,7 @@ def get_log_error_flag():
 								'fps' (float)
 	@rtype: dict()
 	"""
-	logfn = xbmcvfs.translatePath(r'special://home/temp\kodi.log')
+	logfn = xbmcvfs.translatePath(r'special://logpath\kodi.log')
 	#logfn = '/home/osmc/.kodi/temp/kodi.log'
 	xbmc.sleep(250)  # found originally that it wasn't written yet
 	with open(logfn, 'r') as f:
