@@ -277,13 +277,13 @@ def start_info_actions(infos, params):
 				if (window_id['result']['currentwindow']['label'].lower() in ['home','notification'] or window_id['result']['currentwindow']['id'] in [10000,10107]) and window_id2 == window_id:
 					home_count = home_count + 1
 					if home_count > 10:
-						xbmc.log(str('wm.pop_stack()......')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+						xbmc.log(str('wm.pop_stack()......')+'home_count_play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
 						return wm.pop_stack()
 				if (window_id['result']['currentwindow']['label'].lower() in ['busydialognocancel'] or window_id['result']['currentwindow']['id'] in [10160]) and window_id2 == window_id:
 					error_flag = get_log_error_flag()
 					if error_flag:
 						xbmc.executebuiltin('Dialog.Close(all,true)')
-						xbmc.log(str('wm.pop_stack()......')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+						xbmc.log(str('wm.pop_stack()......')+'error_flag_play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
 						return wm.pop_stack()
 				if xbmc.Player().isPlaying() or xbmc.getCondVisibility('Window.IsActive(12005)'):
 					xbmc.log(str('Playback_Success.......')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
@@ -299,11 +299,12 @@ def start_info_actions(infos, params):
 					return
 				elif tmdbhelper_flag and (window_id['result']['currentwindow']['label'].lower() in ['home','notification'] or window_id['result']['currentwindow']['id'] in [10000,10107]) and window_id2 == window_id and i > 4:
 					#xbmc.log(str(window_id)+str(i)+'===>OPENINFO', level=xbmc.LOGINFO)
+					xbmc.sleep(1000)
 					if xbmc.Player().isPlaying():
 						xbmc.log(str('Playback_Success')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
 						return
 					else:
-						xbmc.log(str('wm.pop_stack()......')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+						xbmc.log(str('wm.pop_stack()......')+'home_notification_play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
 						return wm.pop_stack()
 			xbmc.log(str('return......')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
 			return
