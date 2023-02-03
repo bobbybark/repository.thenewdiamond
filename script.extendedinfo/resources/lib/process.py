@@ -261,7 +261,7 @@ def start_info_actions(infos, params):
 		elif info == 'play_test_call_pop_stack':
 			wm.pop_stack()
 
-		elif info == 'play_test_pop_stack':
+		elif info == 'play_test_pop_stack_new':
 			reopen_play_fail = xbmcaddon.Addon(addon_ID()).getSetting('reopen_play_fail')
 			xbmcgui.Window(10000).setProperty('diamond_info_started', 'True')
 			if reopen_play_fail == 'false':
@@ -313,7 +313,7 @@ def start_info_actions(infos, params):
 					continue
 				xbmc.sleep(50)
 
-				if 'TMDbHelper - Done!' in str(line):
+				if tmdb_helper_finished == 0 and 'TMDbHelper - Done!' in str(line):
 					pop_flag = False
 					xbmc.executebuiltin('Dialog.Close(busydialog)')
 					xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
@@ -325,7 +325,10 @@ def start_info_actions(infos, params):
 					xbmc.log(plugin_name+'__play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
 					tmdb_plugin_flag = False
 					tmdb_helper_finished = 0
-				if 'script successfully run' in str(line) and 'plugin.video.themoviedb.helper' in str(line):
+				if tmdb_helper_finished == 0 and 'tmdb_helper_started' in str(line) and 'DestroyWindow' in str(line):
+					xbmc.log('tmdb_helper_finished'+'__play_test_pop_stack1===>OPENINFO', level=xbmc.LOGINFO)
+					tmdb_helper_finished = time.time()
+				if tmdb_helper_finished == 0 and 'script successfully run' in str(line) and 'plugin.video.themoviedb.helper' in str(line):
 					xbmc.log('tmdb_helper_finished'+'__play_test_pop_stack1===>OPENINFO', level=xbmc.LOGINFO)
 					tmdb_helper_finished = time.time()
 				if ('script aborted' in str(line) or 'script successfully run' in str(line)) and plugin_name in str(line) and not 'plugin.video.themoviedb.helper/plugin.py): script successfully run' in str(line):
@@ -352,7 +355,7 @@ def start_info_actions(infos, params):
 					return
 
 
-		elif info == 'play_test_pop_stack_old':
+		elif info == 'play_test_pop_stack':
 			import json
 			tmdbhelper_flag = False
 			reopen_play_fail = xbmcaddon.Addon(addon_ID()).getSetting('reopen_play_fail')
@@ -1009,7 +1012,7 @@ def follow2():
 		fsize = f.tell()        # Get Size
 		f.seek(max(fsize - 9024, 0), 0)  # Set pos @ last n chars
 		lines = f.readlines()       # Read to end
-	line = lines[-5:]
+	line = lines[-7:]
 	return str(line)
 
 def get_log_error_flag(mode=None):
