@@ -113,8 +113,8 @@ def calculate_age(born, died=False):
 	if died:
 		ref_day = died.split('-')
 	elif born:
-		date = date.today()
-		ref_day = [date.year, date.month, date.day]
+		date1 = date.today()
+		ref_day = [date1.year, date1.month, date1.day]
 	else:
 		return ''
 	actor_born = born.split('-')

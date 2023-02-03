@@ -163,6 +163,10 @@ def get_tmdb_window(window_type):
         @ch.action('info', 500)
         @ch.action('contextmenu', 500)
         def context_menu(self):
+            self.position = self.getControl(500).getSelectedPosition()
+            wm.position = self.position
+            xbmcgui.Window(10000).setProperty('focus_id', str(500))
+            xbmcgui.Window(10000).setProperty('position', str(self.position))
             if str(xbmcaddon.Addon(addon_ID()).getSetting('trakt_kodi_mode')) == 'Trakt Only':
                 trakt_only = True
             else:

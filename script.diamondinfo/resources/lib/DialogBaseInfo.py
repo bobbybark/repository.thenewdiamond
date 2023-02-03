@@ -46,6 +46,7 @@ class DialogBaseInfo(object):
 	@ch.action('up', '*')
 	@ch.action('down', '*')
 	def save_position(self):
+		self.focus_id = self.getFocusId()
 		try: self.position = self.getControl(self.focus_id).getSelectedPosition()
 		except: self.position = xbmc.getInfoLabel("Container.Position")
 		xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
@@ -55,15 +56,18 @@ class DialogBaseInfo(object):
 		except:
 			self.position = 'No Position'
 			xbmcgui.Window(10000).setProperty('position', str('No Position'))
+		wm.position = self.position
+		wm.focus_id = self.focus_id
 
 	def onAction(self, action):
-		xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
-		xbmcgui.Window(10000).setProperty('position', str(self.position))
+		#xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
+		#xbmcgui.Window(10000).setProperty('position', str(self.position))
+		self.save_position()
 		ch.serve_action(action, self.getFocusId(), self)
 
 	def onClick(self, control_id):
-		xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
-		xbmcgui.Window(10000).setProperty('position', str(self.position))
+		#xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
+		#xbmcgui.Window(10000).setProperty('position', str(self.position))
 		self.save_position()
 		ch.serve(control_id, self)
 

@@ -110,19 +110,22 @@ class DialogBaseList(object):
 	@ch.action('up', '*')
 	@ch.action('down', '*')
 	def save_position(self):
+		self.focus_id = self.getFocusId()
 		self.position = self.getControl(500).getSelectedPosition()
 		wm.position = self.position
+		wm.focus_id = self.focus_id
 		xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
 		xbmcgui.Window(10000).setProperty('position', str(self.position))
 
 	def onAction(self, action):
-		xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
-		xbmcgui.Window(10000).setProperty('position', str(self.position))
+		#xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
+		#xbmcgui.Window(10000).setProperty('position', str(self.position))
+		self.save_position()
 		ch.serve_action(action, self.getFocusId(), self)
 
 	def onFocus(self, control_id):
 		self.focus_id = self.getFocusId()
-		wm.focus_id = self.focus_id
+		#wm.focus_id = self.focus_id
 		self.save_position()
 		old_page = self.page
 		if control_id == 600:
@@ -134,10 +137,10 @@ class DialogBaseList(object):
 
 	def onClick(self, control_id):
 		self.save_position()
-		xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
-		xbmcgui.Window(10000).setProperty('position', str(self.position))
-		wm.focus_id = self.focus_id
-		wm.position = self.position
+		#xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
+		#xbmcgui.Window(10000).setProperty('position', str(self.position))
+		#wm.focus_id = self.focus_id
+		#wm.position = self.position
 		if 'youtubevideo' in str(self.listitems2):
 			function = 'open_youtube_list'
 		else:

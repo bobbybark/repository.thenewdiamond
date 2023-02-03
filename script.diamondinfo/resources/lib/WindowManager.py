@@ -149,8 +149,18 @@ class WindowManager(object):
 
         self.focus_id = xbmcgui.Window(10000).getProperty('focus_id')
         self.position = xbmcgui.Window(10000).getProperty('position')
+        self.focus_id = wm.focus_id
+        self.position = wm.position
         self.prev_window['params']['focus_id'] = self.focus_id
         self.prev_window['params']['position'] = self.position
+        self.focus_id = None
+        self.position = None
+        wm.focus_id = None
+        wm.position = None
+        xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
+        xbmcgui.Window(10000).setProperty('position', str(self.position))
+        xbmcgui.Window(10000).setProperty('pop_stack_focus_id', str(self.focus_id))
+        xbmcgui.Window(10000).setProperty('pop_stack_position', str(self.position))
 
         try:
             if 'youtubevideo' in str(self.prev_window['params']['listitems']):

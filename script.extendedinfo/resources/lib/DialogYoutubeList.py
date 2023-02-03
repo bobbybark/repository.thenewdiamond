@@ -319,9 +319,9 @@ def get_youtube_window(window_type):
 
         def go_to_next_page(self):
             self.get_column()
-            Utils.show_busy()
-            wm.page_position = self.position -44
             if self.page < self.total_pages:
+                wm.page_position = self.position -44
+                Utils.show_busy()
                 self.page += 1
                 self.prev_page_token = self.page_token
                 self.page_token = self.next_page_token
@@ -336,11 +336,11 @@ def get_youtube_window(window_type):
 
         def go_to_prev_page(self):
             self.get_column()
-            wm.prev_page_flag = True
-            wm.prev_page_num = self.page -1 
-            wm.page_position = self.position +44
-            Utils.show_busy()
             if self.page > 1:
+                wm.prev_page_flag = True
+                wm.prev_page_num = self.page -1 
+                wm.page_position = self.position +44
+                Utils.show_busy()
                 self.page -= 1
                 self.next_page_token = self.page_token
                 self.page_token = self.prev_page_token

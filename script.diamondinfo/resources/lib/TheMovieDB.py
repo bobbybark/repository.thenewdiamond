@@ -692,7 +692,7 @@ def extended_movie_info(movie_id=None, dbid=None, cache_time=14):
     if not movie_id:
         return None
     session_str = ''
-    response = get_tmdb_data('movie/%s?append_to_response=alternative_titles,credits,images,keywords,releases,videos,translations,similar,reviews,rating&include_image_language=en,null,%s&language=%s&%s' % (movie_id, xbmcaddon.Addon().getSetting('LanguageID'), xbmcaddon.Addon().getSetting('LanguageID'), session_str), cache_time)
+    response = get_tmdb_data('movie/%s?append_to_response=alternative_titles,credits,images,keywords,releases,videos,translations,recommendations,reviews,rating&include_image_language=en,null,%s&language=%s&%s' % (movie_id, xbmcaddon.Addon().getSetting('LanguageID'), xbmcaddon.Addon().getSetting('LanguageID'), session_str), cache_time)
     if not response:
         Utils.notify('Could not get movie information', sound=False)
         return {}
@@ -759,7 +759,7 @@ def extended_movie_info(movie_id=None, dbid=None, cache_time=14):
     movie['Rating'] = Utils.fetch(response, 'vote_average')
     listitems = {
         'actors': handle_tmdb_people(response['credits']['cast']),
-        'similar': handle_tmdb_movies(response['similar']['results']),
+        'similar': handle_tmdb_movies(response['recommendations']['results']),
         'studios': handle_tmdb_misc(response['production_companies']),
         'releases': handle_tmdb_misc(response['releases']['countries']),
         'crew': handle_tmdb_people(response['credits']['crew']),
@@ -776,7 +776,7 @@ def extended_tvshow_info(tvshow_id=None, cache_time=7, dbid=None):
     if not tvshow_id:
         return None
     session_str = ''
-    response = get_tmdb_data('tv/%s?append_to_response=alternative_titles,content_ratings,credits,external_ids,images,keywords,rating,similar,translations,videos&language=%s&include_image_language=en,null,%s&%s' % (tvshow_id, xbmcaddon.Addon().getSetting('LanguageID'), xbmcaddon.Addon().getSetting('LanguageID'), session_str), cache_time)
+    response = get_tmdb_data('tv/%s?append_to_response=alternative_titles,content_ratings,credits,external_ids,images,keywords,rating,recommendations,translations,videos&language=%s&include_image_language=en,null,%s&%s' % (tvshow_id, xbmcaddon.Addon().getSetting('LanguageID'), xbmcaddon.Addon().getSetting('LanguageID'), session_str), cache_time)
     if not response:
         return False
     videos = handle_tmdb_videos(response['videos']['results']) if 'videos' in response else []
@@ -849,7 +849,7 @@ def extended_tvshow_info(tvshow_id=None, cache_time=7, dbid=None):
     tvshow['Rating'] = Utils.fetch(response, 'vote_average')
     listitems = {
         'actors': handle_tmdb_people(response['credits']['cast']),
-        'similar': handle_tmdb_tvshows(response['similar']['results']),
+        'similar': handle_tmdb_tvshows(response['recommendations']['results']),
         'studios': handle_tmdb_misc(response['production_companies']),
         'networks': handle_tmdb_misc(response['networks']),
         'certifications': handle_tmdb_misc(response['content_ratings']['results']),
