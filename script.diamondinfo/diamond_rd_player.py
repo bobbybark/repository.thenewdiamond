@@ -323,6 +323,11 @@ def prescrape_seren(tmdb=None, season=None, episode=None):
 	#return seren_stream_link
 
 def download_tv_test(meta_info, filename):
+	x265_setting = xbmcaddon.Addon(addon_ID()).getSetting('x265_setting')
+	if x265_setting == 'true';
+		x265_setting = True
+	else:
+		x265_setting = False
 	alternate_titles_flag = False
 	if meta_info['part1_part2_flag'] == 2:
 		show_season = int(meta_info['show_season'])
@@ -454,10 +459,15 @@ def download_tv_test(meta_info, filename):
 	if meta_info['x265_enabled'] == 'True':
 		x265_match_pass = True
 	elif meta_info['x265_enabled'] == 'False':
-		if '265' in filename or 'hevc' in filename or 'hdr' in filename:
+		if '265' in filename or 'hevc' in filename or 'hdr' in filename or 'hi10' in filename:
 			x265_match_pass = False
 		else:
 			x265_match_pass = True
+
+	if x265_setting
+		if x265_match_pass ==  False:
+			x265_match_pass = True
+
 	if meta_info['part1_part2_flag'] == 2 and part1_part2_match_flag == False and episode_list_flag ==  True:
 		regex_part_1 = re.compile('(part[^a-zA-Z]).*'+str(1))
 		regex_part_1_match = regex_part_1.search(filename)
@@ -1034,7 +1044,7 @@ def next_ep_play(show_title, show_season, show_episode, tmdb):
 						down_test = down_test + 1
 				if meta_info_flags['season_list_flag'] == True and meta_info_flags['episode_name_flag'] == True and meta_info_flags['x265_match_pass'] == True and meta_info_flags['part1_part2_match_flag'] == True:
 					down_test = down_test + 2
-				if down_test > 3:
+				if down_test > 3 and meta_info_flags['x265_match_pass']:
 					PTN_link = i['link']
 					PTN_download = i['download']
 					PTN_size = str(int(i['filesize'])/(1024*1024))+'Mb'
@@ -1120,7 +1130,7 @@ def next_ep_play(show_title, show_season, show_episode, tmdb):
 							torr_test2 = torr_test2 + 1
 					if meta_info_flags['season_list_flag'] == True and meta_info_flags['episode_name_flag'] == True and meta_info_flags['x265_match_pass'] == True and meta_info_flags['part1_part2_match_flag'] == True:
 						torr_test2 = torr_test2 + 2
-					if torr_test == True and torr_test2 > 3:
+					if torr_test == True and torr_test2 > 3 and meta_info_flags['x265_match_pass']:
 						id = k['id']
 						torr_response3 = RD_torrents_info(id)
 						#print_log(torr_data2[str(j)]['filename'],'torr_data2')
@@ -1609,6 +1619,14 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 				x265_enabled = 'True'
 	except:
 		x265_enabled = 'True'
+
+	x265_setting = xbmcaddon.Addon(addon_ID()).getSetting('x265_setting')
+	if x265_setting == 'true';
+		x265_setting = True
+	else:
+		x265_setting = False
+	if x265_enabled == True and x265_setting == False:
+		x265_enabled = False
 
 	movie_title_clean = regex.sub(' ', movie_title).replace('  ',' ').lower()
 

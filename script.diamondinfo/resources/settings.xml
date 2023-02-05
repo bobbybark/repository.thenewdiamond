@@ -68,6 +68,7 @@
 
 		<setting label="RD => https://real-debrid.com/apitoken" type="lsep"/>
 		<setting label="RD API Token" type="text" id="RD_api" default="" />
+		<setting label="X265 Enable" type="bool" id="x265_setting" default="true" />
 		<setting label="RD Player Enable" type="bool" id="RD_player" default="false" />
 		<setting label="Bluray Player (Direct) enable" type="bool" id="RD_bluray_player" default="false" />
 		<setting label="Bluray Player (Menu) enable" type="bool" id="RD_bluray_player2" default="false" />
