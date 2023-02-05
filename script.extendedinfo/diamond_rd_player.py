@@ -324,7 +324,7 @@ def prescrape_seren(tmdb=None, season=None, episode=None):
 
 def download_tv_test(meta_info, filename):
 	x265_setting = xbmcaddon.Addon(addon_ID()).getSetting('x265_setting')
-	if x265_setting == 'true';
+	if x265_setting == 'true':
 		x265_setting = True
 	else:
 		x265_setting = False
@@ -1621,7 +1621,7 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 		x265_enabled = 'True'
 
 	x265_setting = xbmcaddon.Addon(addon_ID()).getSetting('x265_setting')
-	if x265_setting == 'true';
+	if x265_setting == 'true':
 		x265_setting = True
 	else:
 		x265_setting = False
