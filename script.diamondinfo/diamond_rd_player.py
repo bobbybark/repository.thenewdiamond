@@ -464,7 +464,7 @@ def download_tv_test(meta_info, filename):
 		else:
 			x265_match_pass = True
 
-	if x265_setting
+	if x265_setting:
 		if x265_match_pass ==  False:
 			x265_match_pass = True
 
