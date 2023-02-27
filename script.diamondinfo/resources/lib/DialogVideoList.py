@@ -352,6 +352,7 @@ def get_tmdb_window(window_type):
 
             if selection_text == 'TasteDive Similar Items':
                 search_str = self.listitem.getProperty('title')
+                wm.pop_video_list = False
                 limit = 100
                 if xbmc.getInfoLabel('listitem.DBTYPE') == 'movie':
                     self_type = 'movie'
@@ -363,9 +364,25 @@ def get_tmdb_window(window_type):
                     media_type = 'movie'
                 self.page = 1
                 self.mode='tastedive&' + str(media_type)
-                self.search_str = TheMovieDB.get_tastedive_data(query=search_str, limit=limit, media_type=media_type)
+                #self.search_str = TheMovieDB.get_tastedive_data(query=search_str, limit=limit, media_type=media_type)
+                Utils.show_busy()
+                self.search_str = TheMovieDB.get_tastedive_data_scrape(query=search_str, year=self.listitem.getProperty('year'), limit=limit, media_type=media_type)
                 if self.search_str == []:
-                    self.search_str = TheMovieDB.get_tastedive_data(query=self.listitem.getProperty('originaltitle'), limit=limit, media_type=media_type)
+                    if media_type == 'movie':
+                        single_movie_info = TheMovieDB.single_movie_info(movie_id=item_id)
+                        alternative_titles = []
+                        for i in single_movie_info['alternative_titles']['titles']:
+                            if str(i['iso_3166_1']) in ['US','UK','GB']:
+                                alternative_titles.append(i['title'])
+                    else:
+                        single_tvshow_info = TheMovieDB.single_tvshow_info(tvshow_id=item_id)
+                        alternative_titles = single_tvshow_info['alternative_titles']
+                    for i in alternative_titles:
+                        #self.search_str = TheMovieDB.get_tastedive_data(query=self.listitem.getProperty('originaltitle'), limit=limit, media_type=media_type)
+                        self.search_str = TheMovieDB.get_tastedive_data_scrape(query=i, year=self.listitem.getProperty('year'), limit=limit, media_type=media_type)
+                        #xbmc.log(str(self.search_str)+'query_get_tastedive_data_scrape===>OPENINFO', level=xbmc.LOGINFO)
+                        if self.search_str != []:
+                            break
                 self.filter_label='TasteDive Similar ('+str(search_str)+'):'
                 #return wm.open_video_list(mode='tastedive&' + str(media_type), listitems=[], search_str=response, filter_label='TasteDive Similar ('+str(search_str)+'):')
                 self.fetch_data()
@@ -781,7 +798,9 @@ def get_tmdb_window(window_type):
                 response = TheMovieDB.get_trakt(trakt_type='movie',info='trakt_watched',limit=50)
                 response3 = []
                 for i in response:
-                    response2 = TheMovieDB.get_tastedive_data(query=i['title'], limit=50, media_type='movie')
+                    #response2 = TheMovieDB.get_tastedive_data(query=i['title'], limit=50, media_type='movie')
+                    response2 = TheMovieDB.get_tastedive_data_scrape(query=i['title'], year=i['release_date'][:4], limit=50, media_type='movie')
+
                     original_title = i['original_title']
                     original_title2 = ''
                     try:
@@ -794,7 +813,8 @@ def get_tmdb_window(window_type):
                         pass
 
                     if response2 == [] and original_title != i['title']:
-                        response2 = TheMovieDB.get_tastedive_data(query=original_title, limit=50, media_type='movie')
+                        #response2 = TheMovieDB.get_tastedive_data(query=original_title, limit=50, media_type='movie')
+                        response2 = TheMovieDB.get_tastedive_data_scrape(query=i['title'], year=i['release_date'][:4], limit=50, media_type='movie')
                     for x in response2:
                         if x not in response3:
                             response3.append(x)
@@ -812,9 +832,8 @@ def get_tmdb_window(window_type):
                 response = TheMovieDB.get_trakt(trakt_type='tv',info='trakt_watched',limit=50)
                 response3 = []
                 for i in response:
-                    #try: response2 = TheMovieDB.get_tastedive_data(query=i['title'], limit=50, media_type='tv')
-                    #except: response2 = TheMovieDB.get_tastedive_data(query=i['name'], limit=50, media_type='tv')
-                    response2 = TheMovieDB.get_tastedive_data(query=i['name'], limit=50, media_type='tv')
+                    #response2 = TheMovieDB.get_tastedive_data(query=i['name'], limit=50, media_type='tv')
+                    response2 = TheMovieDB.get_tastedive_data_scrape(query=i['name'], year=i['first_air_date'][:4], limit=50, media_type='tv')
                     for x in response2:
                         if x not in response3:
                             response3.append(x)
@@ -1013,14 +1032,13 @@ def get_tmdb_window(window_type):
 
             """
             try:
-                xbmc.log(str(wm.pop_video_list)+'pop_video_list_fetch_data===>PHIL', level=xbmc.LOGINFO)
-                xbmc.log(str(self.page)+'page_fetch_data===>PHIL', level=xbmc.LOGINFO)
-                xbmc.log(str(wm.curr_window['params']['mode'])+'curr_window_filter_page_fetch_data===>PHIL', level=xbmc.LOGINFO)
-                xbmc.log(str(wm.curr_window['params']['type'])+'curr_window_type_page_fetch_data===>PHIL', level=xbmc.LOGINFO)
+                xbmc.log(str(wm.pop_video_list)+'pop_video_list_fetch_data===>OPENINFO', level=xbmc.LOGINFO)
+                xbmc.log(str(self.page)+'page_fetch_data===>OPENINFO', level=xbmc.LOGINFO)
+                xbmc.log(str(wm.curr_window['params']['mode'])+'curr_window_filter_page_fetch_data===>OPENINFO', level=xbmc.LOGINFO)
+                xbmc.log(str(wm.curr_window['params']['type'])+'curr_window_type_page_fetch_data===>OPENINFO', level=xbmc.LOGINFO)
             except:
                 pass
             """
-
             if wm.pop_video_list == True:
                 self.page = int(wm.prev_window['params']['page'])
                 self.mode = wm.prev_window['params']['mode']

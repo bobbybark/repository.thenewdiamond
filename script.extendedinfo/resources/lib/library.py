@@ -45,17 +45,20 @@ def get_processor_info():
     return ""
 
 def tmdb_traktapi_path():
-    tmdb_traktapi_path = Path(main_file_path().replace(addon_ID(),'plugin.video.themoviedb.helper') + 'resources/lib/traktapi.py')
-    return tmdb_traktapi_path
+    tmdb_traktapi_path1 = Path(main_file_path().replace(addon_ID(),'plugin.video.themoviedb.helper') + 'resources/lib/traktapi.py')
+    tmdb_traktapi_path2 = Path(main_file_path().replace(addon_ID(),'plugin.video.themoviedb.helper') + 'resources/lib/trakt/api.py')
+    tmdb_traktapi_path3 = Path(main_file_path().replace(addon_ID(),'plugin.video.themoviedb.helper') + 'resources/lib/api/trakt/api.py')
+    tmdb_traktapi_path4 = Path(main_file_path().replace(addon_ID(),'plugin.video.themoviedb.helper') + 'resources/tmdbhelper/lib/api/api_keys/trakt.py')
+    if xbmcvfs.exists(str(tmdb_traktapi_path1)):
+        return tmdb_traktapi_path1
+    elif xbmcvfs.exists(str(tmdb_traktapi_path2)):
+        return tmdb_traktapi_path2
+    elif xbmcvfs.exists(str(tmdb_traktapi_path3)):
+        return tmdb_traktapi_path3
+    elif xbmcvfs.exists(str(tmdb_traktapi_path4)):
+        return tmdb_traktapi_path4
 
-def tmdb_traktapi_new_path():
-    tmdb_traktapi_new_path = Path(main_file_path().replace(addon_ID(),'plugin.video.themoviedb.helper') + 'resources/lib/trakt/api.py')
-    return tmdb_traktapi_new_path
 
-def tmdb_traktapi_new_path2():
-    tmdb_traktapi_new_path = Path(main_file_path().replace(addon_ID(),'plugin.video.themoviedb.helper') + 'resources/lib/api/trakt/api.py')
-    return tmdb_traktapi_new_path
-    
 def basedir_tv_path():
     root_dir = xbmcaddon.Addon(addon_ID()).getSetting('library_folder')
     if root_dir == '':
@@ -1277,14 +1280,19 @@ def trakt_unwatched_tv_shows(cache_days=None):
         shows_last_watched[i['show']['ids']['tmdb']]['name'] = i['show']['title'] 
         shows_last_watched[i['show']['ids']['tmdb']]['aired_episodes'] = i['show']['aired_episodes']
         shows_last_watched[i['show']['ids']['tmdb']]['imdb'] = i['show']['ids']['imdb']
+        response2 = get_trakt_data(url='https://api.trakt.tv/shows/'+str(i['show']['ids']['trakt'])+'/progress/watched?extended=full', cache_days=7)
         for s in i['seasons']:
             shows_last_watched[i['show']['ids']['tmdb']]['season'] = s['number']
             for e in s['episodes']:
                 watched_episodes = watched_episodes + 1
                 shows_last_watched[i['show']['ids']['tmdb']]['episode'] = e['number']
                 shows_last_watched[i['show']['ids']['tmdb']]['last_watched_at'] = e['last_watched_at']
+                #xbmc.log(str(response2)+'===>OPEN_INFO', level=xbmc.LOGINFO)
                 shows_last_watched[i['show']['ids']['tmdb']]['last_watched_timestamp'] = datetime.fromisoformat(e['last_watched_at'][:-1] + '+00:00').timestamp()
+                try: shows_last_watched[i['show']['ids']['tmdb']]['last_watched_timestamp'] = datetime.fromisoformat(response2['next_episode']['first_aired'][:-1] + '+00:00').timestamp()
+                except: pass
         shows_last_watched[i['show']['ids']['tmdb']]['watched_episodes'] = watched_episodes
+        #break
 
     url = 'https://api.trakt.tv/sync/collection/shows'
     #response = requests.get(url, headers=headers).json()
@@ -1307,8 +1315,13 @@ def trakt_unwatched_tv_shows(cache_days=None):
             coll_unwatched[i['ids']['tmdb']]['name'] = i['title']
             coll_unwatched[i['ids']['tmdb']]['year'] = i['year']
             coll_unwatched[i['ids']['tmdb']]['date'] = str(i['year']) + '-12-31T12:00:00.000Z'
+            response2 = get_trakt_data(url='https://api.trakt.tv/shows/'+str(i['ids']['trakt'])+'/progress/watched?extended=full', cache_days=7)
+            #xbmc.log(str(response2)+'===>OPEN_INFO', level=xbmc.LOGINFO)
             coll_unwatched[i['ids']['tmdb']]['date_timestamp'] = datetime.fromisoformat(str(i['year']) + '-12-31T12:00:00.000Z'[:-1] + '+00:00').timestamp()
+            try: coll_unwatched[i['ids']['tmdb']]['date_timestamp'] = datetime.fromisoformat(response2['next_episode']['first_aired'][:-1] + '+00:00').timestamp()
+            except: pass
             coll_unwatched[i['ids']['tmdb']]['imdb'] = i['ids']['imdb']
+        #break
 
     #shows_last_watched2 = sorted(unwatched , key=lambda k: shows_last_watched[k]['last_watched_timestamp'], reverse=True)
     shows_unwatched = {}
@@ -1788,8 +1801,6 @@ def trak_auth():
     file_path = main_file_path()
     tmdb_settings = tmdb_settings_path()
     tmdb_traktapi = tmdb_traktapi_path()
-    tmdb_traktapi2 = tmdb_traktapi_new_path()
-    tmdb_traktapi3 = tmdb_traktapi_new_path2()
 
     import html
     f = open(tmdb_settings, 'r')
@@ -1808,28 +1819,15 @@ def trak_auth():
     #        token = json.loads(child.text)
     token = trakt_token
 
-    try:
-        inFile = open(tmdb_traktapi)
-        for line in inFile:
-            if 'self.client_id = ' in line:
-                client_id = line.replace('self.client_id = ','').replace('\'','').replace('    ','').replace('\n', '')
-            if 'self.client_secret = ' in line:
-                client_secret = line.replace('self.client_secret = ','').replace('\'','').replace('    ','').replace('\n', '')
-    except:
-        try:
-            inFile = open(tmdb_traktapi2)
-            for line in inFile:
-                if 'CLIENT_ID = ' in line:
-                    client_id = line.replace('CLIENT_ID = ','').replace('\'','').replace('    ','').replace('\n', '')
-                if 'CLIENT_SECRET = ' in line:
-                    client_secret = line.replace('CLIENT_SECRET = ','').replace('\'','').replace('    ','').replace('\n', '')
-        except:
-            inFile = open(tmdb_traktapi3)
-            for line in inFile:
-                if 'CLIENT_ID = ' in line:
-                    client_id = line.replace('CLIENT_ID = ','').replace('\'','').replace('    ','').replace('\n', '')
-                if 'CLIENT_SECRET = ' in line:
-                    client_secret = line.replace('CLIENT_SECRET = ','').replace('\'','').replace('    ','').replace('\n', '')
+    inFile = open(tmdb_traktapi)
+    client_id = ''
+    client_secret = ''
+    for line in inFile:
+        
+        if ('self.client_id = ' in line or 'CLIENT_ID = ' in line) and client_id == '':
+            client_id = line.split("'")[1]
+        if ('self.client_secret = ' in line or 'CLIENT_SECRET = ' in line) and client_secret == '':
+            client_secret = line.split("'")[1]
 
     inFile.close()
 

@@ -209,7 +209,8 @@ def start_info_actions(infos, params):
 			media_type = str(params['media_type'])
 			limit = params.get('limit', 10)
 			from resources.lib import TheMovieDB
-			response = TheMovieDB.get_tastedive_data(query=search_str, limit=limit, media_type=media_type)
+			#response = TheMovieDB.get_tastedive_data(query=search_str, limit=limit, media_type=media_type)
+			response = TheMovieDB.get_tastedive_data_scrape(query=search_str, year='', limit=50, media_type=media_type)
 			wm.window_stack_empty()
 			return wm.open_video_list(mode='tastedive&' + str(media_type), listitems=[], search_str=response, filter_label='TasteDive Similar ('+str(search_str)+'):')
 
@@ -218,7 +219,8 @@ def start_info_actions(infos, params):
 			response = TheMovieDB.get_trakt(trakt_type='movie',info='trakt_watched',limit=30)
 			response3 = []
 			for i in response:
-				response2 = TheMovieDB.get_tastedive_data(query=i['title'], limit=30, media_type='movie')
+				#response2 = TheMovieDB.get_tastedive_data(query=i['title'], limit=30, media_type='movie')
+				response2 = TheMovieDB.get_tastedive_data_scrape(query=i['title'], year=i['year'], limit=50, media_type='movie')
 
 				original_title = i['original_title']
 				original_title2 = ''
@@ -242,7 +244,8 @@ def start_info_actions(infos, params):
 			response = TheMovieDB.get_trakt(trakt_type='tv',info='trakt_watched',limit=30)
 			response3 = []
 			for i in response:
-				response2 = TheMovieDB.get_tastedive_data(query=i['title'], limit=30, media_type='tv')
+				#response2 = TheMovieDB.get_tastedive_data(query=i['title'], limit=30, media_type='tv')
+				response2 = TheMovieDB.get_tastedive_data_scrape(query=i['title'], year=i['year'], limit=50, media_type='tv')
 				for x in response2:
 					if x not in response3:
 						response3.append(x)
@@ -1100,7 +1103,7 @@ def auto_clean_cache(days=None):
 			filetime = datetime.datetime.fromtimestamp(t) - today
 			#checking if file is more than 7 days old 
 			#or not if yes then remove them
-			if filetime.days <= days:
+			if filetime.days <= days and 'Taste' not in str(root):
 				#print(os.path.join(root, name), filetime.days)
 				xbmc.log(str(os.path.join(root, name))+'===>DELETE', level=xbmc.LOGINFO)
 				os.remove(os.path.join(root, name))

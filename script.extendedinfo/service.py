@@ -387,11 +387,16 @@ class PlayerMonitor(xbmc.Player):
         window_stack_enable = str(xbmcaddon.Addon(library.addon_ID()).getSetting('window_stack_enable'))
         window_open = xbmcgui.Window(10000).getProperty(str(addon_ID_short())+'_running')
         diamond_info_started = xbmcgui.Window(10000).getProperty('diamond_info_started')
+        Next_EP_ResolvedUrl = xbmcgui.Window(10000).getProperty('Next_EP.ResolvedUrl')
+        #xbmc.log(str(Next_EP_ResolvedUrl)+'=Next_EP_ResolvedUrl===>PENINFO', level=xbmc.LOGINFO)
+        xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
         if window_stack_enable == 'true' and (window_open == 'False' or diamond_info_started == 'True'):
             xbmc.sleep(100)
             if xbmc.Player().isPlaying()==0:
                 if xbmcgui.Window(10000).getProperty('diamond_info_started') == 'True':
                     #return wm.open_video_list(search_str='', mode='reopen_window')
+                    #xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
+                    xbmc.sleep(1000)
                     wm.pop_stack()
                     diamond_info_started = False
                     xbmcgui.Window(10000).setProperty('diamond_info_started',str(diamond_info_started))
@@ -404,6 +409,7 @@ class PlayerMonitor(xbmc.Player):
                 if xbmcgui.Window(10000).getProperty('diamond_info_started') == 'True':
                     diamond_info_started = False
                     xbmcgui.Window(10000).setProperty('diamond_info_started',str(diamond_info_started))
+                    #xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
                     xbmc.executebuiltin('RunScript(%s,info=reopen_window)' % (addon_ID()))
                     return
                 else:
@@ -427,6 +433,7 @@ class PlayerMonitor(xbmc.Player):
 
         xbmc.sleep(100)
         gc.collect()
+        xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
         self.reopen_window()
         return
         """
@@ -530,6 +537,7 @@ class PlayerMonitor(xbmc.Player):
                 json_object  = json.loads(json_result)
                 xbmc.log(str(json_object)+'=episode resume set, '+str(dbID)+'=dbID', level=xbmc.LOGFATAL)
         except:
+            xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
             self.reopen_window()
             """
             if reopen_window_bool == 'true' and xbmcgui.Window(10000).getProperty('diamond_info_started') == 'True' and not xbmc.getCondVisibility('Window.IsActive(10138)'):
@@ -548,6 +556,7 @@ class PlayerMonitor(xbmc.Player):
             """
             return
 
+        xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
         self.reopen_window()
         return
         """
@@ -608,11 +617,11 @@ class PlayerMonitor(xbmc.Player):
             diamond_info_time = 0
         else:
             diamond_info_time = int(diamond_info_time)
-        if diamond_info_time + 90 > int(time.time()):
+        if diamond_info_time + 120 > int(time.time()):
             diamond_info_started = True
         elif diamond_info_time == 0:
             diamond_info_started = False
-        elif diamond_info_time + 90 < int(time.time()):
+        elif diamond_info_time + 120 < int(time.time()):
             if playlist_position >= 1:
                 diamond_info_started = True
             else:
@@ -1225,6 +1234,8 @@ class PlayerMonitor(xbmc.Player):
             if diamond_player == False and percentage > 85:
                 xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
                 playing_file = None
+                if diamond_info_started == True:
+                    xbmcgui.Window(10000).setProperty('diamond_info_time', str(int(time.time())+15))
                 return
 
             if player.isPlaying()==1 and percentage > 90 and resume_position > (duration - 35) and resume_position < duration and prescrape == True and diamond_player == True:

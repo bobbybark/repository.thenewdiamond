@@ -322,57 +322,121 @@ def prescrape_seren(tmdb=None, season=None, episode=None):
 	#		break
 	#return seren_stream_link
 
-def download_tv_test(meta_info, filename):
-	x265_setting = xbmcaddon.Addon(addon_ID()).getSetting('x265_setting')
-	if x265_setting == 'true':
-		x265_setting = True
+def download_movie_test(meta_info, filename):
+	x265_enabled = meta_info['x265_enabled']
+	meta_info_flags = {}
+	filename = str(u''.join(filename).encode('utf-8').decode('utf-8').strip()).lower() 
+	ptn_data = PTN.parse(filename.replace('_','.').replace('-',' ').replace('.',' '))
+	movie_title_clean = meta_info['movie_title_clean']
+	#print_log(movie_title_clean)
+	try:
+		PTN_excess = str(ptn_data['excess']).replace('u\'',' ').replace('\'','').replace(',','').replace(']','').replace('[','').replace('  ',' ')
+	except:
+		PTN_excess = ''
+	if '265' in filename or 'hevc' in filename or 'hdr' in filename or 'hi10' in filename:
+		x265_flag = 'True'
 	else:
-		x265_setting = False
+		x265_flag = 'False'
+	if x265_enabled == 'True' or x265_enabled == 'true' or x265_enabled == True:
+		x265_flag = 'False'
+	try: PTN_title = regex.sub(' ', ptn_data['title']).replace('  ',' ').lower()
+	except: PTN_title = ''
+	meta_info_flags['x265_flag'] = x265_flag
+	meta_info_flags['PTN_title'] = PTN_title
+	
+	try: PTN_res = ptn_data['resolution']
+	except: PTN_res = ''
+	meta_info_flags['PTN_res'] = PTN_res
+	try: PTN_season = ptn_data['season']
+	except: PTN_season = ''
+	try: PTN_episode = ptn_data['episode']
+	except: PTN_episode = ''
+	if PTN_season != '' and PTN_episode == '':
+		PTN_season = ''
+	elif PTN_season == '' and PTN_episode != '':
+		PTN_episode == ''
+	meta_info_flags['PTN_season'] = PTN_season
+	meta_info_flags['PTN_episode'] = PTN_episode
+	meta_info_flags['PTN_excess'] = PTN_excess
+
+	if str(movie_title_clean) in str(ptn_data).lower() or str(movie_title_clean) in str(PTN_excess).lower():
+		PTN_title = movie_title_clean
+		meta_info_flags['PTN_title'] = PTN_title
+	for xi in meta_info['alternate_titles']:
+		try: 
+			test_title = xi.replace('-','').replace(':','').replace('։','').replace('  ',' ').strip()
+			if str(test_title).lower() in str(ptn_data).lower():
+				PTN_title = movie_title_clean
+				meta_info_flags['PTN_title'] = PTN_title
+				break
+			if (str(u''.join(test_title).encode('utf-8').strip()).lower() in str(ptn_data).lower() or str(u''.join(test_title).encode('utf-8').strip()).lower() in str(PTN_excess).lower()) and str(u''.join(test_title).encode('utf-8').strip()).replace(' ','') != '':
+				PTN_title = movie_title_clean
+				meta_info_flags['PTN_title'] = PTN_title
+				break
+			if (str(u''.join(test_title).encode('utf-8').strip()).lower() in str(ptn_data).lower() or str(u''.join(test_title).encode('utf-8').strip()).lower() in str(PTN_excess).lower()) and str(u''.join(test_title).encode('utf-8').strip()).replace(' ','') != '':
+				PTN_title = movie_title_clean
+				meta_info_flags['PTN_title'] = PTN_title
+				break
+		except:
+			pass
+	#print_log(filename, meta_info)
+	#print_log(filename, meta_info_flags)
+	return meta_info_flags
+
+
+
+def download_tv_test(meta_info, filename):
+	meta_info['x265_enabled'] = xbmcaddon.Addon(addon_ID()).getSetting('x265_setting')
+	#if x265_setting == 'true':
+	#	x265_setting = True
+	#else:
+	#	x265_setting = False
 	alternate_titles_flag = False
+	meta_info['episode_list2'] = []
 	if meta_info['part1_part2_flag'] == 2:
 		show_season = int(meta_info['show_season'])
 		show_episode = int(meta_info['show_episode'])
 		if show_episode > 1:
 			show_episode = show_episode -1
-			meta_info['episode_list'].append('S'+str(show_season).zfill(1)+'E'+str(show_episode).zfill(1))
-			meta_info['episode_list'].append('S'+str(show_season).zfill(1)+'E'+str(show_episode).zfill(2))
-			meta_info['episode_list'].append('S'+str(show_season).zfill(1)+'E'+str(show_episode).zfill(3))
-			meta_info['episode_list'].append('S'+str(show_season).zfill(2)+'E'+str(show_episode).zfill(2))
-			meta_info['episode_list'].append('S'+str(show_season).zfill(2)+'E'+str(show_episode).zfill(3))
-			meta_info['episode_list'].append('S'+str(show_season).zfill(1)+'EP'+str(show_episode).zfill(1))
-			meta_info['episode_list'].append('S'+str(show_season).zfill(1)+'EP'+str(show_episode).zfill(2))
-			meta_info['episode_list'].append('S'+str(show_season).zfill(1)+'EP'+str(show_episode).zfill(3))
-			meta_info['episode_list'].append('S'+str(show_season).zfill(2)+'EP'+str(show_episode).zfill(2))
-			meta_info['episode_list'].append('S'+str(show_season).zfill(2)+'EP'+str(show_episode).zfill(3))
-			meta_info['episode_list'].append(str(show_season).zfill(1)+'x'+str(show_episode).zfill(1))
-			meta_info['episode_list'].append(str(show_season).zfill(1)+'x'+str(show_episode).zfill(2))
-			meta_info['episode_list'].append(str(show_season).zfill(1)+'x'+str(show_episode).zfill(3))
-			meta_info['episode_list'].append(str(show_season).zfill(2)+'x'+str(show_episode).zfill(2))
-			meta_info['episode_list'].append(str(show_season).zfill(2)+'x'+str(show_episode).zfill(3))
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(1)+'E'+str(show_episode).zfill(1))
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(1)+'E'+str(show_episode).zfill(2))
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(1)+'E'+str(show_episode).zfill(3))
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(2)+'E'+str(show_episode).zfill(2))
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(2)+'E'+str(show_episode).zfill(3))
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(1)+'EP'+str(show_episode).zfill(1))
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(1)+'EP'+str(show_episode).zfill(2))
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(1)+'EP'+str(show_episode).zfill(3))
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(2)+'EP'+str(show_episode).zfill(2))
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(2)+'EP'+str(show_episode).zfill(3))
+			meta_info['episode_list2'].append(str(show_season).zfill(1)+'x'+str(show_episode).zfill(1))
+			meta_info['episode_list2'].append(str(show_season).zfill(1)+'x'+str(show_episode).zfill(2))
+			meta_info['episode_list2'].append(str(show_season).zfill(1)+'x'+str(show_episode).zfill(3))
+			meta_info['episode_list2'].append(str(show_season).zfill(2)+'x'+str(show_episode).zfill(2))
+			meta_info['episode_list2'].append(str(show_season).zfill(2)+'x'+str(show_episode).zfill(3))
 
-			meta_info['episode_list'].append('S'+str(show_season).zfill(1)+' - '+str(show_episode).zfill(1) + '\'')
-			meta_info['episode_list'].append('S'+str(show_season).zfill(1)+' - '+str(show_episode).zfill(2) + '\'')
-			meta_info['episode_list'].append('S'+str(show_season).zfill(1)+' - '+str(show_episode).zfill(3) + '\'')
-			meta_info['episode_list'].append('S'+str(show_season).zfill(2)+' - '+str(show_episode).zfill(2) + '\'')
-			meta_info['episode_list'].append('S'+str(show_season).zfill(2)+' - '+str(show_episode).zfill(3) + '\'')
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(1)+' - '+str(show_episode).zfill(1) + '\'')
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(1)+' - '+str(show_episode).zfill(2) + '\'')
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(1)+' - '+str(show_episode).zfill(3) + '\'')
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(2)+' - '+str(show_episode).zfill(2) + '\'')
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(2)+' - '+str(show_episode).zfill(3) + '\'')
 
-			meta_info['episode_list'].append('S'+str(show_season).zfill(1)+' - E'+str(show_episode).zfill(1) + '\'')
-			meta_info['episode_list'].append('S'+str(show_season).zfill(1)+' - E'+str(show_episode).zfill(2) + '\'')
-			meta_info['episode_list'].append('S'+str(show_season).zfill(1)+' - E'+str(show_episode).zfill(3) + '\'')
-			meta_info['episode_list'].append('S'+str(show_season).zfill(2)+' - E'+str(show_episode).zfill(2) + '\'')
-			meta_info['episode_list'].append('S'+str(show_season).zfill(2)+' - E'+str(show_episode).zfill(3) + '\'')
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(1)+' - E'+str(show_episode).zfill(1) + '\'')
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(1)+' - E'+str(show_episode).zfill(2) + '\'')
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(1)+' - E'+str(show_episode).zfill(3) + '\'')
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(2)+' - E'+str(show_episode).zfill(2) + '\'')
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(2)+' - E'+str(show_episode).zfill(3) + '\'')
 
-			meta_info['episode_list'].append('S'+str(show_season).zfill(1)+' - '+str(show_episode).zfill(1) + '.')
-			meta_info['episode_list'].append('S'+str(show_season).zfill(1)+' - '+str(show_episode).zfill(2) + '.')
-			meta_info['episode_list'].append('S'+str(show_season).zfill(1)+' - '+str(show_episode).zfill(3) + '.')
-			meta_info['episode_list'].append('S'+str(show_season).zfill(2)+' - '+str(show_episode).zfill(2) + '.')
-			meta_info['episode_list'].append('S'+str(show_season).zfill(2)+' - '+str(show_episode).zfill(3) + '.')
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(1)+' - '+str(show_episode).zfill(1) + '.')
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(1)+' - '+str(show_episode).zfill(2) + '.')
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(1)+' - '+str(show_episode).zfill(3) + '.')
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(2)+' - '+str(show_episode).zfill(2) + '.')
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(2)+' - '+str(show_episode).zfill(3) + '.')
 
-			meta_info['episode_list'].append('S'+str(show_season).zfill(1)+' - E'+str(show_episode).zfill(1) + '.')
-			meta_info['episode_list'].append('S'+str(show_season).zfill(1)+' - E'+str(show_episode).zfill(2) + '.')
-			meta_info['episode_list'].append('S'+str(show_season).zfill(1)+' - E'+str(show_episode).zfill(3) + '.')
-			meta_info['episode_list'].append('S'+str(show_season).zfill(2)+' - E'+str(show_episode).zfill(2) + '.')
-			meta_info['episode_list'].append('S'+str(show_season).zfill(2)+' - E'+str(show_episode).zfill(3) + '.')
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(1)+' - E'+str(show_episode).zfill(1) + '.')
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(1)+' - E'+str(show_episode).zfill(2) + '.')
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(1)+' - E'+str(show_episode).zfill(3) + '.')
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(2)+' - E'+str(show_episode).zfill(2) + '.')
+			meta_info['episode_list2'].append('S'+str(show_season).zfill(2)+' - E'+str(show_episode).zfill(3) + '.')
 
 	for xi in meta_info['alternate_titles']:
 		alternate_title = regex.sub(' ', xi.replace('\'s','s').replace('&','and')).replace('  ',' ').lower()
@@ -388,6 +452,11 @@ def download_tv_test(meta_info, filename):
 	for xi in meta_info['episode_list']:
 		if str(xi).lower() in filename:
 			episode_list_flag = True
+			break
+	episode_list_flag2 = False
+	for xi in meta_info['episode_list2']:
+		if str(xi).lower() in filename:
+			episode_list_flag2 = True
 			break
 	season_list_flag = False
 	for xi in meta_info['season_list']:
@@ -456,17 +525,17 @@ def download_tv_test(meta_info, filename):
 	elif meta_info['part1_part2_flag'] == 0:
 		part1_part2_match_flag = True
 	x265_match_pass = False
-	if meta_info['x265_enabled'] == 'True':
+	if meta_info['x265_enabled'] == 'True' or meta_info['x265_enabled'] == 'true' or meta_info['x265_enabled'] == True:
 		x265_match_pass = True
-	elif meta_info['x265_enabled'] == 'False':
+	elif meta_info['x265_enabled'] == 'False' or meta_info['x265_enabled'] == 'false' or meta_info['x265_enabled'] == False:
 		if '265' in filename or 'hevc' in filename or 'hdr' in filename or 'hi10' in filename:
 			x265_match_pass = False
 		else:
 			x265_match_pass = True
 
-	if x265_setting:
-		if x265_match_pass ==  False:
-			x265_match_pass = True
+	#if x265_setting:
+	#	if x265_match_pass ==  False:
+	#		x265_match_pass = True
 
 	if meta_info['part1_part2_flag'] == 2 and part1_part2_match_flag == False and episode_list_flag ==  True:
 		regex_part_1 = re.compile('(part[^a-zA-Z]).*'+str(1))
@@ -494,10 +563,15 @@ def download_tv_test(meta_info, filename):
 	
 	if episode_name_flag == True and part1_part2_match_flag == True and (show_title_flag == False and alternate_titles_flag == False) and episode_list_flag == False:
 		episode_name_flag = False
+	
+	if episode_list_flag2 == True and episode_list_flag == False:
+		if part1_part2_match_flag == True and episode_name_flag == True:
+			episode_list_flag == True
 
 	meta_info_flags = {'x265_match_pass': x265_match_pass,'alternate_titles_flag': alternate_titles_flag,'episode_list_flag': episode_list_flag,'season_list_flag': season_list_flag,'episode_name_flag': episode_name_flag,'show_title_flag': show_title_flag,'part1_part2_match_flag': part1_part2_match_flag}
-	#print_log(filename, meta_info)
-	#print_log(filename, meta_info_flags)
+	#if show_title_flag == True or alternate_titles_flag == True:
+	#	print_log(filename, meta_info)
+	#	print_log(filename, meta_info_flags)
 	return meta_info_flags
 
 def get_next_ep_details(show_title, show_curr_season, show_curr_episode, tmdb):
@@ -708,16 +782,16 @@ def next_ep_play(show_title, show_season, show_episode, tmdb):
 	episode_list.append('S'+str(show_season).zfill(2)+'E'+str(int(show_episode)-1).zfill(1)+'&E'+str(show_episode).zfill(1))
 	episode_list.append('S'+str(show_season).zfill(2)+'E'+str(int(show_episode)).zfill(1)+'&E'+str(int(show_episode)+1).zfill(1))
 
-	x265_enabled = 'False'
-	try:
-		processor = get_processor_info()
-		if 'linux' in str(sys.platform):
-			if 'vero' in str(processor).lower() or 'pi 4' in str(processor).lower():
-				print_log(str('VERO!!!'),'===>OPENINFO')
-				x265_enabled = 'True'
-	except:
-		print_log('processor_ERROR')
-		x265_enabled = 'True'
+	x265_enabled = xbmcaddon.Addon(addon_ID()).getSetting('x265_setting')
+	#try:
+	#	processor = get_processor_info()
+	#	if 'linux' in str(sys.platform):
+	#		if 'vero' in str(processor).lower() or 'pi 4' in str(processor).lower():
+	#			print_log(str('VERO!!!'),'===>OPENINFO')
+	#			x265_enabled = 'True'
+	#except:
+	#	print_log('processor_ERROR')
+	#	x265_enabled = 'True'
 	
 	show_title_clean = regex.sub(' ', show_title.replace('\'s','s').replace('&','and')).replace('  ',' ').lower()
 	tmdb_id = tmdb
@@ -904,11 +978,13 @@ def next_ep_play(show_title, show_season, show_episode, tmdb):
 		episode_name = episode_name[:-1]
 		episode_name = episode_name[2:]
 	clean_episode_name = regex.sub(' ', episode_name.replace('\'s','s').replace('&','and')).replace('  ',' ').lower()
-	clean_episode_name2 = str(clean_episode_name).lower().replace('part ii','').replace('part 1','').replace('part 2','').replace('part i','').strip()
+	clean_episode_name2 = str(clean_episode_name).lower().replace('part viii','').replace('part vii','').replace('part vi','').replace('part v','').replace('part iv','').replace('part ix','').replace('part x','').replace('part iii','').replace('part ii','').replace('part i','').replace('part 1','').replace('part 2','').replace('part 3','').replace('part 4','').replace('part 5','').replace('part 6','').replace('part 7','').replace('part 8','').replace('part 9','').replace('part 10','').strip()
 	tv_maze_rating = response['rating']['average']
 	if clean_episode_name2 != clean_episode_name:
-		if '2' in clean_episode_name.lower() or 'ii' in clean_episode_name.lower():
+		if '2' in clean_episode_name.lower() or ('ii' in clean_episode_name.lower() and 'iii' not in clean_episode_name.lower()):
 			part1_part2_flag = 2
+		elif 'iii' in clean_episode_name.lower():
+			part1_part2_flag = 0
 		else:
 			part1_part2_flag = 1
 	else:
@@ -1608,28 +1684,30 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 	li = None
 	clear_next_ep_props()
 	movie_title = movie_title.replace("'",'').replace('&','and')
-	print_log(str(getframeinfo(currentframe()).filename)+' title=\''+str(movie_title)+'\' year='+str(movie_year),' ===>OPENINFO')
+	kodi_send_command = 'kodi-send --action="RunScript(%s,info=diamond_rd_player,type=movie,movie_title=%s,movie_year=%s,tmdb=%s,test=True)"' % (addon_ID(), movie_title, movie_year, tmdb)
+	print_log(kodi_send_command,' ===>OPENINFO')
 
-	x265_enabled = 'False'
-	try:
-		processor = get_processor_info()
-		if 'linux' in str(sys.platform):
-			if 'vero' in str(processor).lower() or 'pi 4' in str(processor).lower():
-				print_log(str('VERO!!!'),'===>OPENINFO')
-				x265_enabled = 'True'
-	except:
-		x265_enabled = 'True'
+	#x265_enabled = 'False'
+	#try:
+	#	processor = get_processor_info()
+	#	if 'linux' in str(sys.platform):
+	#		if 'vero' in str(processor).lower() or 'pi 4' in str(processor).lower():
+	#			print_log(str('VERO!!!'),'===>OPENINFO')
+	#			x265_enabled = 'True'
+	#except:
+	#	x265_enabled = 'True'
 
-	x265_setting = xbmcaddon.Addon(addon_ID()).getSetting('x265_setting')
-	if x265_setting == 'true':
-		x265_setting = True
-	else:
-		x265_setting = False
-	if x265_enabled == True and x265_setting == False:
-		x265_enabled = False
+	x265_enabled = xbmcaddon.Addon(addon_ID()).getSetting('x265_setting')
+	#if x265_setting == 'true':
+	#	x265_setting = True
+	#else:
+	#	x265_setting = False
+	#if x265_enabled == 'True' and x265_setting == False:
+	#	x265_enabled = 'False'
 
 	movie_title_clean = regex.sub(' ', movie_title).replace('  ',' ').lower()
 
+	print_log(x265_enabled)
 	#print_log(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename),'===>OPENINFO')
 	response = get_movie_info(movie_label=movie_title, year=movie_year, use_dialog=False)
 
@@ -1724,6 +1802,8 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 	torrents_fail = 'False'
 	download_found = 0
 	torrent_found = 0
+	meta_info = {'movie_title_clean': movie_title_clean, 'alternate_titles': alternate_titles, 'x265_enabled': x265_enabled, 'movie_original_title': movie_original_title, 'movie_year': movie_year}
+	
 	for x in range(99):
 		try:
 			if downloads_fail == 'False' and download_found == 0:
@@ -1737,49 +1817,18 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 					try: print_log(str(data),'===>OPENINFO')
 					except: print_log(data)
 					return
-				ptn_data = PTN.parse(i['filename'].replace('_','.').replace('-',' ').replace('.',' '))
-				#print_log(ptn_data)
-				#print_log(movie_title_clean)
-				try:
-					PTN_excess = str(ptn_data['excess']).replace('u\'',' ').replace('\'','').replace(',','').replace(']','').replace('[','').replace('  ',' ')
-				except:
-					PTN_excess = ''
-				if '265' in str(u''.join(i['filename']).encode('utf-8').strip()).lower() or 'hevc' in str(u''.join(i['filename']).encode('utf-8').strip()).lower():
-					x265_flag = 'True'
-				else:
-					x265_flag = 'False'
-				if x265_enabled == 'True':
-					x265_flag = 'False'
-				try: PTN_title = regex.sub(' ', ptn_data['title']).replace('  ',' ').lower()
-				except: PTN_title = ''
-				
-				try: PTN_res = ptn_data['resolution']
-				except: PTN_res = ''
-				if str(movie_title_clean) in str(ptn_data).lower() or str(movie_title_clean) in str(PTN_excess).lower():
-					PTN_title = movie_title_clean
-				for xi in alternate_titles:
-					try: 
-						test_title = xi.replace('-','').replace(':','').replace('։','').replace('  ',' ').strip()
-						if str(test_title).lower() in str(ptn_data).lower():
-							PTN_title = movie_title_clean
-							break
-						if (str(u''.join(test_title).encode('utf-8').strip()).lower() in str(ptn_data).lower() or str(u''.join(test_title).encode('utf-8').strip()).lower() in str(PTN_excess).lower()) and str(u''.join(test_title).encode('utf-8').strip()).replace(' ','') != '':
-							PTN_title = movie_title_clean
-							break
-						if (str(u''.join(test_title).encode('utf-8').strip()).lower() in str(ptn_data).lower() or str(u''.join(test_title).encode('utf-8').strip()).lower() in str(PTN_excess).lower()) and str(u''.join(test_title).encode('utf-8').strip()).replace(' ','') != '':
-							PTN_title = movie_title_clean
-							break
-					except:
-						pass
+				meta_info_flags = download_movie_test(meta_info, i['filename'])
 				PTN_link = i['link']
 				PTN_download = i['download']
 				PTN_size = str(int(i['filesize'])/(1024*1024))+'Mb'
-				try: PTN_season = ptn_data['season']
+				try: PTN_season = meta_info_flags['PTN_season']
 				except: PTN_season = ''
-				try: PTN_episode = ptn_data['episode']
+				try: PTN_episode = eta_info_flags['PTN_episode']
 				except: PTN_episode = ''
+				PTN_title = meta_info_flags['PTN_title']
+				PTN_res = meta_info_flags['PTN_res']
 				try:
-					if str(PTN_title) == str(movie_title_clean) and str(PTN_season) == '' and str(PTN_episode) == '' and x265_flag == 'False':
+					if str(meta_info_flags['PTN_title']) == str(movie_title_clean) and str(PTN_season) == '' and str(PTN_episode) == '' and meta_info_flags['x265_flag'] == 'False':
 						download_found = 1
 						headers=requests.head(PTN_download).headers
 						if str('attachment') in headers.get('Content-Disposition',''):
@@ -1805,6 +1854,13 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 				if torrent_found == 0:
 					torr_response = ''
 					count = 0
+					meta_info_flags = download_movie_test(meta_info, k['filename'])
+					if str(meta_info_flags['PTN_title']) == str(movie_title_clean) and str(meta_info_flags['PTN_season']) == '' and str(meta_info_flags['PTN_episode']) == '' and meta_info_flags['x265_flag'] == 'False':
+						torr_test = True
+					else:
+						torr_test = False
+					if torr_test == False:
+						continue
 					if torrent_found == 0:
 						try:
 							torr_data = RD_instantAvailability(torr_hash=k['hash'])
@@ -1833,7 +1889,7 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 					list1 = sorted(torr_data2, key = lambda z: int(z))
 					y = 0
 					for j in list1:
-						ptn_data = PTN.parse(torr_data2[str(j)]['filename'].replace('-',' ').replace('.',' '))
+					
 						try:
 							test_var = str(torr_data2[str(j)]['filename'].encode('utf-8').decode('utf-8')).lower()
 						except:
@@ -1841,46 +1897,13 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 						torr_data2[str(j)]['filename'] = test_var
 						if 'sample' in test_var:
 							continue
-						#print_log(ptn_data)
-						#print_log(torr_data2[str(j)]['filename'])
-						try:
-							PTN_excess = str(ptn_data['excess']).replace('u\'',' ').replace('\'','').replace(',','').replace(']','').replace('[','').replace('  ',' ')
-						except:
-							PTN_excess = ''
-						#ptn_data = PTN.parse(torr_data[k['hash']]['rd'][0][j]['filename'].replace('_','.'))
+						meta_info_flags = download_movie_test(meta_info, torr_data2[str(j)]['filename'])
 						PTN_size = str(torr_data2[str(j)]['filesize']/(1024*1024)) + 'Mb'
-						if '265' in str(torr_data2[str(j)]['filename']).lower() or'hevc' in str(torr_data2[str(j)]['filename']).lower():
-							x265_flag = 'True'
-						else:
-							x265_flag = 'False'
-						if x265_enabled == 'True':
-							x265_flag = 'False'
-						try: PTN_title = regex.sub(' ', ptn_data['title']).replace('  ',' ').lower()
-						except: PTN_title = ''
-						try: PTN_season = ptn_data['season']
-						except: PTN_season = ''
-						try: PTN_episode = ptn_data['episode']
-						except: PTN_episode = ''
-						try: PTN_res = ptn_data['resolution']
-						except: PTN_res = '720p'
-						if str(movie_title_clean) in str(ptn_data).lower() or str(movie_title_clean) in str(PTN_excess).lower():
-							PTN_title = movie_title_clean
-						for xi in alternate_titles:
-							try: 
-								test_title = xi.replace('-','').replace(':','').replace('։','').replace('  ',' ').strip()
-								#print_log(test_title)
-								#print_log(ptn_data)
-								if str(test_title).lower() in str(ptn_data).lower():
-									PTN_title = movie_title_clean
-									break
-								if (str(u''.join(test_title).encode('utf-8').strip()).lower() in str(ptn_data).lower() or str(u''.join(test_title).encode('utf-8').strip()).lower() in str(PTN_excess).lower()) and str(u''.join(test_title).encode('utf-8').strip()).replace(' ','') != '':
-									PTN_title = movie_title_clean
-									break
-								if (str(u''.join(test_title).encode('utf-8').strip()).lower() in str(ptn_data).lower() or str(u''.join(test_title).encode('utf-8').strip()).lower() in str(PTN_excess).lower()) and str(u''.join(test_title).encode('utf-8').strip()).replace(' ','') != '':
-									PTN_title = movie_title_clean
-									break
-							except:
-								pass
+						PTN_title = meta_info_flags['PTN_title']
+						PTN_season = meta_info_flags['PTN_season']
+						PTN_episode = meta_info_flags['PTN_episode']
+						x265_flag = meta_info_flags['x265_flag']
+
 						try:
 							if str(PTN_title) == str(movie_title_clean) and str(PTN_season) == '' and str(PTN_episode) == '' and x265_flag == 'False':
 								#PTN_link = k['links'][y]

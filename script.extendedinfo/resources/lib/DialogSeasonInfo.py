@@ -126,6 +126,7 @@ def get_season_window(window_type):
 			tvdb_id = Utils.fetch(TheMovieDB.get_tvshow_ids(self.tvshow_id), 'tvdb_id')
 			listitems = ['Play - TMDB Helper']
 			listitems += ['TV Show Info']
+			#listitems += ['Play - RD Player']
 			if xbmcaddon.Addon(addon_ID()).getSetting('context_menu') == 'true':
 				selection = xbmcgui.Dialog().contextmenu([i for i in listitems])
 			else:
@@ -137,6 +138,13 @@ def get_season_window(window_type):
 				PLAYER.play_from_button(url, listitem=None, window=self)
 			if selection == 1:
 				wm.open_tvshow_info(prev_window=self, tmdb_id=self.tvshow_id, dbid=0)
+			if selection == 2:
+				url = 'RunScript(%s,info=diamond_rd_player,type=tv,show_title=%s,show_season=%s,show_episode=%s,tmdb=%s)' % (addon_ID(), self.info['TVShowTitle'], self.listitem.getProperty('season'), self.listitem.getProperty('episode'), self.tvshow_id)
+				xbmc.executebuiltin('Dialog.Close(all,true)')
+				xbmc.executebuiltin('RunScript(%s,info=play_test_pop_stack)' % addon_ID())
+				xbmc.executebuiltin(url)
+
+
 
 		@ch.action('play', 2000)
 		@ch.action('playpause', 2000)

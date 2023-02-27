@@ -428,7 +428,105 @@ def get_fanart_clearlogo(tmdb_id=None, media_type=None):
                 pass
     return clearlogo
 
-def get_tastedive_data(url='', query='', limit=20, media_type=None, cache_days=14, folder='TasteDive'):
+def get_tastedive_data_scrape(url='', query='', year='', limit=20, media_type=None, cache_days=14, folder='TasteDive'):
+    import time, hashlib, xbmcvfs, os
+    import re, json
+
+    regex = re.compile('[^a-zA-Z0-9]')
+    import string
+    query = string.capwords(query)
+    query = query.replace(' Ix',' IX').replace(' Viii',' VIII').replace(' Vii',' VII').replace(' Vi',' VI').replace(' Iv',' IV').replace(' Iii',' III').replace(' Ii',' II')
+    query = query.replace('-', ' ')
+    query = regex.sub('-', query).replace('--','-')
+    query = query.replace('--','-')
+    #xbmc.log(str(query)+'query_get_tastedive_data_scrape===>OPENINFO', level=xbmc.LOGINFO)
+    if query.replace('-','') == '':
+        return []
+    query2 = query + '-' + str(year)
+    if 'show' in media_type or 'tv' in media_type:
+        query3 = query + '-TV-Show' 
+        url_like = 'shows/like'
+    else:
+        query3 = query + '-Movie' 
+        url_like = 'movies/like'
+    url = 'https://tastedive.com/%s/%s' % (url_like, query)
+    url2 = 'https://tastedive.com/%s/%s' % (url_like, query2)
+    url3 = 'https://tastedive.com/%s/%s' % (url_like, query3)
+    urls = [url, url2, url3]
+    if 'show' in media_type or 'tv' in media_type:
+        urls.append('https://tastedive.com/%s/%s' % (url_like, query+'-1'))
+        urls.append('https://tastedive.com/%s/%s' % (url_like, query+'-1-' + str(year)))
+    import requests, html
+    #response = requests.get('https://tastedive.com/shows/like/Star-Trek-Deep-Space-Nine')
+    #response = requests.get('https://tastedive.com/shows/like/Star-Trek-Deep-Space-Nine-1993')
+    #response = requests.get('https://tastedive.com/shows/like/Star-Trek-Deep-Space-Nine-TV-Show')
+
+    #response = requests.get('https://tastedive.com/movies/like/Point-Break')
+    #response = requests.get('https://tastedive.com/movies/like/Point-Break-Movie')
+    #response = requests.get('https://tastedive.com/movies/like/Point-Break-1991')
+
+    now = time.time()
+    url2 = url2.encode('utf-8')
+    hashed_url = hashlib.md5(url2).hexdigest()
+    cache_path = xbmcvfs.translatePath(os.path.join(Utils.ADDON_DATA_PATH, folder)) if folder else xbmcvfs.translatePath(os.path.join(Utils.ADDON_DATA_PATH))
+    cache_seconds = int(cache_days * 86400.0)
+    if not cache_days:
+        xbmcgui.Window(10000).clearProperty(hashed_url)
+        xbmcgui.Window(10000).clearProperty('%s_timestamp' % hashed_url)
+    prop_time = xbmcgui.Window(10000).getProperty('%s_timestamp' % hashed_url)
+    if prop_time and now - float(prop_time) < cache_seconds:
+        try:
+            prop = json.loads(xbmcgui.Window(10000).getProperty(hashed_url))
+            if prop:
+                return prop
+        except Exception as e:
+            pass
+    path = os.path.join(cache_path, '%s.txt' % hashed_url)
+    imdb_header = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
+    if xbmcvfs.exists(path) and ((now - os.path.getmtime(path)) < cache_seconds):
+        results = Utils.read_from_file(path)
+    else:
+        response = '[404]'
+        for url in urls:
+            if '[404]' in str(response):
+                response = requests.get(url, headers=imdb_header)
+            if '[200]' in str(response):
+                response_list = response.text.split('<div role="listitem"')[1:]
+                results = []
+                for i in response_list:
+                    try:
+                        if 'Tag__Container' in str(i):
+                            type = i.split('class="Tag__Container')[1].split('</div>')[0].split('>')[1]
+                            if 'Show' in type:
+                                type = 'show'
+                            else:
+                                type = 'movie'
+                            title = i.split('class="Tag__Container')[1].split('__Title')[1].split('</div>')[0].split('>')[1]
+                            title = html.unescape(title)
+                            year = i.split('class="Tag__Container')[1].split('EntityCardstyles__Info')[1].split('</div>')[0].split('>')[1]
+                            #xbmc.log(str({'name': title, 'year': year, 'media_type': type})+'get_tastedive_data_scrape===>OPENINFO', level=xbmc.LOGINFO)
+                            results.append({'name': title, 'year': year, 'media_type': type})
+                    except:
+                        pass
+                if results == []:
+                    response = '[404]'
+                else:
+                    break
+
+        try:
+            Utils.save_to_file(results, hashed_url, cache_path)
+        except:
+            Utils.log('Exception: Could not get new JSON data from %s. Tryin to fallback to cache' % url)
+            Utils.log(response)
+            results = Utils.read_from_file(path) if xbmcvfs.exists(path) else []
+    if not results:
+        return []
+    xbmcgui.Window(10000).setProperty('%s_timestamp' % hashed_url, str(now))
+    xbmcgui.Window(10000).setProperty(hashed_url, json.dumps(results))
+    return results
+
+
+def get_tastedive_data(url='', query='', limit=20, media_type=None, cache_days=9999, folder='TasteDive'):
     url = 'https://tastedive.com/api/similar?info=1&q='+str(query)+'&limit=' + str(limit)
     if media_type:
         if 'movie' in media_type:
