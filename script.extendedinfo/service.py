@@ -204,11 +204,30 @@ class PlayerMonitor(xbmc.Player):
         imdb = response[0]['movie']['ids']['imdb']
         tmdb = response[0]['movie']['ids']['tmdb']
         year = response[0]['movie']['year']
-        try:
-            title = response[0]['movie']['title']
-        except:
-            title = str(u''.join(response[0]['movie']['title']).encode('utf-8').strip())
+        #try:
+        #    title = response[0]['movie']['title']
+        #except:
+        #    title = str(u''.join(response[0]['movie']['title']).encode('utf-8').strip())
 
+
+        values = """
+          {
+            "movie": {
+              "year": """+str(year)+""",
+              "ids": {
+                "trakt": """+str(trakt)+""",
+                "slug": """+'"'+slug+'"'+ """,
+                "imdb": """+'"'+imdb+'"'+ """,
+                "tmdb": """+str(tmdb)+"""
+              }
+            },
+            "progress": """+str(percent)+""",
+            "app_version": "1.0",
+            "app_date": "2014-09-22"
+          }
+        """
+
+        '''
         try:
             values = """
               {
@@ -244,11 +263,18 @@ class PlayerMonitor(xbmc.Player):
                 "app_date": "2014-09-22"
               }
             """
+        '''
+
         if not action:
             action = 'start'
             if percent > 80:
                 action = 'stop'
         response = None
+        #xbmc.log(str('https://api.trakt.tv/scrobble/' + str(action))+'===>TRAKT_SCROBBLE_TMDB____OPEN_INFO', level=xbmc.LOGFATAL)
+        #xbmc.log(str(values)+'===>TRAKT_SCROBBLE_TMDB____OPEN_INFO', level=xbmc.LOGFATAL)
+        #xbmc.log(str(headers)+'===>TRAKT_SCROBBLE_TMDB____OPEN_INFO', level=xbmc.LOGFATAL)
+        response = requests.post('https://api.trakt.tv/scrobble/' + str(action), data=values, headers=headers)
+        #xbmc.log(str(response)+'===>TRAKT_SCROBBLE_TMDB____OPEN_INFO', level=xbmc.LOGFATAL)
         count = 0
         while response == None and count < 20:
             count = count + 1
@@ -876,8 +902,12 @@ class PlayerMonitor(xbmc.Player):
                     pass
             try: trakt_watched = self.trakt_scrobble_details(trakt_watched='false', movie_title=None, movie_year=None, resume_position=resume_position, resume_duration=duration, tmdb_id=tmdb_id, tv_title=None, season=None, episode=None)
             except: trakt_watched = self.trakt_scrobble_details(trakt_watched='false', movie_title=movie_title, movie_year=year, resume_position=resume_position, resume_duration=duration, tmdb_id=None, tv_title=None, season=None, episode=None)
-            movie_title = response['movie']['title']
-            year = response['movie']['year']
+            try: 
+                movie_title = response['movie']['title']
+                year = response['movie']['year']
+            except: 
+                movie_title = movie_title
+                year = year
             xbmc.log('PLAYBACK STARTED_tvdb='+str(imdb_id)+ '  ,'+str(dbID)+'=dbID, '+str(duration)+'=duration, '+str(movie_title)+'=movie_title, '+str(title)+'___OPEN_INFO', level=xbmc.LOGFATAL)
             url = 'plugin://plugin.video.themoviedb.helper?info=play&amp;type=movie&amp;tmdb_id=%s' % (str(tmdb_id))
             xbmc.log(url, level=xbmc.LOGFATAL)

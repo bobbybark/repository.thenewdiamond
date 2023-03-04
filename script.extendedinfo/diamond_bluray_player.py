@@ -326,7 +326,7 @@ def next_ep_play_movie(movie_year, movie_title, tmdb, menu):
 	clear_next_ep_props()
 	xbmc_plugin = 'True'
 	#print_log(str(getframeinfo(currentframe()).filename)+' show=\''+str(movie_title)+'\' year='+str(movie_year))
-	kodi_send_command = 'kodi-send --action="RunScript(%s,info=diamond_rd_player,type=movie,movie_year=%s,movie_title=%s,tmdb=%s,test=True)"' % (addon_ID(), movie_year, movie_title, tmdb)
+	kodi_send_command = 'kodi-send --action="RunScript(%s,info=diamond_bluray_player,type=movie,movie_year=%s,movie_title=%s,tmdb=%s,menu=False)"' % (addon_ID(), movie_year, movie_title, tmdb)
 	print_log(kodi_send_command,'kodi_send_command')
 
 	import re

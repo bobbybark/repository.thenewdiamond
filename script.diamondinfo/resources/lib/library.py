@@ -1388,6 +1388,25 @@ def trakt_collection_movies(cache_days=None):
     response = sorted(new_list , key=lambda k: k['title'], reverse=False)
     return response
 
+def trakt_unwatched_collection_movies():
+    response1 = trakt_watched_movies()
+    response2 = trakt_collection_movies()
+    response = []
+    for i in response2:
+        if i['ids']['slug'] not in str(response1):
+            response.append(i)
+    return response
+
+def trakt_uncollected_watched_movies():
+    response1 = trakt_watched_movies()
+    response2 = trakt_collection_movies()
+    response = []
+    for i in response1:
+        if i['movie']['ids']['slug'] not in str(response2):
+            response.append(i)
+    return response
+
+
 def trakt_collection_shows(cache_days=None):
     import requests
     import json
@@ -1803,12 +1822,8 @@ def trak_auth():
     tmdb_traktapi = tmdb_traktapi_path()
 
     import html
-    f = open(tmdb_settings, 'r')
-    for x in f:
-        if 'trakt_token' in x:
-            trakt_token = x.split('</setting>')[0].split('<setting id="trakt_token">')[1]
-            trakt_token = eval(html.unescape(trakt_token))
-    f.close()
+    trakt_token = xbmcaddon.Addon('plugin.video.themoviedb.helper').getSetting('trakt_token')
+    trakt_token = eval(html.unescape(trakt_token))
     del html
 
     #tree = ET.parse(tmdb_settings)

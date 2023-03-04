@@ -22,6 +22,8 @@ from resources.lib.library import trakt_unwatched_tv_shows
 from resources.lib.library import trakt_watched_movies
 from resources.lib.library import trakt_collection_shows
 from resources.lib.library import trakt_collection_movies
+from resources.lib.library import trakt_uncollected_watched_movies
+from resources.lib.library import trakt_unwatched_collection_movies
 from resources.lib.library import trakt_trending_movies
 from resources.lib.library import trakt_trending_shows
 from resources.lib.library import trakt_popular_movies
@@ -735,6 +737,8 @@ def get_tmdb_window(window_type):
             listitems += ['TasteDive - Last Watched Movies']
             listitems += ['Trakt Collection Shows']
             listitems += ['Trakt Collection Movies']
+            listitems += ['Trakt Unwatched Collection Movies']
+            listitems += ['Trakt Uncollected Watched Movies']
             listitems += ['Trakt Trending Shows']
             listitems += ['Trakt Trending Movies']
             listitems += ['Trakt Popular Shows']
@@ -763,9 +767,18 @@ def get_tmdb_window(window_type):
             if not trakt_token:
                 Utils.hide_busy()
                 return
+
             if listitems[selection] == 'Trakt Watched Movies':
                 self.search_str = trakt_watched_movies()
                 self.type = 'movie'
+
+            elif listitems[selection] == 'Trakt Uncollected Watched Movies':
+                self.search_str = trakt_uncollected_watched_movies()
+                self.type = 'movie'
+            elif listitems[selection] == 'Trakt Unwatched Collection Movies':
+                self.search_str = trakt_unwatched_collection_movies()
+                self.type = 'movie'
+
             elif listitems[selection] == 'Trakt Watched Shows':
                 self.search_str = trakt_watched_tv_shows()
                 self.type = 'tv'
