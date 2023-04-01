@@ -568,6 +568,10 @@ def download_tv_test(meta_info, filename):
 		if part1_part2_match_flag == True and episode_name_flag == True:
 			episode_list_flag == True
 
+	if show_title_flag == True or alternate_titles_flag == True:
+		if episode_list_flag == False and season_list_flag == True and episode_name_flag == False and part1_part2_match_flag == True:
+			season_list_flag = False
+
 	meta_info_flags = {'x265_match_pass': x265_match_pass,'alternate_titles_flag': alternate_titles_flag,'episode_list_flag': episode_list_flag,'season_list_flag': season_list_flag,'episode_name_flag': episode_name_flag,'show_title_flag': show_title_flag,'part1_part2_match_flag': part1_part2_match_flag}
 	#if show_title_flag == True or alternate_titles_flag == True:
 	#	print_log(filename, meta_info)
@@ -611,7 +615,8 @@ def get_next_ep_details(show_title, show_curr_season, show_curr_episode, tmdb):
 		next_ep_show = next_ep_show[2:]
 	next_ep_season = response['season']
 	next_ep_episode = response['number']
-	next_ep_thumbnail = response['image']['medium']
+	try: next_ep_thumbnail = response['image']['medium']
+	except: next_ep_thumbnail = None
 	try:
 		next_ep_title  = response['name']
 	except:
@@ -639,7 +644,10 @@ def get_next_ep_details(show_title, show_curr_season, show_curr_episode, tmdb):
 	next_ep_details['next_ep_season'] = next_ep_season
 	next_ep_details['next_ep_episode'] = next_ep_episode
 	next_ep_details['next_ep_title'] = next_ep_title
-	next_ep_details['next_ep_thumbnail'] = next_ep_thumbnail
+	if next_ep_thumbnail:
+		next_ep_details['next_ep_thumbnail'] = next_ep_thumbnail
+	else:
+		next_ep_details['next_ep_thumbnail'] = next_ep_thumb2
 	next_ep_details['tmdb_id'] = tmdb_id
 	next_ep_details['tvdb_id'] = tvdb_id
 	next_ep_details['next_ep_genre'] = next_ep_genre

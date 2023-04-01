@@ -721,7 +721,13 @@ def get_tmdb_window(window_type):
                 trakt_data = json.load(json_file)
                 json_file.close()
             elif str(trakt_json) != '' and custom_trakt_json == 'true':
-                trakt_data = requests.get(trakt_json).json()
+                try: trakt_data = requests.get(trakt_json).json()
+                except:
+                    from resources.lib.library import main_file_path
+                    trakt_json = main_file_path() + 'trakt_list.json'
+                    json_file = open(trakt_json)
+                    trakt_data = json.load(json_file)
+                    json_file.close()
             else:
                 trakt_json = file_path + 'trakt_list.json'
                 json_file = open(trakt_json)
