@@ -483,6 +483,9 @@ def get_tastedive_data_scrape(url='', query='', year='', limit=20, media_type=No
             pass
     path = os.path.join(cache_path, '%s.txt' % hashed_url)
     imdb_header = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
+    imdb_header = {'User-Agent': 'Mozilla/5.1'}
+    #xbmc.log(str(urls)+'query_get_tastedive_data_scrape===>OPENINFO', level=xbmc.LOGINFO)
+    #xbmc.log(str(path)+'query_get_tastedive_data_scrape===>OPENINFO', level=xbmc.LOGINFO)
     if xbmcvfs.exists(path) and ((now - os.path.getmtime(path)) < cache_seconds):
         results = Utils.read_from_file(path)
     else:
@@ -491,9 +494,35 @@ def get_tastedive_data_scrape(url='', query='', year='', limit=20, media_type=No
             if '[404]' in str(response):
                 response = requests.get(url, headers=imdb_header)
             if '[200]' in str(response):
-                response_list = response.text.split('<div role="listitem"')[1:]
+                #xbmc.log(str(response.text)+'query_get_tastedive_data_scrape===>OPENINFO', level=xbmc.LOGINFO)
+                if 'show' in media_type or 'tv' in media_type:
+                    response_list = response.text.split(',"shows":[{')
+                    type = 'show'
+                    test = 'urn:entity:tv_show'
+                else:
+                    response_list = response.text.split(',"movies":[{')
+                    type = 'movie'
+                    test = 'urn:entity:movie'
+                #xbmc.log(str(response_list)+'query_get_tastedive_data_scrape===>OPENINFO', level=xbmc.LOGINFO)
                 results = []
-                for i in response_list:
+                for x in response_list:
+                    x_split = x.split('"}],"')
+                    for y in x_split:
+                        i_split = y.split(',{"id":')
+                        for i in i_split:
+                            if test in str(i):
+                                if 'urn:entity:artist' in str(i) or 'urn:entity:book' in str(i) or 'urn:entity:podcast' in str(i) or 'urn:entity:videogame' in str(i):
+                                    continue
+                                #xbmc.log(str(i)+'get_tastedive_data_scrape===>OPENINFO', level=xbmc.LOGINFO)
+                                title = html.unescape(i.split('"entityName":')[1].split(',"')[0]).replace('"','')
+                                try: title = title.encode('utf-8').decode('unicode_escape')
+                                except: pass
+                                slug = html.unescape(i.split('"slug":')[1].split(',"')[0])
+                                try: year = int(str(html.unescape(i.split('"disambiguation":')[1].split(',"')[0])).replace('"',''))
+                                except: continue
+                                results.append({'slug': slug, 'name': title, 'year': year, 'media_type': type})
+                                xbmc.log(str({'slug': slug, 'name': title, 'year': year, 'media_type': type})+'get_tastedive_data_scrape===>OPENINFO', level=xbmc.LOGINFO)
+                    """
                     try:
                         if 'Tag__Container' in str(i):
                             type = i.split('class="Tag__Container')[1].split('</div>')[0].split('>')[1]
@@ -508,6 +537,7 @@ def get_tastedive_data_scrape(url='', query='', year='', limit=20, media_type=No
                             results.append({'name': title, 'year': year, 'media_type': type})
                     except:
                         pass
+                    """
                 if results == []:
                     response = '[404]'
                 else:
