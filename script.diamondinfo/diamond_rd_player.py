@@ -469,10 +469,11 @@ def download_tv_test(meta_info, filename):
 
 	if episode_name_flag == False:
 		name_word_list = meta_info['clean_episode_name'].split(' ')
+		show_title_split = str(meta_info['show_title']).lower().split(' ')
 		word_count = 0
 		total_word_count = 0
 		for i in name_word_list:
-			if str(i) in filename and len(i) > 3:
+			if str(i) in filename and len(i) > 3 and not str(i) in show_title_split:
 				word_count = word_count + 1
 			if len(i) > 3:
 				total_word_count = total_word_count + 1
@@ -1142,7 +1143,7 @@ def next_ep_play(show_title, show_season, show_episode, tmdb):
 						PTN_season = show_season
 						PTN_title = show_title
 						PTN_res = ''
-						print_log(str('[' + str(PTN_size) + '][' + str(PTN_title) + '][' + str(PTN_season) + '][' + str(PTN_episode) + '][' + str(PTN_res) + '][' + str(PTN_download) + ']'),'download_found===>OPENINFO')
+						print_log(str('[' + str(PTN_size) + '][' + str(PTN_title) + '][' + str(PTN_season) + '][' + str(PTN_episode)+ '][' + str(episode_name) + '][' + str(PTN_res) + '][' + str(PTN_download) + ']'),'download_found===>OPENINFO')
 						break
 		if int(torrent_found) == 1 or int(download_found) == 1:
 			break
@@ -1257,7 +1258,8 @@ def next_ep_play(show_title, show_season, show_episode, tmdb):
 									headers=requests.head(PTN_download).headers
 									if str('attachment') in headers.get('Content-Disposition',''):
 										torrent_found = 1
-										print_log(str('[' + str(PTN_size) + '][' + str(PTN_title) + '][' + str(PTN_season) + '][' + str(PTN_episode) + '][' + str(PTN_res) + '][' + str(PTN_download) + ']'),'torrent_found===>OPENINFO')
+										print_log(str('[' + str(PTN_size) + '][' + str(PTN_title) + '][' + str(PTN_season) + '][' + str(PTN_episode)+ '][' + str(episode_name) + '][' + str(PTN_res) + '][' + str(PTN_download) + ']'),'torrent_found===>OPENINFO')
+										#print_log(str('[' + str(PTN_size) + '][' + str(PTN_title) + '][' + str(PTN_season) + '][' + str(PTN_episode) + '][' + str(PTN_res) + '][' + str(PTN_download) + ']'),'torrent_found===>OPENINFO')
 									else:
 										torrent_found = 0
 									if torrent_found == 1:
