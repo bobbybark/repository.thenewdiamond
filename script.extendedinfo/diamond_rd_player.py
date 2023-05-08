@@ -1299,7 +1299,7 @@ def next_ep_play(show_title, show_season, show_episode, tmdb):
 
 	con = db_connection()
 	cur = con.cursor()
-	sql_result1 = cur.execute("SELECT idepisode, * from files,episode,tvshow where episode.idfile = files.idfile and episode.idshow = tvshow.idshow and tvshow.c00 = '"+str(show_title)+"' and episode.c12 = '"+str(show_season)+"' and episode.c13 = '"+str(show_episode)+"' order by dateadded asc").fetchall()
+	sql_result1 = cur.execute("SELECT idepisode, * from files,episode,tvshow where episode.idfile = files.idfile and episode.idshow = tvshow.idshow and tvshow.c00 = '"+str(show_title).replace("'","''")+"' and episode.c12 = '"+str(show_season)+"' and episode.c13 = '"+str(show_episode)+"' order by dateadded asc").fetchall()
 	
 	#print_log(sql_result)
 	try: dbid = sql_result1[0][0]
@@ -1979,7 +1979,7 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 	cur = con.cursor()
 	movie_title2 = movie_title.replace("'","''")
 	print_log(str(movie_title2),'===>OPENINFO')
-	sql_result1 = cur.execute("SELECT * from files,movie where movie.idfile = files.idfile and movie.c00 = '"+str(movie_title2)+"' order by dateadded asc").fetchall()
+	sql_result1 = cur.execute("SELECT * from files,movie where movie.idfile = files.idfile and movie.c00 = '"+str(movie_title2.replace("'","''"))+"' order by dateadded asc").fetchall()
 	
 	#print_log(sql_result)
 	try: dbid = sql_result1[0][0]
