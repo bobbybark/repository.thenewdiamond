@@ -465,7 +465,10 @@ def download_tv_test(meta_info, filename):
 			break
 	episode_name_flag = False
 	if str(meta_info['episode_name']).lower() in filename or str(meta_info['clean_episode_name']).lower() in filename:
-		episode_name_flag = True
+		if meta_info['episode_name'] in meta_info['alternate_titles']:
+			episode_name_flag = False
+		else:
+			episode_name_flag = True
 
 	if episode_name_flag == False:
 		name_word_list = meta_info['clean_episode_name'].split(' ')
@@ -490,7 +493,7 @@ def download_tv_test(meta_info, filename):
 		for xi in meta_info['season_ep_titles']:
 			clean_episode_name = regex.sub(' ', xi.replace('\'s','s').replace('&','and')).replace('  ',' ').lower()
 			clean_episode_name = str(clean_episode_name).lower().replace('part ii','').replace('part 1','').replace('part 2','').replace('part i','').strip()
-			if str(xi).lower() in filename or str(clean_episode_name).lower() in filename:
+			if not xi in meta_info['alternate_titles'] and (str(xi).lower() in filename or str(clean_episode_name).lower() in filename):
 				episode_list_flag = False
 				break
 
@@ -562,9 +565,13 @@ def download_tv_test(meta_info, filename):
 			if episode_list_flag == True and season_list_flag == True and (show_title_flag == True or alternate_titles_flag == True):
 				part1_part2_match_flag = True
 	
-	if episode_name_flag == True and part1_part2_match_flag == True and (show_title_flag == False and alternate_titles_flag == False) and episode_list_flag == False:
+	if episode_name_flag == True and part1_part2_match_flag == True and (show_title_flag == False and alternate_titles_flag == False):
 		episode_name_flag = False
-	
+		if episode_list_flag == True:
+			episode_list_flag = False
+		if season_list_flag == True:
+			season_list_flag = False
+
 	if episode_list_flag2 == True and episode_list_flag == False:
 		if part1_part2_match_flag == True and episode_name_flag == True:
 			episode_list_flag == True
@@ -574,9 +581,9 @@ def download_tv_test(meta_info, filename):
 			season_list_flag = False
 
 	meta_info_flags = {'x265_match_pass': x265_match_pass,'alternate_titles_flag': alternate_titles_flag,'episode_list_flag': episode_list_flag,'season_list_flag': season_list_flag,'episode_name_flag': episode_name_flag,'show_title_flag': show_title_flag,'part1_part2_match_flag': part1_part2_match_flag}
-	#if show_title_flag == True or alternate_titles_flag == True:
-	#	print_log(filename, meta_info)
-	#	print_log(filename, meta_info_flags)
+	if show_title_flag == True or alternate_titles_flag == True:
+		print_log(filename, meta_info)
+		print_log(filename, meta_info_flags)
 	return meta_info_flags
 
 def get_next_ep_details(show_title, show_curr_season, show_curr_episode, tmdb):
