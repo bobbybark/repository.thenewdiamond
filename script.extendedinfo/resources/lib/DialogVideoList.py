@@ -1373,14 +1373,16 @@ def get_tmdb_window(window_type):
                     if x + 1 <= page * 20 and x + 1 > (page - 1) *  20:
                         try: 
                             if i['media_type'] == 'movie':
-                                response1 = TheMovieDB.get_movie_info(i['name'], year=i['year'], use_dialog=False, item_id=i['item_id'])
-                                if not response1:
-                                    response1 = TheMovieDB.get_movie_info(i['name'], use_dialog=False, item_id=i['item_id'])
+                                #response1 = TheMovieDB.get_movie_info(i['name'], year=i['year'], use_dialog=False, item_id=i['item_id'])
+                                response1 = TheMovieDB.single_movie_info(movie_id=i['item_id'], cache_time=7)
+                                #if not response1:
+                                #    response1 = TheMovieDB.get_movie_info(i['name'], use_dialog=False, item_id=i['item_id'])
                                 response1['media_type'] = 'movie'
                             else:
-                                response1 = TheMovieDB.get_tvshow_info(i['name'], year=i['year'], use_dialog=False, item_id=i['item_id'])
-                                if not response1:
-                                    response1 = TheMovieDB.get_tvshow_info(i['name'], use_dialog=False, item_id=i['item_id'])
+                                #response1 = TheMovieDB.get_tvshow_info(i['name'], year=i['year'], use_dialog=False, item_id=i['item_id'])
+                                response1 = TheMovieDB.single_tvshow_info(tvshow_id=i['item_id'], cache_time=7)
+                                #if not response1:
+                                #    response1 = TheMovieDB.get_tvshow_info(i['name'], use_dialog=False, item_id=i['item_id'])
                                 response1['media_type'] = 'tv'
                         except TypeError:
                             #xbmc.log(str(i)+'except_tastedive===>OPENINFO', level=xbmc.LOGINFO)

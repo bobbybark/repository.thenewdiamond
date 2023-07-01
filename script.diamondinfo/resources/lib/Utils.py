@@ -631,7 +631,21 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 				if key.lower() == 'genre':
 					info_tag.set_info({key.lower(): value.split(' / ')})
 				else:
-					info_tag.set_info({key.lower(): value})
+					try:
+						info_tag.set_info({key.lower(): value})
+					except:
+						if key.lower() == 'duration':
+							from datetime import datetime
+							try: 
+								pt = datetime.strptime(value,'%Hh%Mm%Ss')
+							except: 
+								pt = datetime.strptime('11m3s','%Mm%Ss')
+							total_seconds = pt.second + pt.minute*60 + pt.hour*3600
+							info_tag.set_info({key.lower(): total_seconds})
+						else:
+							#info_tag.set_info({key.lower(): value})
+							xbmc.log(str(key.lower())+'===>EXCEPTION!!', level=xbmc.LOGINFO)
+							xbmc.log(str(value)+'===>EXCEPTION!!', level=xbmc.LOGINFO)
 			elif key.lower() in FLOAT_INFOLABELS:
 				try:
 					#listitem.setInfo('video', {key.lower(): '%1.1f' % float(value)})

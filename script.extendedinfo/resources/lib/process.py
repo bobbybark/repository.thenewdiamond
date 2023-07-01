@@ -1089,7 +1089,7 @@ def auto_clean_cache(days=None):
 	xbmc.log('STARTING===>auto_clean_cache', level=xbmc.LOGINFO)
 	path = Utils.ADDON_DATA_PATH
 	if days==None:
-		days = -14
+		days = -30
 	else:
 		days = int(days)*-1
 
