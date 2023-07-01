@@ -1,5 +1,6 @@
 import os, re, time, json, urllib.request, urllib.parse, urllib.error, hashlib, requests, threading, sys
 from datetime import datetime
+import time
 from datetime import date
 import xbmc, xbmcgui, xbmcvfs, xbmcaddon, xbmcplugin
 from functools import wraps
@@ -635,14 +636,14 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 						info_tag.set_info({key.lower(): value})
 					except:
 						if key.lower() == 'duration':
-							from datetime import datetime
-							try: 
-								pt = datetime.strptime(value,'%Hh%Mm%Ss')
+							try: pt = time.strptime(str(value),'%Hh%Mm%Ss')
 							except: 
-								pt = datetime.strptime(value,'%Mm%Ss')
-							if pt:
-								total_seconds = pt.second + pt.minute*60 + pt.hour*3600
-								info_tag.set_info({key.lower(): total_seconds})
+								try: pt = time.strptime(str(value),'%Mm%Ss')
+								except: 
+									try: pt = time.strptime(str(value),'%Mm')
+									except: pt = time.strptime(str(value),'%Ss')
+							total_seconds = pt.tm_sec + pt.tm_min*60 + pt.tm_hour*3600
+							info_tag.set_info({key.lower(): total_seconds})
 						else:
 							#info_tag.set_info({key.lower(): value})
 							xbmc.log(str(key.lower())+'===>EXCEPTION!!', level=xbmc.LOGINFO)
