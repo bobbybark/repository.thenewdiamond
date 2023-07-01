@@ -368,7 +368,7 @@ def get_tmdb_window(window_type):
                 self.mode='tastedive&' + str(media_type)
                 #self.search_str = TheMovieDB.get_tastedive_data(query=search_str, limit=limit, media_type=media_type)
                 Utils.show_busy()
-                self.search_str = TheMovieDB.get_tastedive_data_scrape(query=search_str, year=self.listitem.getProperty('year'), limit=limit, media_type=media_type)
+                self.search_str = TheMovieDB.get_tastedive_data_scrape(query=search_str, year=self.listitem.getProperty('year'), limit=limit, media_type=media_type,item_id=item_id)
                 if self.search_str == []:
                     if media_type == 'movie':
                         single_movie_info = TheMovieDB.single_movie_info(movie_id=item_id)
@@ -381,7 +381,7 @@ def get_tmdb_window(window_type):
                         alternative_titles = single_tvshow_info['alternative_titles']
                     for i in alternative_titles:
                         #self.search_str = TheMovieDB.get_tastedive_data(query=self.listitem.getProperty('originaltitle'), limit=limit, media_type=media_type)
-                        self.search_str = TheMovieDB.get_tastedive_data_scrape(query=i, year=self.listitem.getProperty('year'), limit=limit, media_type=media_type)
+                        self.search_str = TheMovieDB.get_tastedive_data_scrape(query=i, year=self.listitem.getProperty('year'), limit=limit, media_type=media_type,item_id=item_id)
                         #xbmc.log(str(self.search_str)+'query_get_tastedive_data_scrape===>OPENINFO', level=xbmc.LOGINFO)
                         if self.search_str != []:
                             break
@@ -822,20 +822,20 @@ def get_tmdb_window(window_type):
                     #response2 = TheMovieDB.get_tastedive_data(query=i['title'], limit=50, media_type='movie')
 
                     release_date = i['release_date'][:4]
-                    single_movie_info = TheMovieDB.single_movie_info(movie_id=i['id'])
-                    alternative_titles = []
-                    for xi in single_movie_info['alternative_titles']['titles']:
-                        if str(xi['iso_3166_1']) in ['US','UK','GB']:
-                            alternative_titles.append(xi['title'])
+                    #single_movie_info = TheMovieDB.single_movie_info(movie_id=i['id'])
+                    #alternative_titles = []
+                    #for xi in single_movie_info['alternative_titles']['titles']:
+                    #    if str(xi['iso_3166_1']) in ['US','UK','GB']:
+                    #        alternative_titles.append(xi['title'])
 
                     response2 = []
-                    response2 = TheMovieDB.get_tastedive_data_scrape(query=i['title'], year=i['release_date'][:4], limit=50, media_type='movie')
+                    response2 = TheMovieDB.get_tastedive_data_scrape(query=i['title'], year=i['release_date'][:4], limit=50, media_type='movie',item_id=i['id'])
 
-                    if response2 == []:
-                        for xi in alternative_titles:
-                            response2 = TheMovieDB.get_tastedive_data_scrape(query=xi, year=release_date, limit=50, media_type='movie')
-                            if response2 != []:
-                                break
+                    #if response2 == []:
+                    #    for xi in alternative_titles:
+                    #        response2 = TheMovieDB.get_tastedive_data_scrape(query=xi, year=release_date, limit=50, media_type='movie',item_id=i['id'])
+                    #        if response2 != []:
+                    #            break
 
                     """
                     response2 = TheMovieDB.get_tastedive_data_scrape(query=i['title'], year=i['release_date'][:4], limit=50, media_type='movie')
@@ -854,9 +854,12 @@ def get_tmdb_window(window_type):
                         response2 = TheMovieDB.get_tastedive_data_scrape(query=i['title'], year=i['release_date'][:4], limit=50, media_type='movie')
                     """
 
-                    response3.append({'slug': i['title'], 'name': i['title'], 'year': release_date, 'media_type': 'movie'})
+                    #if not {'name': i['title'], 'year': release_date, 'media_type': i['media_type'], 'item_id': i['id']} in response3:
+                    if not str("'item_id': %s" % (i['id'])) in str(response3):
+                        response3.append({'name': i['title'], 'year': release_date, 'media_type': i['media_type'], 'item_id': i['id']})
                     for x in response2:
-                        if x not in response3:
+                        #if not x in response3:
+                        if not str("'item_id': %s" % (x['item_id'])) in str(response3):
                             response3.append(x)
 
                 self.mode = mode='tastedive&' + str('movie')
@@ -874,9 +877,10 @@ def get_tmdb_window(window_type):
                 response3 = []
                 for i in response:
                     #response2 = TheMovieDB.get_tastedive_data(query=i['name'], limit=50, media_type='tv')
-                    response2 = TheMovieDB.get_tastedive_data_scrape(query=i['name'], year=i['first_air_date'][:4], limit=50, media_type='tv')
+                    response2 = TheMovieDB.get_tastedive_data_scrape(query=i['name'], year=i['first_air_date'][:4], limit=50, media_type='tv',item_id=i['id'])
                     for x in response2:
-                        if x not in response3:
+                        #if x not in response3:
+                        if not str("'item_id': %s" % (x['item_id'])) in str(response3):
                             response3.append(x)
                 self.mode = mode='tastedive&' + str('tv')
                 self.type = 'tv'
@@ -1368,18 +1372,18 @@ def get_tmdb_window(window_type):
                 for i in movies:
                     if x + 1 <= page * 20 and x + 1 > (page - 1) *  20:
                         try: 
-                            if media_type == 'movie':
-                                response1 = TheMovieDB.get_movie_info(i['name'], year=i['year'], use_dialog=False)
+                            if i['media_type'] == 'movie':
+                                response1 = TheMovieDB.get_movie_info(i['name'], year=i['year'], use_dialog=False, item_id=i['item_id'])
                                 if not response1:
-                                    response1 = TheMovieDB.get_movie_info(i['name'], use_dialog=False)
+                                    response1 = TheMovieDB.get_movie_info(i['name'], use_dialog=False, item_id=i['item_id'])
                                 response1['media_type'] = 'movie'
                             else:
-                                #xbmc.log(str(i['name'])+'get_tastedive_data_scrape===>OPENINFO', level=xbmc.LOGINFO)
-                                response1 = TheMovieDB.get_tvshow_info(i['name'], year=i['year'], use_dialog=False)
+                                response1 = TheMovieDB.get_tvshow_info(i['name'], year=i['year'], use_dialog=False, item_id=i['item_id'])
                                 if not response1:
-                                    response1 = TheMovieDB.get_tvshow_info(i['name'], use_dialog=False)
+                                    response1 = TheMovieDB.get_tvshow_info(i['name'], use_dialog=False, item_id=i['item_id'])
                                 response1['media_type'] = 'tv'
                         except TypeError:
+                            #xbmc.log(str(i)+'except_tastedive===>OPENINFO', level=xbmc.LOGINFO)
                             continue
                         responses['results'].append(response1)
                         x = x + 1

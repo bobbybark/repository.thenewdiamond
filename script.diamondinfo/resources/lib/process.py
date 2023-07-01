@@ -220,7 +220,7 @@ def start_info_actions(infos, params):
 			response3 = []
 			for i in response:
 				#response2 = TheMovieDB.get_tastedive_data(query=i['title'], limit=30, media_type='movie')
-				response2 = TheMovieDB.get_tastedive_data_scrape(query=i['title'], year=i['year'], limit=50, media_type='movie')
+				response2 = TheMovieDB.get_tastedive_data_scrape(query=i['title'], year=i['year'], limit=50, media_type='movie',item_id=i['id'])
 
 				original_title = i['original_title']
 				original_title2 = ''
@@ -245,7 +245,7 @@ def start_info_actions(infos, params):
 			response3 = []
 			for i in response:
 				#response2 = TheMovieDB.get_tastedive_data(query=i['title'], limit=30, media_type='tv')
-				response2 = TheMovieDB.get_tastedive_data_scrape(query=i['title'], year=i['year'], limit=50, media_type='tv')
+				response2 = TheMovieDB.get_tastedive_data_scrape(query=i['title'], year=i['year'], limit=50, media_type='tv',item_id=i['id'])
 				for x in response2:
 					if x not in response3:
 						response3.append(x)

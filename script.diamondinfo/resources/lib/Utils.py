@@ -8,6 +8,7 @@ from resources.lib.library import basedir_tv_path
 from resources.lib.library import basedir_movies_path
 #from resources.lib.library import fanart_api_key
 
+from infotagger.listitem import ListItemInfoTag
 
 ADDON_PATH = xbmcvfs.translatePath('special://home/addons/'+str(addon_ID()))
 ADDON_DATA_PATH = xbmcvfs.translatePath('special://profile/addon_data/'+str(addon_ID()))
@@ -589,7 +590,11 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 				listitem.setLabel2(value)
 			elif key.lower() in ['title']:
 				listitem.setLabel(value)
-				listitem.setInfo('video', {key.lower(): value})
+				#listitem.setInfo('video', {key.lower(): value})
+
+				info_tag = ListItemInfoTag(listitem, 'video')
+				info_tag.set_info({key.lower(): value})
+
 			elif key.lower() in ['thumb']:
 				#listitem.setThumbnailImage(value)
 				listitem.setArt({key.lower(): value})
@@ -600,10 +605,14 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 				listitem.setArt({'clearlogo': value})
 
 			elif key.lower() in ['imdbnumber','IMDBNumber']:
-				listitem.setInfo('video', {'IMDBNumber': str(value)})
+				#listitem.setInfo('video', {'IMDBNumber': str(value)})
+				info_tag = ListItemInfoTag(listitem, 'video')
+				info_tag.set_info({'IMDBNumber': str(value)})
 			elif key.lower() in ['dbid']:
 				listitem.setProperty('DBID', str(value))
-				listitem.setInfo('video', {'DBID': str(value)})
+				#listitem.setInfo('video', {'DBID': str(value)})
+				info_tag = ListItemInfoTag(listitem, 'video')
+				info_tag.set_info({'DBID': str(value)})
 
 			elif key.lower() in ['path']:
 				listitem.setPath(path=value)
@@ -611,14 +620,23 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 				listitem.setArt({key.lower(): value})
 			elif key.lower() in INT_INFOLABELS:
 				try:
-					listitem.setInfo('video', {key.lower(): int(value)})
+					#listitem.setInfo('video', {key.lower(): int(value)})
+					info_tag = ListItemInfoTag(listitem, 'video')
+					info_tag.set_info({key.lower(): int(value)})
 				except:
 					pass
 			elif key.lower() in STRING_INFOLABELS:
-				listitem.setInfo('video', {key.lower(): value})
+				#listitem.setInfo('video', {key.lower(): value})
+				info_tag = ListItemInfoTag(listitem, 'video')
+				if key.lower() == 'genre':
+					info_tag.set_info({key.lower(): value.split(' / ')})
+				else:
+					info_tag.set_info({key.lower(): value})
 			elif key.lower() in FLOAT_INFOLABELS:
 				try:
-					listitem.setInfo('video', {key.lower(): '%1.1f' % float(value)})
+					#listitem.setInfo('video', {key.lower(): '%1.1f' % float(value)})
+					info_tag = ListItemInfoTag(listitem, 'video')
+					info_tag.set_info({key.lower(): '%1.1f' % float(value)})
 				except:
 					pass
 			listitem.setProperty('%s' % key, value)
