@@ -639,9 +639,10 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 							try: 
 								pt = datetime.strptime(value,'%Hh%Mm%Ss')
 							except: 
-								pt = datetime.strptime('11m3s','%Mm%Ss')
-							total_seconds = pt.second + pt.minute*60 + pt.hour*3600
-							info_tag.set_info({key.lower(): total_seconds})
+								pt = datetime.strptime(value,'%Mm%Ss')
+							if pt:
+								total_seconds = pt.second + pt.minute*60 + pt.hour*3600
+								info_tag.set_info({key.lower(): total_seconds})
 						else:
 							#info_tag.set_info({key.lower(): value})
 							xbmc.log(str(key.lower())+'===>EXCEPTION!!', level=xbmc.LOGINFO)
