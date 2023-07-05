@@ -25,7 +25,10 @@ from resources.lib.library import get_processor_info
 tmdb_api = xbmcaddon.Addon(addon_ID()).getSetting('tmdb_api')
 fanart_api = xbmcaddon.Addon(addon_ID()).getSetting('fanart_api')
 
-from infotagger.listitem import ListItemInfoTag
+try:
+	from infotagger.listitem import ListItemInfoTag
+except:
+	pass
 
 from os.path import expanduser
 home = expanduser("~")
@@ -541,14 +544,14 @@ def next_ep_play_movie(movie_year, movie_title, tmdb, menu):
 		duration = ''
 	if resumeTimeInSeconds == None:
 		resumeTimeInSeconds = 0
-	try:
-		file_name = BDMV.split('/')[-1]
-		delete_result = cur.execute("DELETE FROM files WHERE strFilename = '"+str(file_name)+"' ;")
-		con.commit()
-		#delete_result = cur.execute("DELETE FROM files WHERE strFilename = '"+str('index.bdmv')+"' ;")
-		#con.commit()
-	except:
-		pass
+	#try:
+	#	file_name = BDMV.split('/')[-1]
+	#	delete_result = cur.execute("DELETE FROM files WHERE strFilename = '"+str(file_name)+"' ;")
+	#	con.commit()
+	#	#delete_result = cur.execute("DELETE FROM files WHERE strFilename = '"+str('index.bdmv')+"' ;")
+	#	#con.commit()
+	#except:
+	#	pass
 	cur.close()
 	con.close()
 
@@ -680,8 +683,11 @@ def next_ep_play_movie(movie_year, movie_title, tmdb, menu):
 			json_result = json.loads(json_result)
 			#xbmc.log(str(json_result['result']['episodedetails']['art'])+'===>OPENINFO', level=xbmc.LOGFATAL)
 			#li.setInfo(type='Video', infoLabels=str(json_result['result']['moviedetails']))
-			info_tag = ListItemInfoTag(li, 'video')
-			info_tag.set_info(json_result['result']['moviedetails'])
+			try:
+				info_tag = ListItemInfoTag(li, 'video')
+				info_tag.set_info(json_result['result']['moviedetails'])
+			except:
+				li.setInfo(type='Video', infoLabels=str(json_result['result']['moviedetails']))
 		except:
 			pass
 
@@ -718,8 +724,11 @@ def next_ep_play_movie(movie_year, movie_title, tmdb, menu):
 		#print_log(str(list(zip(actor_name,actor_role,actor_thumbnail,actor_order))),'zip_list')
 		if len(actors) > 0:
 			#li.setCast(actors)
-			info_tag = ListItemInfoTag(li, 'video')
-			info_tag.set_cast(actors)
+			try:
+				info_tag = ListItemInfoTag(li, 'video')
+				info_tag.set_cast(actors)
+			except:
+				li.setCast(actors)
 			li.setProperty('Cast', str(actors))
 			li.setProperty('CastAndRole', str(actors))
 			infolabels['Cast'] = list(zip(actor_name,actor_role,actor_thumbnail,actor_order))
@@ -765,8 +774,13 @@ def next_ep_play_movie(movie_year, movie_title, tmdb, menu):
 
 		#print_log(infolabels)
 		#li.setInfo(type='Video', infoLabels = infolabels)
-		info_tag = ListItemInfoTag(li, 'video')
-		info_tag.set_info(infolabels)
+		try:
+			info_tag = ListItemInfoTag(li, 'video')
+			info_tag.set_info(infolabels)
+		except:
+			li.setInfo(type='Video', infoLabels = infolabels)
+		#info_tag.set_cast(infolabels['Cast'])
+		#info_tag.set_cast(infolabels['CastAndRole'])
 
 		playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 		current_action = xbmcgui.Window(10000).getProperty('Next_EP.TMDB_action')
