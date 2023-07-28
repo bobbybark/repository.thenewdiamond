@@ -197,9 +197,6 @@ def get_tmdb_window(window_type):
                 self.page_token = self.prev_page_token
                 self.update()
 
-
-
-
         @ch.action('pagedown', 6666)
         @ch.action('pageup', 6666)
         @ch.action('pagedown', 600)

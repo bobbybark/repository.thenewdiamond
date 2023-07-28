@@ -487,11 +487,12 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 				pass
 		if mediatype == 'tvshow' and tmdb_id != 0 and trakt_tv:
 			try:
+			#if 1==1:
 				sql_result = tv_cur.execute("select * from trakt where tmdb_id =" + str(result['id'])).fetchall()
 				#try: trakt_item = ast.literal_eval(sql_result[0][1].replace('\'\'','"'))
 				#except: trakt_item = ast.literal_eval(sql_result[0][1])
 				try: trakt_item = eval(sql_result[0][1])
-				except: trakt_item = eval(sql_result[0][1].replace("'overview': ''",'\'overview\': "').replace("'', 'first_aired':",'", \'first_aired\':').replace("'title': ''",'\'title\': "').replace("'', 'year':",'", \'year\':'))
+				except: trakt_item = eval(sql_result[0][1].replace("'overview': ''",'\'overview\': "').replace("'', 'first_aired':",'", \'first_aired\':').replace("'title': ''",'\'title\': "').replace("'', 'year':",'", \'year\':').replace('\'\'','"').replace(': ", ',': "", '))
 				aired_episodes = trakt_item['show']['aired_episodes']
 				trakt_tmdb_id = trakt_item['show']['ids']['tmdb']
 				last_watched = trakt_item['last_watched_at'].split('T')[0]
