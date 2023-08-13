@@ -16,11 +16,15 @@ from thread_pool import ThreadPool
 import real_debrid
 
 import tools
+tools.get_pid()
 
 import inspect
 
 from inspect import currentframe, getframeinfo
 #print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+
+##SUPPRESS MESSAGES
+os.environ['A4KSCRAPERS_TEST_TOTAL'] = '1'
 
 
 """
@@ -546,7 +550,7 @@ class Sources(object):
 		return False
 
 	def _finalise_results(self):
-		print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+		#print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		self.allow_provider_requests = False
 		self._send_provider_stop_event()
 		

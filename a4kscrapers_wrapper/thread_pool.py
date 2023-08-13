@@ -59,7 +59,8 @@ class ThreadPoolWorker(Thread):
 			except Empty:
 				break
 			except BaseException as ex:
-				print(ex)
+				if os.getenv('A4KSCRAPERS_TEST_TOTAL') != '1':
+					print(ex)
 				break
 			finally:
 				try:
@@ -191,7 +192,7 @@ class ThreadPool:
 
 	def _try_raise(self):
 		if self.exception:
-			#print(self.exception)
-			print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+			if os.getenv('A4KSCRAPERS_TEST_TOTAL') != '1':
+				print(self.exception)
 			raise self.exception  # pylint: disable-msg=E0702
 

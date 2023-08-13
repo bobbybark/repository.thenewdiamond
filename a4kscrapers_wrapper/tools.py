@@ -33,14 +33,21 @@ try:
 except NameError:
 	unicode = str
 
-ADDON_USERDATA_PATH = './user_data'
+from inspect import currentframe, getframeinfo
+folder = getframeinfo(currentframe()).filename
+folder = folder.replace(getframeinfo(currentframe()).filename.split('/')[-1],'')
+
+#print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+
+#ADDON_USERDATA_PATH = './user_data'
+ADDON_USERDATA_PATH = os.path.join(folder, 'user_data')
 ADDON_NAME = 'plugin.video.a4kWrapper'
 A4KPROVIDERS_PATH = os.path.join(ADDON_USERDATA_PATH, 'providers')
 SETTING_XML = os.path.join(ADDON_USERDATA_PATH, 'settings.xml')
 PROVIDERS_JSON = os.path.join(ADDON_USERDATA_PATH, 'provider.json')
 OPENSUB_USERNAME = 'username'
 OPENSUB_PASSWORD = 'password'
-
+PID_FILE = os.path.join(ADDON_USERDATA_PATH, 'pid')
 
 VIDEO_META = None
 SUB_FILE = None
@@ -301,57 +308,6 @@ def copy2clip(txt):
 		except Exception as e:
 			print("Failure to copy to clipboard, \n{}".format(e), "error")
 
-
-def temp_file():
-	import tempfile
-	file = tempfile.NamedTemporaryFile()
-	filename = file.name
-	return filename
-
-def set_size_and_hash_url(meta, filepath):
-	import urllib.request
-	url = filepath
-	f = urllib.request.urlopen(url)
-	filesize = int(f.headers['Content-Length'])
-	opener = urllib.request.build_opener()
-	opener.addheaders = [('Range', 'bytes=%s-%s' % (0, __64k))]
-	first_64kb = temp_file()
-	last_64kb = temp_file()
-	urllib.request.install_opener(opener)
-	urllib.request.urlretrieve(url, first_64kb)
-
-	opener = urllib.request.build_opener()
-	opener.addheaders = [('Range', 'bytes=%s-%s' % (filesize - __64k, 0))]
-	urllib.request.install_opener(opener)
-	urllib.request.urlretrieve(url, last_64kb)
-
-	#f = xbmcvfs.File(filepath)
-	f = open(first_64kb, 'rb')
-	try:
-		#filesize = f.size()
-		meta['filesize'] = filesize
-
-		if filesize < __64k * 2:
-			return
-
-		# ref: https://trac.opensubtitles.org/projects/opensubtitles/wiki/HashSourceCodes
-		# filehash = filesize + 64bit sum of the first and last 64k of the file
-		filehash = lambda: None
-		filehash = filesize
-
-		filehash = sum_64k_bytes(f, filehash)
-		#f.seek(filesize - __64k, os.SEEK_SET)
-		f.close()
-		f = open(last_64kb, 'rb')
-		filehash = sum_64k_bytes(f, filehash)
-
-		meta['filehash'] = "%016x" % filehash
-	finally:
-		f.close()
-		delete_file(first_64kb)
-		delete_file(last_64kb)
-	return meta
-
 def download_file(url, save_as):
 	from urllib.request import urlopen
 	# Download from URL
@@ -411,7 +367,9 @@ def _monkey_check(method):
 			return method(*args, **kwargs)
 		except Exception as exc:
 			if 'ConnectionResetError' in str(exc):
-				print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+				if os.getenv('A4KSCRAPERS_TEST_TOTAL') != '1':
+					print(args[1], exc)
+				#print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 				raise PreemptiveCancellation('Pre-emptive termination has stopped this request')
 			else:
 				print(exc)
@@ -655,9 +613,13 @@ def sum_64k_bytes(file, filehash):
 
 def set_size_and_hash(meta, filepath):
 	#f = xbmcvfs.File(filepath)
+	if 'http' in str(filepath):
+		meta = set_size_and_hash_url(meta, filepath)
+		return meta
 	f = open(filepath, 'rb')
 	try:
-		filesize = f.size()
+		#filesize = f.size()
+		filesize = os.path.getsize(filepath)
 		meta['filesize'] = filesize
 
 		if filesize < __64k * 2:
@@ -677,6 +639,57 @@ def set_size_and_hash(meta, filepath):
 		f.close()
 	return meta
 
+
+def temp_file():
+	import tempfile
+	file = tempfile.NamedTemporaryFile()
+	filename = file.name
+	return filename
+
+def set_size_and_hash_url(meta, filepath):
+	import urllib.request
+	url = filepath
+	f = urllib.request.urlopen(url)
+	filesize = int(f.headers['Content-Length'])
+	opener = urllib.request.build_opener()
+	opener.addheaders = [('Range', 'bytes=%s-%s' % (0, __64k-1))]
+	first_64kb = temp_file()
+	last_64kb = temp_file()
+	urllib.request.install_opener(opener)
+	urllib.request.urlretrieve(url, first_64kb)
+	
+	opener = urllib.request.build_opener()
+	opener.addheaders = [('Range', 'bytes=%s-%s' % (filesize - __64k, 0))]
+	urllib.request.install_opener(opener)
+	urllib.request.urlretrieve(url, last_64kb)
+
+	#f = xbmcvfs.File(filepath)
+	f = open(first_64kb, 'rb')
+	try:
+		#filesize = f.size()
+		meta['filesize'] = filesize
+
+		if filesize < __64k * 2:
+			return
+
+		# ref: https://trac.opensubtitles.org/projects/opensubtitles/wiki/HashSourceCodes
+		# filehash = filesize + 64bit sum of the first and last 64k of the file
+		filehash = lambda: None
+		filehash = filesize
+
+		filehash = sum_64k_bytes(f, filehash)
+		#f.seek(filesize - __64k, os.SEEK_SET)
+		print(first_64kb, 'size='+str(os.path.getsize(first_64kb)),'set_size_and_hash_url')
+		f.close()
+		f = open(last_64kb, 'rb')
+		filehash = sum_64k_bytes(f, filehash)
+		print(last_64kb, 'size='+str(os.path.getsize(last_64kb)),'set_size_and_hash_url')
+		meta['filehash'] = "%016x" % filehash
+	finally:
+		f.close()
+		delete_file(first_64kb)
+		delete_file(last_64kb)
+	return meta
 
 def md5_hash(value):
 	"""
@@ -719,7 +732,9 @@ def write_all_text(file_path, content):
 		except Exception:
 			pass
 
-
+def get_pid():
+	with open(PID_FILE, 'w', encoding='utf-8') as f:
+		f.write(str(os.getpid()))
 
 
 class StackTraceException(Exception):
@@ -735,7 +750,7 @@ class UnexpectedResponse(StackTraceException):
 		super(UnexpectedResponse, self).__init__(message)
 
 class RanOnceAlready(RuntimeError):
-	print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+	#print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 	pass
 
 Running = None
@@ -749,35 +764,29 @@ class GlobalLock(object):
 		self._run_once = run_once
 		self._lock_format = "{}.GlobalLock.{}.{}"
 		self._check_sum = check_sum or 'global'
-		print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 
 	def _create_key(self, value):
 		return self._lock_format.format(ADDON_NAME, self._lock_name, value)
 
 	def _run(self):
-		print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		while self._running():
 			time.sleep(0.1)
 		Running = True
 		self._check_ran_once_already()
 
 	def _running(self):
-		print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		return Running
 
 	def _check_ran_once_already(self):
-		print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		if RunOnce and CheckSum == self._check_sum:
 			Running = None
 			raise RanOnceAlready("Lock name: {}, Checksum: {}".format(self._lock_name, self._check_sum))
 
 	def __enter__(self):
-		print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		self._run()
 		return self
 
 	def __exit__(self, exc_type, exc_val, exc_tb):
-		print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		if self._run_once:
 			RunOnce = True
 			CheckSum = self._check_sum
