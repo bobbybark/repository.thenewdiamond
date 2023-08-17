@@ -60,13 +60,13 @@ class ThreadPoolWorker(Thread):
 				break
 			except BaseException as ex:
 				if os.getenv('A4KSCRAPERS_TEST_TOTAL') != '1':
-					print(ex)
+					tools.log(ex)
 				break
 			finally:
 				try:
 					self.tasks.task_done()
 				except Exception as e:
-					print("task done error: {}".format(repr(e)))
+					tools.log("task done error: {}".format(repr(e)))
 					pass
 
 
@@ -193,6 +193,6 @@ class ThreadPool:
 	def _try_raise(self):
 		if self.exception:
 			if os.getenv('A4KSCRAPERS_TEST_TOTAL') != '1':
-				print(self.exception)
+				tools.log(self.exception)
 			raise self.exception  # pylint: disable-msg=E0702
 

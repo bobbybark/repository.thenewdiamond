@@ -49,6 +49,12 @@ OPENSUB_USERNAME = 'username'
 OPENSUB_PASSWORD = 'password'
 PID_FILE = os.path.join(ADDON_USERDATA_PATH, 'pid')
 
+DOWNLOAD_FOLDER = '/home/osmc/Movies'
+
+fanart_api_key = get_setting("fanart.apikey", 'string')
+tmdb_API_key = get_setting("tmdb.apikey", 'string')
+tvdb_apikey =  get_setting("tvdb.apikey", 'string')
+
 VIDEO_META = None
 SUB_FILE = None
 
@@ -139,6 +145,13 @@ INFO_TYPES = {
 	"3D": [" 3d"],
 }
 
+def log(*args, **kwargs):
+	for i in args:
+		try:
+			import xbmc
+			xbmc.log(str(i)+'===>A4K_Wrapper', level=xbmc.LOGFATAL)
+		except:
+			print(i)
 
 def strip_non_ascii_and_unprintable(text):
 	"""
@@ -306,16 +319,8 @@ def copy2clip(txt):
 			p = Popen(cmd, **kwargs)
 			p.communicate(input=str(txt))
 		except Exception as e:
-			print("Failure to copy to clipboard, \n{}".format(e), "error")
+			log("Failure to copy to clipboard, \n{}".format(e), "error")
 
-def download_file(url, save_as):
-	from urllib.request import urlopen
-	# Download from URL
-	with urlopen(url) as file:
-		content = file.read()
-	# Save to file
-	with open(save_as, 'wb') as download:
-		download.write(content)
 
 def extract_zip(zip_file, dest_dir):
 	import zipfile
@@ -363,16 +368,16 @@ def _monkey_check(method):
 			raise PreemptiveCancellation('Pre-emptive termination has stopped this request')
 
 		try:
-			#print(*args)
+			#log(*args)
 			return method(*args, **kwargs)
 		except Exception as exc:
 			if 'ConnectionResetError' in str(exc):
 				if os.getenv('A4KSCRAPERS_TEST_TOTAL') != '1':
-					print(args[1], exc)
-				#print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+					log(args[1], exc)
+				#log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 				raise PreemptiveCancellation('Pre-emptive termination has stopped this request')
 			else:
-				print(exc)
+				log(exc)
 
 	return do_method
 
@@ -390,18 +395,234 @@ requests.Session.head = _monkey_check(requests.Session.head)
 requests.Session.delete = _monkey_check(requests.Session.delete)
 requests.Session.put = _monkey_check(requests.Session.put)
 
+def selectFromDict(options, name):
+	index = 0
+	indexValidList = []
+	log('Select a ' + name + ':')
+	for optionName in options:
+		index = index + 1
+		indexValidList.extend([options[optionName]])
+		log(str(index) + ') ' + optionName)
+	inputValid = False
+	while not inputValid:
+		inputRaw = input(name + ': ')
+		inputNo = int(inputRaw) - 1
+		if inputNo > -1 and inputNo < len(indexValidList):
+			selected = indexValidList[inputNo]
+			for i in options:
+				if options[i] == selected:
+					selection = i
+					break
+			log('Selected ' +  name + ': ' + selection)
+			inputValid = True
+			break
+		else:
+			log('Please select a valid ' + name + ' number')
+	return selected
+
+def get_http(url, headers=False):
+	succeed = 0
+	if not headers:
+		headers = {'User-agent': 'Kodi/21.0 ( phil65@kodi.tv )'}
+	while (succeed < 2) :
+		try:
+			request = requests.get(url, headers=headers)
+			return request.text
+		except Exception as e:
+			log('get_http: could not get data from %s' % url)
+			xbmc.sleep(500)
+			succeed += 1
+	return None
+
+def get_response_cache(url='', cache_days=7.0, folder=False, headers=False):
+	now = time.time()
+	url = url.encode('utf-8')
+	hashed_url = hashlib.md5(url).hexdigest()
+	cache_path = os.path.join(ADDON_USERDATA_PATH, folder)
+
+	if not os.path.exists(cache_path):
+		os.mkdir(cache_path)
+	cache_seconds = int(cache_days * 86400.0)
+	path = os.path.join(cache_path, '%s.txt' % hashed_url)
+	if os.path.exists(path) and ((now - os.path.getmtime(path)) < cache_seconds):
+		results = read_all_text(path)
+		try: results = eval(results)
+		except: pass
+	else:
+		response = get_http(url, headers)
+		try:
+			results = json.loads(response)
+			#save_to_file(results, hashed_url, cache_path)
+			#file_path = os.path.join(cache_path, hashed_url)
+			write_all_text(path, str(results))
+		except:
+			log('Exception: Could not get new JSON data from %s. Tryin to fallback to cache' % url)
+			log(response)
+			results = read_all_text(path) if os.path.exists(path) else []
+	if not results:
+		return None
+	return results
+
+
+def get_tmdb_from_imdb(imdb, media_type):
+	response = get_tmdb_data('find/%s?external_source=%s&language=%s&' % (imdb, 'imdb_id', 'en'), 30)
+	if media_type == 'movie':
+		tmdb = response['movie_results'][0]['id']
+	else:
+		tmdb = response['tv_results'][0]['id']
+	return tmdb
+
+def get_tmdb_data(url='', cache_days=14, folder='TheMovieDB'):
+	url = 'https://api.themoviedb.org/3/%sapi_key=%s' % (url, tmdb_API_key)
+	return get_response_cache(url, cache_days, folder)
+
+def get_tvshow_ids(tvshow_id=None, cache_time=14):
+	if not tvshow_id:
+		return None
+	session_str = ''
+	response = get_tmdb_data('tv/%s?append_to_response=external_ids&language=%s&include_image_language=en,null,%s&%s' % (tvshow_id, 'en', 'en', session_str), cache_time)
+	if not response:
+		return False
+	external_ids = response.get('external_ids')
+	return external_ids
+
+def get_fanart_data(url='', tmdb_id=None, media_type=None, cache_days=14, folder='FanartTV'):
+	fanart_api = fanart_api_key
+	if media_type =='tv':
+		tvdb_id = get_tvshow_ids(tmdb_id)
+		tvdb_id = tvdb_id['tvdb_id']
+		url = 'http://webservice.fanart.tv/v3/tv/'+str(tvdb_id)+'?api_key=' + fanart_api
+		#response = requests.get(url).json()
+	elif media_type =='tv_tvdb':
+		url = 'http://webservice.fanart.tv/v3/tv/'+str(tmdb_id)+'?api_key=' + fanart_api
+		#response = requests.get(url).json()
+	else:
+		url = 'http://webservice.fanart.tv/v3/movies/'+str(tmdb_id)+'?api_key=' + fanart_api
+		#response = requests.get(url).json()
+	return get_response_cache(url, cache_days, folder)
+
+
+def episodes_parts_lists():
+	parts_roman = []
+	parts_numbers = []
+	parts_words = []
+	parts_numbers2 = []
+	for i in range(1,20):
+		parts_numbers.append(' ('+str(i)+')')
+		parts_roman.append(' Part '+str(int_to_roman(i)))
+		parts_words.append(' Part ' + str(int_to_en(i)))
+		parts_numbers2.append(' Part ' + str(i))
+	return parts_roman, parts_numbers, parts_words, parts_numbers2
+
+def episodes_parts_lists_multi():
+	multi_dict = {}
+	for i in range(1,20):
+		test_dict = {'roman': [int_to_roman(i), int_to_roman(i+1)], 'numbers': ['('+str(i)+')','('+str(i+1)+')'], 'words': [int_to_en(i), int_to_en(i+1)], 'numbers2': [i, i+1]}
+		multi_dict[i] = []
+		for j in test_dict:
+			multi_dict[i].append( str((' %s+%s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+			multi_dict[i].append( str((' %s + %s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+			multi_dict[i].append( str((' %sand%s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+			multi_dict[i].append( str((' %s and %s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+			multi_dict[i].append( str((' %s&%s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+			multi_dict[i].append( str((' %s & %s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+			multi_dict[i].append( str((' Part %s %s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+			multi_dict[i].append( str((' Part %s-%s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+			multi_dict[i].append( str((' Part %s - %s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+			multi_dict[i].append( str((' Parts %s %s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+			multi_dict[i].append( str((' Parts %s-%s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+			multi_dict[i].append( str((' Parts %s - %s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+	return multi_dict
+
+def int_to_en(num):
+	d = { 0 : 'Zero', 1 : 'One', 2 : 'Two', 3 : 'Three', 4 : 'Four', 5 : 'Five',
+		  6 : 'Six', 7 : 'Seven', 8 : 'Eight', 9 : 'Nine', 10 : 'Ten',
+		  11 : 'Eleven', 12 : 'Twelve', 13 : 'Thirteen', 14 : 'Fourteen',
+		  15 : 'Fifteen', 16 : 'Sixteen', 17 : 'Seventeen', 18 : 'Eighteen',
+		  19 : 'Nineteen', 20 : 'Twenty',
+		  30 : 'Thirty', 40 : 'Forty', 50 : 'Fifty', 60 : 'Sixty',
+		  70 : 'Seventy', 80 : 'Eighty', 90 : 'Ninety' }
+	k = 1000
+	m = k * 1000
+	b = m * 1000
+	t = b * 1000
+
+	assert(0 <= num)
+
+	if (num < 20):
+		return d[num]
+
+	if (num < 100):
+		if num % 10 == 0: return d[num]
+		else: return d[num // 10 * 10] + ' ' + d[num % 10]
+
+	if (num < k):
+		if num % 100 == 0: return d[num // 100] + ' Hundred'
+		else: return d[num // 100] + ' Hundred and ' + int_to_en(num % 100)
+
+	if (num < m):
+		if num % k == 0: return int_to_en(num // k) + ' Thousand'
+		else: return int_to_en(num // k) + ' Thousand, ' + int_to_en(num % k)
+
+	if (num < b):
+		if (num % m) == 0: return int_to_en(num // m) + ' Million'
+		else: return int_to_en(num // m) + ' Million, ' + int_to_en(num % m)
+
+	if (num < t):
+		if (num % b) == 0: return int_to_en(num // b) + ' Billion'
+		else: return int_to_en(num // b) + ' Billion, ' + int_to_en(num % b)
+
+	if (num % t == 0): return int_to_en(num // t) + ' Trillion'
+	else: return int_to_en(num // t) + ' Trillion, ' + int_to_en(num % t)
+
+	raise AssertionError('num is too large: %s' % str(num))
+
+def int_to_roman(number):
+	""" Convert an integer to a Roman numeral. """
+	if not 0 < number < 4000:
+		raise ValueError
+	ints = (1000, 900,  500, 400, 100,  90, 50,  40, 10,  9,   5,  4,   1)
+	nums = ('M',  'CM', 'D', 'CD','C', 'XC','L','XL','X','IX','V','IV','I')
+	result = []
+	for i in range(len(ints)):
+		count = int(number / ints[i])
+		result.append(nums[i] * count)
+		number -= ints[i] * count
+	return ''.join(result)
+
+
+def download_file(url, save_as):
+	from urllib.request import urlopen
+	# Download from URL
+	with urlopen(url) as file:
+		content = file.read()
+	# Save to file
+	with open(save_as, 'wb') as download:
+		download.write(content)
+
+def download_progressbar(url, file_path):
+	from urllib.request import urlretrieve
+	import sys
+	global rem_file # global variable to be used in dlProgress
+	rem_file = url.split('/')[-1]
+	def dlProgress(count, blockSize, totalSize):
+		percent = int(count*blockSize*100/totalSize)
+		sys.stdout.write("\r" + rem_file + "...%d%%" % percent)
+		sys.stdout.flush()
+	urlretrieve(url, file_path, reporthook=dlProgress)
+	return file_path
 
 def progressbar(it, prefix="", size=60, out=sys.stdout): # Python3.3+
 	count = len(it)
 	def show(j):
 		x = int(size*j/count)
-		print("{}[{}{}] {}/{}".format(prefix, "#"*x, "."*(size-x), j, count), 
+		log("{}[{}{}] {}/{}".format(prefix, "#"*x, "."*(size-x), j, count), 
 				end='\r', file=out, flush=True)
 	show(0)
 	for i, item in enumerate(it):
 		yield item
 		show(i+1)
-	print("\n", flush=True, file=out)
+	log("\n", flush=True, file=out)
 
 
 def set_setting(setting_name, setting_value):
@@ -679,11 +900,11 @@ def set_size_and_hash_url(meta, filepath):
 
 		filehash = sum_64k_bytes(f, filehash)
 		#f.seek(filesize - __64k, os.SEEK_SET)
-		print(first_64kb, 'size='+str(os.path.getsize(first_64kb)),'set_size_and_hash_url')
+		log(first_64kb, 'size='+str(os.path.getsize(first_64kb)),'set_size_and_hash_url')
 		f.close()
 		f = open(last_64kb, 'rb')
 		filehash = sum_64k_bytes(f, filehash)
-		print(last_64kb, 'size='+str(os.path.getsize(last_64kb)),'set_size_and_hash_url')
+		log(last_64kb, 'size='+str(os.path.getsize(last_64kb)),'set_size_and_hash_url')
 		meta['filehash'] = "%016x" % filehash
 	finally:
 		f.close()
@@ -739,18 +960,18 @@ def get_pid():
 
 class StackTraceException(Exception):
 	def __init__(self, msg):
-		print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+		log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		tb = traceback.format_exc()
-		print("{} \n{}".format(tb, msg) if not tb.startswith("NoneType: None") else msg, "error")
+		log("{} \n{}".format(tb, msg) if not tb.startswith("NoneType: None") else msg, "error")
 
 class UnexpectedResponse(StackTraceException):
 	def __init__(self, api_response):
-		print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+		log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		message = "API returned an unexpected response: \n{}".format(api_response)
 		super(UnexpectedResponse, self).__init__(message)
 
 class RanOnceAlready(RuntimeError):
-	#print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+	#log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 	pass
 
 Running = None
@@ -1088,3 +1309,59 @@ class SourceSorter:
 			audio_channels = {"2.0", "5.1", "7.1"} & info
 		return float(max(audio_channels)) if audio_channels else 0
 
+
+
+def get_fanart_results(tvdb_id, media_type=None, show_season = None):
+	hdclearart, seasonposter, seasonthumb, seasonbanner, tvthumb, tvbanner, showbackground, clearlogo, characterart, tvposter, clearart, hdtvlogo = '', '', '', '', '', '', '', '', '', '', '', '';
+	tv_dict = {'hdclearart': None,'seasonposter': None,'seasonthumb': None,'seasonbanner': None,'tvthumb': None,'tvbanner': None,'showbackground': None,'clearlogo': None,'characterart': None,'tvposter': None,'clearart': None,'hdtvlogo': None}
+
+	if 'tv_tvdb' == media_type:
+		try: 
+			#response = requests.get('http://webservice.fanart.tv/v3/tv/'+str(tvdb_id)+'?api_key='+str(fanart_api)).json()
+			response = get_fanart_data(tmdb_id=tvdb_id,media_type='tv_tvdb')
+		except: 
+			response = None
+	else:
+		#response = requests.get('http://webservice.fanart.tv/v3/movies/'+str(tmdb_id)+'?api_key='+str(fanart_api)).json()
+		response = get_fanart_data(tmdb_id=tvdb_id,media_type='movie')
+	
+	if 'tv_tvdb' == media_type:
+		for i in response:
+			#print_log(i)
+			for j in response[i]:
+				try:
+					lang = j['lang']
+					if j['lang'] == 'en' or (i == 'showbackground' and j['lang'] == ''):
+						if i in ('seasonposter', 'seasonthumb', 'seasonbanner'):
+							for k in response[i]:
+								if int(k['season']) == show_season and k['lang'] == 'en':
+									tv_dict[i] = k['url']
+							break
+						if i in ('hdclearart', 'tvthumb', 'tvbanner', 'showbackground', 'clearlogo', 'characterart', 'tvposter', 'clearart', 'hdtvlogo'):
+							tv_dict[i] = j['url']
+							break
+				except:
+					pass
+		#return hdclearart, seasonposter, seasonthumb, seasonbanner, tvthumb, tvbanner, showbackground, clearlogo, characterart, tvposter, clearart, hdtvlogo
+		return tv_dict['hdclearart'], tv_dict['seasonposter'], tv_dict['seasonthumb'], tv_dict['seasonbanner'], tv_dict['tvthumb'], tv_dict['tvbanner'], tv_dict['showbackground'], tv_dict['clearlogo'], tv_dict['characterart'], tv_dict['tvposter'], tv_dict['clearart'], tv_dict['hdtvlogo']
+	else:
+		movielogo, hdmovielogo, movieposter, hdmovieclearart, movieart, moviedisc, moviebanner, moviethumb, moviebackground = '', '', '', '', '', '', '', '', ''
+		movie_dict = {'movielogo': None,'hdmovielogo': None,'movieposter': None,'hdmovieclearart': None,'movieart': None,'moviedisc': None,'moviebanner': None,'moviethumb': None,'moviebackground': None}
+		for i in response:
+			#print_log(i)
+			for j in response[i]:
+				try:
+					lang = j['lang']
+					if j['lang'] == 'en' or (i == 'movielogo' and j['lang'] == '') or (i == 'hdmovielogo' and j['lang'] == ''):
+						if i in ('movielogo', 'hdmovielogo'):
+							tv_dict[i] = j['url']
+							break
+						if i in ('movieposter','hdmovieclearart','movieart','moviedisc','moviebanner','moviethumb','moviebackground'):
+							for k in response[i]:
+								if k['lang'] == 'en':
+									tv_dict[i] = k['url']
+				except:
+					pass
+
+		#return movielogo, hdmovielogo, movieposter, hdmovieclearart, movieart, moviedisc, moviebanner, moviethumb, moviebackground
+		return movie_dict['movielogo'], movie_dict['hdmovielogo'], movie_dict['movieposter'], movie_dict['hdmovieclearart'], movie_dict['movieart'], movie_dict['moviedisc'], movie_dict['moviebanner'], movie_dict['moviethumb'], movie_dict['moviebackground']

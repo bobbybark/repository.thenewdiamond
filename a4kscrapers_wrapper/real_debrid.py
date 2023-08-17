@@ -5,6 +5,7 @@ import time
 
 #from database.cache import use_cache
 import tools
+import os
 from thread_pool import ThreadPool
 
 try:
@@ -13,7 +14,7 @@ except ImportError:
 	from resources.lib.third_party.cached_property import cached_property
 
 from inspect import currentframe, getframeinfo
-#print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 
 RD_AUTH_KEY = "rd.auth"
 RD_STATUS_KEY = "rd.premiumstatus"
@@ -63,7 +64,7 @@ class RealDebrid:
 				return True
 			except Exception:
 				#xbmcgui.Dialog().ok(g.ADDON_NAME, g.get_language_string(30065))
-				print("Authentication with Real-Debrid has failed, please try again")
+				tools.log("Authentication with Real-Debrid has failed, please try again")
 				raise
 		return False
 
@@ -81,10 +82,10 @@ class RealDebrid:
 			line1=str("Open this link in a browser: {}").format(str("https://real-debrid.com/device"))
 			line2=str("Enter the code: {}").format(str(response["user_code"]))
 			line3=str("This code has been copied to your clipboard")
-			print(line1)
-			print(line2)
-			print(line3)
-			print('RD_AUTH_RUNNING_FOR_90s')
+			tools.log(line1)
+			tools.log(line2)
+			tools.log(line3)
+			tools.log('RD_AUTH_RUNNING_FOR_90s')
 			start_time = time.time()
 			self.oauth_timeout = int(response["expires_in"])
 			token_ttl = int(response["expires_in"])
@@ -101,15 +102,15 @@ class RealDebrid:
 					success = self._auth_loop()
 				progress_percent = int(float((token_ttl * 100) / self.oauth_timeout))
 				#progress_dialog.update(progress_percent)
-				#print('progress_percent=', progress_percent)
+				#tools.log('progress_percent=', progress_percent)
 				token_ttl -= 1
 				if not success and not token_ttl <= 0 and not time.time() > start_time + 90:
 					continue
 				else:
 					break
-			print('success??')
+			tools.log('success??')
 		finally:
-			print('finally_success')
+			tools.log('finally_success')
 
 		if success:
 			self.token_request()
@@ -117,9 +118,9 @@ class RealDebrid:
 			user_information = self.get_url("user")
 			if user_information["type"] != "premium":
 				#xbmcgui.Dialog().ok(g.ADDON_NAME, g.get_language_string(30194))
-				print("You appear to have authorized a non-premium account and will not be able to play items using this account")
+				tools.log("You appear to have authorized a non-premium account and will not be able to play items using this account")
 			else:
-				print('RD_AUTH_SUCCESS')
+				tools.log('RD_AUTH_SUCCESS')
 
 	def token_request(self):
 		if not self.client_secret:
@@ -138,16 +139,16 @@ class RealDebrid:
 		self._save_settings(response)
 		self._save_user_status()
 		#xbmcgui.Dialog().ok(g.ADDON_NAME, "Real Debrid " + g.get_language_string(30020))
-		print("Authentication is completed")
+		tools.log("Authentication is completed")
 
 	def _save_settings(self, response):
 		self.token = response["access_token"]
 		self.refresh = response["refresh_token"]
 		self.expiry = time.time() + int(response["expires_in"])
 
-		print(RD_AUTH_KEY, self.token)
-		print(RD_REFRESH_KEY, self.refresh)
-		print(RD_EXPIRY_KEY, self.expiry)
+		tools.log(RD_AUTH_KEY, self.token)
+		tools.log(RD_REFRESH_KEY, self.refresh)
+		tools.log(RD_EXPIRY_KEY, self.expiry)
 		tools.set_setting(RD_AUTH_KEY, self.token)
 		tools.set_setting(RD_REFRESH_KEY, self.refresh)
 		tools.set_setting(RD_EXPIRY_KEY, self.expiry)
@@ -169,9 +170,9 @@ class RealDebrid:
 
 	@staticmethod
 	def _handle_error(response):
-		print("Real Debrid API return a {} response".format(response.status_code))
-		print(response.text)
-		print(response.request.url)
+		tools.log("Real Debrid API return a {} response".format(response.status_code))
+		tools.log(response.text)
+		tools.log(response.request.url)
 
 	def _is_response_ok(self, response):
 		if 200 <= response.status_code < 400:
@@ -200,17 +201,17 @@ class RealDebrid:
 				)
 				if not self._is_response_ok(response):
 					response = response.json()
-					print(
+					tools.log(
 						 "Failed to refresh RD token, please manually re-auth"
 					)
-					print("RD Refresh error: {}".format(response["error"]))
-					print(
+					tools.log("RD Refresh error: {}".format(response["error"]))
+					tools.log(
 						"Invalid response from Real Debrid - {}".format(response), "error"
 					)
 					return False
 				response = response.json()
 				self._save_settings(response)
-				print("Real Debrid Token Refreshed")
+				tools.log("Real Debrid Token Refreshed")
 				return True
 		except tools.RanOnceAlready:
 			self._load_settings()
@@ -239,18 +240,23 @@ class RealDebrid:
 		except (ValueError, AttributeError):
 			return response
 
-	def get_url(self, url, fail_check=False):
+	def get_url(self, url, post_data=None, fail_check=False):
+		if post_data:
+			import requests
 		original_url = url
 		url = self.base_url + url
 		if not self.token:
-			print("No Real Debrid Token Found")
+			tools.log("No Real Debrid Token Found")
 			return None
 
-		response = self.session.get(url, headers=self._get_headers(), timeout=5)
+		if post_data:
+			response = requests.get(url, params=post_data, headers=self._get_headers(), timeout=5)
+		else:
+			response = self.session.get(url, headers=self._get_headers(), timeout=5)
 
 		if not self._is_response_ok(response) and not fail_check:
 			self.try_refresh_token(True)
-			response = self.get_url(original_url, fail_check=True)
+			response = self.get_url(original_url, post_data=post_data, fail_check=True)
 		try:
 			return response.json()
 		except (ValueError, AttributeError):
@@ -260,7 +266,7 @@ class RealDebrid:
 		original_url = url
 		url = self.base_url + url
 		if not self.token:
-			print("No Real Debrid Token Found")
+			tools.log("No Real Debrid Token Found")
 			return None
 
 		response = self.session.delete(url, headers=self._get_headers(), timeout=5)
@@ -296,6 +302,23 @@ class RealDebrid:
 		response = self.post_url(url, post_data)
 		return response
 
+	def list_downloads_page(self, page):
+		post_data = {'page': page}
+		url = "downloads"
+		response = self.get_url(url, post_data=post_data)
+		return response
+
+	def list_torrents_page(self, page):
+		post_data = {'page': page}
+		url = "torrents"
+		response = self.get_url(url, post_data=post_data)
+		return response
+
+	def list_downloads(self):
+		url = "downloads"
+		response = self.get_url(url)
+		return response
+
 	def list_torrents(self):
 		url = "torrents"
 		response = self.get_url(url)
@@ -304,6 +327,27 @@ class RealDebrid:
 	def torrent_info(self, id):
 		url = "torrents/info/{}".format(id)
 		return self.get_url(url)
+
+	def torrent_info_files(self, torr_info):
+		files = []
+		for i in torr_info['files']:
+			if i['selected'] == 1:
+				files.append(i)
+
+		files_links = []
+		release_name = torr_info['filename']
+		for idx,i in enumerate(files):
+			file_path = os.path.join(tools.DOWNLOAD_FOLDER,release_name + i['path'])
+			download_dir = os.path.join(tools.DOWNLOAD_FOLDER,release_name)
+			files_links.append({'unrestrict_link': torr_info['links'][idx], 'pack_file_id': i['id'], 'pack_path': i['path'], 'download_path': file_path, 'download_dir': download_dir})
+		torr_info['files_links'] = files_links
+		return torr_info
+
+
+	def torrent_select_all(self, torrent_id):
+		file_id='all'
+		response = self.torrent_select(torrent_id,file_id)
+		return response
 
 	def torrent_select(self, torrent_id, file_id):
 		url = "torrents/selectFiles/{}".format(torrent_id)
@@ -319,6 +363,10 @@ class RealDebrid:
 			return response["download"]
 		except KeyError:
 			raise tools.UnexpectedResponse(response)
+
+	def delete_download(self, id):
+		url = "downloads/delete/{}".format(id)
+		self.delete_url(url)
 
 	def delete_torrent(self, id):
 		url = "torrents/delete/{}".format(id)

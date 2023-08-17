@@ -24,7 +24,7 @@ class SubtitleService:
 		#	"preferredlanguage": self.preferred_language,
 		#}
 		self.base_request = {'action': 'search', 'languages': 'English', 'preferredlanguage': 'forced_only'}
-		print(self.base_request)
+		tools.log(self.base_request)
 		self.sources = [A4kSubtitlesAdapter()]
 
 	def get_subtitle(self):
@@ -46,7 +46,7 @@ class SubtitleService:
 		try:
 			return self.sources[0].download(results[0])
 		except IndexError:
-			print("No subtitles available from A4kSubtitles", "error")
+			tools.log("No subtitles available from A4kSubtitles", "error")
 			return None
 
 
@@ -103,7 +103,7 @@ class A4kSubtitlesAdapter:
 			settings = extra.pop("settings", None)
 			return self.service.download(request, settings)
 		except (OSError, IOError):
-			print("Unable to download subtitle, file already exists", "error")
+			tools.log("Unable to download subtitle, file already exists", "error")
 		except Exception as e:
-			print("Unknown error acquiring subtitle: {}".format(e), "error")
+			tools.log("Unknown error acquiring subtitle: {}".format(e), "error")
 			#g.log_stacktrace()

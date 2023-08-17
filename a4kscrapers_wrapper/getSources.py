@@ -14,14 +14,15 @@ from collections import OrderedDict, Counter
 #from database.torrentCache import TorrentCache
 from thread_pool import ThreadPool
 import real_debrid
+import get_meta
 
 import tools
-tools.get_pid()
+#tools.get_pid()
 
 import inspect
 
 from inspect import currentframe, getframeinfo
-#print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 
 ##SUPPRESS MESSAGES
 os.environ['A4KSCRAPERS_TEST_TOTAL'] = '1'
@@ -32,23 +33,212 @@ Handling of scraping and cache checking for sources
 """
 """
 TEST
-import getSources
+import getSources, real_debrid, tools, source_tools, get_meta
 from getSources import Sources
-#sources = Sources({'info': {'mediatype': 'episode'}}).get_sources()
+rd_api = real_debrid.RealDebrid()
+meta = get_meta.get_episode_meta(season=1,episode=1,show_name='Deep Space Nine')
+info = meta['episode_meta']
+info = meta['tmdb_seasons']['episodes'][11]
+uncached, sources_list, item_information= Sources(info).get_sources()
+torrent = getSources.choose_torrent(sources_list)
 
-info = {'action_args': {'episode': 7, 'season': 1, 'trakt_id': 5947022, 'trakt_show_id': 152958, 'mediatype': 'episode'}, 'trakt_id': 5947022, 'trakt_show_id': 152958, 'trakt_season_id': 281021, 'info': {'episode': 7, 'sortepisode': 7, 'season': 1, 'sortseason': 2, 'year': '2022', 'premiered': '2022-03-17T07:00:00', 'aired': '2022-03-17T07:00:00', 'imdbnumber': 'tt18393962', 'imdb_id': 'tt18393962', 'trakt_id': 5947022, 'tvdb_id': 8973088, 'tmdb_id': 3533321, 'duration': 3000, 'dateadded': '2023-08-09T12:28:00', 'rating': 7.53, 'votes': 1195, 'rating.trakt': {'rating': 7.53, 'votes': 1195}, 'mediatype': 'episode', 'available_translations': ['de', 'en', 'es', 'fr', 'he', 'hu', 'it', 'ko', 'nl', 'pl', 'pt', 'ru', 'zh'], 'title': 'Happiness', 'originaltitle': 'Happiness', 'sorttitle': 'Happiness', 'plot': 'Grandmother reveals her own agenda, Marcus seeks revenge, and Mother sets out to neutralize the serpent – but is leveled by the fallout.', 'plotoutline': 'Grandmother reveals her own agenda, Marcus seeks revenge, and Mother sets out to neutralize the serpent – but is leveled by the fallout.', 'trakt_show_id': 152958, 'tmdb_show_id': 85723, 'tvdb_show_id': 368643, 'trakt_season_id': 281021, 'tvshowtitle': 'Raised by Wolves', 'director': ['Lukas Ettlin'], 'writer': ['Aaron Guzikowski'], 'overview': 'Grandmother reveals her own agenda, Marcus seeks revenge, and Mother sets out to neutralize the serpent – but is leveled by the fallout.', 'rating.tmdb': {'rating': 7.3, 'votes': 6}, 'mpaa': 'TV-MA', 'genre': ['Drama', 'Fantasy', 'Science Fiction'], 'country': 'United States', 'rating.imdb': {'rating': 7.7, 'votes': 1555}, 'tvshow.year': '2020', 'studio': ['Film Afrika Worldwide', 'Lit Entertainment Group', 'Scott Free Productions', 'Shadycat Productions'], 'country_origin': 'US', 'aliases': ['Raised by Wolves 2'], 'tvshow.imdb_id': 'tt9170108', 'tvshow.trakt_id': 152958, 'tvshow.tvdb_id': 368643, 'tvshow.tmdb_id': 85723}, 'cast': [{'name': 'Amanda Collin', 'role': 'Mother / Lamia', 'order': 0, 'thumbnail': 'https://image.tmdb.org/t/p/w500/bFm5zt8vxD09Ez6irsJItmPigjq.jpg'}, {'name': 'Abubakar Salim', 'role': 'Father', 'order': 1, 'thumbnail': 'https://image.tmdb.org/t/p/w500/cUddJiPnCTDDOBuk7jTmLsiODMb.jpg'}, {'name': 'Winta McGrath', 'role': 'Campion', 'order': 2, 'thumbnail': 'https://image.tmdb.org/t/p/w500/1odtDemopNedhQWZ9Zup3UrEaRk.jpg'}, {'name': 'Niamh Algar', 'role': 'Mary / Sue', 'order': 3, 'thumbnail': 'https://image.tmdb.org/t/p/w500/4FscmD9lWqiJVnOvuWTaVc3ynTb.jpg'}, {'name': 'Travis Fimmel', 'role': 'Caleb / Marcus Drusus', 'order': 4, 'thumbnail': 'https://image.tmdb.org/t/p/w500/kuTSw3I2hqb5N1QqYrXPX8zd8EA.jpg'}, {'name': 'Jordan Loughran', 'role': 'Tempest', 'order': 5, 'thumbnail': 'https://image.tmdb.org/t/p/w500/a3UM3gFUjZjaODZI0gUyaUWaeto.jpg'}, {'name': 'Matias Varela', 'role': 'Lucius', 'order': 6, 'thumbnail': 'https://image.tmdb.org/t/p/w500/bUMXVaKxuUNzHh7ZNLXaWI2CP3h.jpg'}, {'name': 'Felix Jamieson', 'role': 'Paul', 'order': 7, 'thumbnail': 'https://image.tmdb.org/t/p/w500/tesBnjps2Qb7pmn3pm5rUzGQVqG.jpg'}, {'name': 'Ethan Hazzard', 'role': 'Hunter', 'order': 8, 'thumbnail': 'https://image.tmdb.org/t/p/w500/5dvmyzOxaxF3McbnVaLlQ00Jw35.jpg'}, {'name': 'Aasiya Shah', 'role': 'Holly', 'order': 9, 'thumbnail': 'https://image.tmdb.org/t/p/w500/qi6fGjxtR0TkvNsysxJP77CJjcl.jpg'}, {'name': 'Ivy Wong', 'role': 'Vita', 'order': 10, 'thumbnail': 'https://image.tmdb.org/t/p/w500/miSVUr4XliqHpz2hLO2fgpNlWCY.jpg'}, {'name': 'Morgan Santo', 'role': 'Vrille', 'order': 11, 'thumbnail': None}, {'name': 'Jennifer Saayeng', 'role': 'Nerva', 'order': 12, 'thumbnail': 'https://image.tmdb.org/t/p/w500/baeInpugQJx1HNMzStDTWb28zFL.jpg'}, {'name': 'Selina Jones', 'role': 'Grandmother', 'order': 13, 'thumbnail': None}, {'name': 'Riaz Solker', 'role': 'Mars', 'order': 14, 'thumbnail': None}, {'name': 'Jagger Cameron', 'role': 'Girl', 'order': 15, 'thumbnail': None}, {'name': 'Jeshua Boshoff', 'role': 'Colonist', 'order': 16, 'thumbnail': None}, {'name': 'Natalie Robbie', 'role': 'Marcella', 'order': 17, 'thumbnail': 'https://image.tmdb.org/t/p/w500/aEB2gv7WXdrpJwj2NB2f9NAvIbv.jpg'}], 'art': {'thumb': 'https://image.tmdb.org/t/p/w500/k7Cx1ha0MgSBp0eX7kRulufBm6b.jpg', 'poster': 'http://assets.fanart.tv/fanart/tv/368643/tvposter/raised-by-wolves-641012d73d393.jpg', 'fanart': 'http://assets.fanart.tv/fanart/tv/368643/showbackground/raised-by-wolves-5f5745ce7c47a.jpg', 'clearlogo': 'http://assets.fanart.tv/fanart/tv/368643/hdtvlogo/raised-by-wolves-5f55053caf9d4.png', 'tvshow.poster': 'http://assets.fanart.tv/fanart/tv/368643/tvposter/raised-by-wolves-641012d73d393.jpg', 'tvshow.fanart': 'http://assets.fanart.tv/fanart/tv/368643/showbackground/raised-by-wolves-5f5745ce7c47a.jpg', 'tvshow.clearlogo': 'http://assets.fanart.tv/fanart/tv/368643/hdtvlogo/raised-by-wolves-5f55053caf9d4.png', 'tvshow.banner': 'http://assets.fanart.tv/fanart/tv/368643/tvbanner/raised-by-wolves-5f511b30dc623.jpg', 'tvshow.landscape': 'http://assets.fanart.tv/fanart/tv/368643/tvthumb/raised-by-wolves-5f54bfe0bcb1c.jpg', 'tvshow.clearart': 'http://assets.fanart.tv/fanart/tv/368643/hdclearart/raised-by-wolves-5f59e150dd13c.png', 'tvshow.thumb': 'http://assets.fanart.tv/fanart/tv/368643/tvposter/raised-by-wolves-641012d73d393.jpg'}, 'args': '%7B%22mediatype%22%3A%20%22episode%22%2C%20%22trakt_id%22%3A%205947022%2C%20%22trakt_season_id%22%3A%20281021%2C%20%22trakt_show_id%22%3A%20152958%7D', 'play_count': 0, 'resume_time': None, 'percent_played': None, 'user_rating': None, 'season_count': 2, 'show_episode_count': 18, 'episode_count': 8, 'is_airing': 0, 'absoluteNumber': 18}
-info = {'action_args': {'episode': 7, 'season': 1, 'trakt_id': 5947022, 'trakt_show_id': 152958, 'mediatype': 'episode'}, 'trakt_id': 5947022, 'trakt_show_id': 152958, 'trakt_season_id': 281021, 'info': {'episode': 7, 'sortepisode': 7, 'season': 1, 'sortseason': 2, 'year': '2022', 'premiered': '2022-03-17T07:00:00', 'aired': '2022-03-17T07:00:00', 'imdbnumber': 'tt18393962', 'imdb_id': 'tt18393962', 'trakt_id': 5947022, 'tvdb_id': 8973088, 'tmdb_id': 3533321, 'duration': 3000, 'dateadded': '2023-08-09T12:28:00', 'rating': 7.53, 'votes': 1195, 'rating.trakt': {'rating': 7.53, 'votes': 1195}, 'mediatype': 'episode', 'available_translations': ['de', 'en', 'es', 'fr', 'he', 'hu', 'it', 'ko', 'nl', 'pl', 'pt', 'ru', 'zh'], 'title': 'Happiness', 'originaltitle': 'Happiness', 'sorttitle': 'Happiness',  'trakt_show_id': 152958, 'tmdb_show_id': 85723, 'tvdb_show_id': 368643, 'trakt_season_id': 281021, 'tvshowtitle': 'Raised by Wolves', 'director': ['Lukas Ettlin'], 'writer': ['Aaron Guzikowski'], 'overview': 'Grandmother reveals her own agenda, Marcus seeks revenge, and Mother sets out to neutralize the serpent – but is leveled by the fallout.', 'rating.tmdb': {'rating': 7.3, 'votes': 6}, 'mpaa': 'TV-MA', 'genre': ['Drama', 'Fantasy', 'Science Fiction'], 'country': 'United States', 'rating.imdb': {'rating': 7.7, 'votes': 1555}, 'tvshow.year': '2020', 'studio': ['Film Afrika Worldwide', 'Lit Entertainment Group', 'Scott Free Productions', 'Shadycat Productions'], 'country_origin': 'US', 'aliases': ['Raised by Wolves 2'], 'tvshow.imdb_id': 'tt9170108', 'tvshow.trakt_id': 152958, 'tvshow.tvdb_id': 368643, 'tvshow.tmdb_id': 85723}, 'art': {'thumb': 'https://image.tmdb.org/t/p/w500/k7Cx1ha0MgSBp0eX7kRulufBm6b.jpg', 'poster': 'http://assets.fanart.tv/fanart/tv/368643/tvposter/raised-by-wolves-641012d73d393.jpg', 'fanart': 'http://assets.fanart.tv/fanart/tv/368643/showbackground/raised-by-wolves-5f5745ce7c47a.jpg', 'clearlogo': 'http://assets.fanart.tv/fanart/tv/368643/hdtvlogo/raised-by-wolves-5f55053caf9d4.png', 'tvshow.poster': 'http://assets.fanart.tv/fanart/tv/368643/tvposter/raised-by-wolves-641012d73d393.jpg', 'tvshow.fanart': 'http://assets.fanart.tv/fanart/tv/368643/showbackground/raised-by-wolves-5f5745ce7c47a.jpg', 'tvshow.clearlogo': 'http://assets.fanart.tv/fanart/tv/368643/hdtvlogo/raised-by-wolves-5f55053caf9d4.png', 'tvshow.banner': 'http://assets.fanart.tv/fanart/tv/368643/tvbanner/raised-by-wolves-5f511b30dc623.jpg', 'tvshow.landscape': 'http://assets.fanart.tv/fanart/tv/368643/tvthumb/raised-by-wolves-5f54bfe0bcb1c.jpg', 'tvshow.clearart': 'http://assets.fanart.tv/fanart/tv/368643/hdclearart/raised-by-wolves-5f59e150dd13c.png', 'tvshow.thumb': 'http://assets.fanart.tv/fanart/tv/368643/tvposter/raised-by-wolves-641012d73d393.jpg'}, 'args': '%7B%22mediatype%22%3A%20%22episode%22%2C%20%22trakt_id%22%3A%205947022%2C%20%22trakt_season_id%22%3A%20281021%2C%20%22trakt_show_id%22%3A%20152958%7D', 'play_count': 0, 'resume_time': None, 'percent_played': None, 'user_rating': None, 'season_count': 2, 'show_episode_count': 18, 'episode_count': 8, 'is_airing': 0, 'absoluteNumber': 18}
-info = {'action_args': {'episode': 7, 'season': 1, 'trakt_id': 5947022, 'trakt_show_id': 152958, 'mediatype': 'episode'}, 'trakt_id': 5947022, 'trakt_show_id': 152958, 'trakt_season_id': 281021, 'info': {'episode': 7, 'sortepisode': 7, 'season': 1, 'sortseason': 1, 'year': '2022', 'imdbnumber': 'tt18393962', 'imdb_id': 'tt18393962', 'trakt_id': 5947022, 'tvdb_id': 8973088, 'tmdb_id': 3533321, 'mediatype': 'episode', 'title': 'Happiness', 'originaltitle': 'Happiness', 'trakt_show_id': 152958, 'tmdb_show_id': 85723, 'tvdb_show_id': 368643, 'trakt_season_id': 281021, 'tvshowtitle': 'Raised by Wolves', 'tvshow.year': '2020', 'tvshow.imdb_id': 'tt9170108', 'tvshow.trakt_id': 152958, 'tvshow.tvdb_id': 368643, 'tvshow.tmdb_id': 85723}, 'args': '%7B%22mediatype%22%3A%20%22episode%22%2C%20%22trakt_id%22%3A%205947022%2C%20%22trakt_season_id%22%3A%20281021%2C%20%22trakt_show_id%22%3A%20152958%7D', 'season_count': 2, 'show_episode_count': 18, 'episode_count': 8, 'is_airing': 0, 'absoluteNumber': 18}
-info = {'action_args': {'episode': 7, 'season': 1, 'mediatype': 'episode'}, 'info': {'episode': 7, 'season': 1, 'year': '2020', 'imdbnumber': 'tt9170108', 'imdb_id': 'tt9170108', 'tvdb_id': 368643, 'tmdb_id': 85723, 'mediatype': 'episode', 'title': 'Happiness', 'trakt_show_id': 152958, 'tmdb_show_id': 85723, 'tvdb_show_id': 368643, 'tvshowtitle': 'Raised by Wolves', 'tvshow.year': '2020', 'tvshow.imdb_id': 'tt9170108', 'tvshow.trakt_id': 152958, 'tvshow.tvdb_id': 368643, 'tvshow.tmdb_id': 85723}, 'season_count': 2, 'show_episode_count': 18, 'episode_count': 8, 'is_airing': 0, 'absoluteNumber': 7}
-info = {'info': {'episode': 7, 'season': 1, 'year': '2020', 'imdbnumber': 'tt9170108', 'imdb_id': 'tt9170108', 'tvdb_id': 368643, 'tmdb_id': 85723, 'mediatype': 'episode', 'title': 'Happiness', 'trakt_show_id': 152958, 'tmdb_show_id': 85723, 'tvdb_show_id': 368643, 'tvshowtitle': 'Raised by Wolves', 'tvshow.year': '2020', 'tvshow.imdb_id': 'tt9170108', 'tvshow.trakt_id': 152958, 'tvshow.tvdb_id': 368643, 'tvshow.tmdb_id': 85723}, 'season_count': 2, 'show_episode_count': 18, 'episode_count': 8, 'is_airing': 0, 'absoluteNumber': 7}
-#sources = Sources(info).get_sources()
+response = rd_api.add_magnet(torrent['magnet'])
+torr_id = response['id']
+response = rd_api.torrent_select_all(torr_id)
+torr_info = rd_api.torrent_info(torr_id)
+torr_info = rd_api.torrent_info_files(torr_info)
+sorted_torr_info = sorted(torr_info['files_links'], key=lambda x: x['pack_path'])
+simple_info = tools._build_simple_show_info(info)
+for i in sorted_torr_info:
+	test = source_tools.run_show_filters(simple_info, release_title = i['pack_path'])
+	if ': True' in str(test):
+		tools.log(test)
+
+###
+import getSources
+meta = getSources.get_episode_meta(season=1,episode=1,show_name='The Flash', year=2014)
+meta = getSources.get_episode_meta(season=1,episode=1,show_name='DeepSpace Nine')
+info = meta['episode_meta']
+from getSources import Sources
 uncached, sources_list, item_information= Sources(info).get_sources()
 
 for i in reversed(sorted(uncached, key=lambda x: x['seeds'])):
 	i
 
 
+torrent = getSources.choose_torrent(sources_list)
 
+import real_debrid
+rd_api = real_debrid.RealDebrid()
+response = rd_api.add_magnet(torrent['magnet'])
+torr_id = response['id']
+#response = rd_api.torrent_select(torr_id,'all')
+#torr_info = rd_api.torrent_info(torr_id)
+
+#download_folder = tools.DOWNLOAD_FOLDER
+#release_name = torr_info['filename']
+
+#files = []
+#for i in torr_info['files']:
+#	if i['selected'] == 1:
+#		files.append(i)
+
+#files_links = []
+#for idx,i in enumerate(files):
+#	file_path = os.path.join(download_folder,release_name + i['path'])
+#	download_dir = os.path.join(download_folder,release_name)
+#	files_links.append({'unrestrict_link': torr_info['links'][idx], 'pack_file_id': i['id'], 'pack_path': i['path'], 'download_path': file_path, 'download_dir': download_dir})
+
+response = rd_api.torrent_select_all(torr_id)
+torr_info = rd_api.torrent_info(torr_id)
+torr_info = rd_api.torrent_info_files(torr_info)
+sorted_torr_info = sorted(torr_info['files_links'], key=lambda x: x['pack_path'])
+
+
+test = rd_api.resolve_hoster('https://real-debrid.com/d/GYLXXXXXXX')
+download_id = test['id']
+
+response = rd_api.delete_download(test['id'])
+download_id = test['download'].split('/')[4]
+
+
+response = rd_api.delete_torrent(torr_id)
+####
+
+import getSources, real_debrid, tools, source_tools
+meta = getSources.get_episode_meta(season=1,episode=1,show_name='The Flash', year=2014)
+info = meta['episode_meta']
+from getSources import Sources
+uncached, sources_list, item_information= Sources(info).get_sources()
+
+torrent = getSources.choose_torrent(sources_list)
+
+rd_api = real_debrid.RealDebrid()
+response = rd_api.add_magnet(torrent['magnet'])
+torr_id = response['id']
+
+response = rd_api.torrent_select_all(torr_id)
+torr_info = rd_api.torrent_info(torr_id)
+torr_info = rd_api.torrent_info_files(torr_info)
+
+####
+
+import getSources, source_tools, tools
+meta = getSources.get_episode_meta(season=1,episode=1,show_name='The Flash', year=2014)
+
+meta['tmdb_seasons']['episodes'][0]
+meta['tvmaze_seasons']['episodes'][0]
+
+#from getSources import Sources
+#uncached, sources_list, item_information= Sources(meta['episode_meta']).get_sources()
+#torrent = getSources.choose_torrent(sources_list)
+
+#getSources.get_subtitles(meta['tmdb_seasons']['episodes'][0], '')
+
+simple_info = tools._build_simple_show_info(meta['tmdb_seasons']['episodes'][0])
+
+clean_t = 'The.Flash.S01E01.City.of.Heroes.1080p.10.bit.BluRay.5.1.x265.HEVC-MZABI.mkv'
+pack_t = 'The.Flash.Complete.1080p.10bit.BluRay.5.1.x265.HEVC-MZABI'
+results = source_tools.run_show_filters(simple_info, pack_title=pack_t, release_title=clean_t) 
+
+
+meta = getSources.get_episode_meta(season=1,episode=12,show_name='Babylon 5', year=1994)
+simple_info = tools._build_simple_show_info(meta['tmdb_seasons']['episodes'][11])
+
+for i in range(1,99):
+	result = rd_api.list_downloads_page(int(i))
+	if '<Response [204]>' == result:
+		break
+	for x in result:
+		test = source_tools.run_show_filters(simple_info, release_title = x['filename'])
+		if ': True' in str(test):
+			tools.log(test)
+			break
+	if ': True' in str(test):
+		break
+
+for i in range(1,99):
+	result = rd_api.list_torrents_page(int(i))
+	if '<Response [204]>' == result:
+		break
+	for x in result:
+		test = source_tools.run_show_filters(simple_info, pack_title=x['filename'])
+		if ': True' in str(test):
+			tools.log(test)
+			break
+	if ': True' in str(test):
+		break
+		
+
+##match multi episodes to season pack
+meta = get_meta.get_episode_meta(season=6,episode=1,show_name='Deep Space Nine')
+import time
+start_time = time.time()
+simple_info_list = []
+for idx, x in enumerate(meta['tmdb_seasons']['episodes']):
+	simple_info = tools._build_simple_show_info(x)
+	simple_info_list.append(simple_info)
+
+#simple_info1 = tools._build_simple_show_info(meta['tmdb_seasons']['episodes'][0])
+#simple_info2 = tools._build_simple_show_info(meta['tmdb_seasons']['episodes'][-1])
+simple_info1 = simple_info_list[0]
+simple_info2 = simple_info_list[-1]
+start_index = -1
+end_index = -1
+for idx, i in enumerate(sorted_torr_info):
+	test1 = source_tools.run_show_filters(simple_info1, release_title = i['pack_path'])
+	test2 = source_tools.run_show_filters(simple_info2, release_title = i['pack_path'])
+	if ': True' in str(test1) or ': True' in str(test2):
+		if start_index == -1:
+			start_index = idx
+		if start_index != -1:
+			end_index = idx
+
+output_list = []
+output_ep = {}
+missing_list = []
+pop_ep = 0
+for iidx, i in enumerate(sorted_torr_info):
+	if iidx < start_index or iidx > end_index:
+		continue
+	for idx, x in enumerate(meta['tmdb_seasons']['episodes']):
+		if idx < pop_ep:
+			continue
+		#simple_info = tools._build_simple_show_info(x)
+		simple_info = simple_info_list[idx]
+		test = source_tools.run_show_filters(simple_info, release_title = i['pack_path'])
+		if ': True' in str(test):
+			output = str('ep='+str(int(idx)+1)+'='+i['pack_path'])
+			if str('ep='+str(int(idx)+1)+'=') in str(output_list):
+				if not i['pack_path'] in str(output_list) and not i['pack_path'] in str(missing_list):
+					missing_list.append(i['pack_path'])
+				continue
+			output_list.append(output)
+			output_ep[int(idx)+1] = i['pack_path']
+			pop_ep = idx
+
+for i in missing_list:
+	if i in str(output_ep):
+		continue
+	if not i in str(output_ep):
+		for j in sorted_torr_info:
+			if j['pack_path'] == i:
+				for idx, x in enumerate(meta['tmdb_seasons']['episodes']):
+					#simple_info = tools._build_simple_show_info(x)
+					simple_info = simple_info_list[idx]
+					test = source_tools.run_show_filters(simple_info, release_title = j['pack_path'])
+
+
+for idx, i in enumerate(meta['tmdb_seasons']['episodes']):
+	test = output_ep.get(idx+1)
+	if test:
+		print(idx+1,test)
+
+print(time.time()-start_time)
+print(time.time()-start_time)
+##match multi episodes to season pack
+
+###
 import getSources
 getSources.setup_userdata_folder()
 getSources.setup_providers('https://bit.ly/a4kScrapers')
@@ -56,21 +246,30 @@ getSources.setup_providers('https://bit.ly/a4kScrapers')
 getSources.enable_disable_providers()
 getSources.rd_auth()
 
-from getSources import Sources
-info = {'info': {'episode': 7, 'season': 1, 'year': '2020', 'imdbnumber': 'tt9170108', 'imdb_id': 'tt9170108', 'tvdb_id': 368643, 'tmdb_id': 85723, 'mediatype': 'episode', 'title': 'Happiness', 'trakt_show_id': 152958, 'tmdb_show_id': 85723, 'tvdb_show_id': 368643, 'tvshowtitle': 'Raised by Wolves', 'tvshow.year': '2020', 'tvshow.imdb_id': 'tt9170108', 'tvshow.trakt_id': 152958, 'tvshow.tvdb_id': 368643, 'tvshow.tmdb_id': 85723}, 'season_count': 2, 'show_episode_count': 18, 'episode_count': 8, 'is_airing': 0, 'absoluteNumber': 7}
-uncached, sources_list, item_information= Sources(info).get_sources()
-for i in sources_list:
-	print(i, '\n')
-	
-	
 
+import getSources
+meta = getSources.get_movie_meta(movie_name='Point Break',year=1991)
+info = meta
 
-
-##RELOAD
-import importlib
-importlib.reload(getSources)
 from getSources import Sources
 uncached, sources_list, item_information= Sources(info).get_sources()
+
+##
+movie_meta = meta
+simple_info = tools._build_simple_movie_info(movie_meta)
+test = source_tools.filter_movie_title(release_title, clean_release_title, movie_title, simple_info)
+
+##FILEPATH!!
+getSources.get_subtitles(info , '')
+
+sources_dict = {}
+for idx, i in enumerate(sources_list):
+	source_name = '%s SIZE=%s SEEDS=%s PACK=%s' % (i['release_title'], i['size'], i['seeds'], i['pack_size'])
+	tools.log(i, '\n')
+	sources_dict[source_name] = str(idx)
+
+tools.selectFromDict(sources_dict, 'Torrent')
+
 """
 
 
@@ -94,6 +293,34 @@ except ImportError:
 #requests.Session.delete = tools._monkey_check(requests.Session.delete)
 #requests.Session.put = tools._monkey_check(requests.Session.put)
 
+def spawnDaemon(func):
+	import time
+	start = time.time()
+	# do the UNIX double-fork magic, see Stevens' "Advanced 
+	# Programming in the UNIX Environment" for details (ISBN 0201563177)
+	try: 
+		pid = os.fork() 
+		if pid > 0:
+			# parent process, return and keep running
+			return
+	except OSError as e:
+		print >>sys.stderr, "fork #1 failed: %d (%s)" % (e.errno, e.strerror) 
+		sys.exit(1)
+	os.setsid()
+	# do second fork
+	try: 
+		pid = os.fork() 
+		if pid > 0:
+			# exit from second parent
+			sys.exit(0) 
+	except OSError as e: 
+		print >>sys.stderr, "fork #2 failed: %d (%s)" % (e.errno, e.strerror) 
+		sys.exit(1)
+	# do stuff
+	tools.get_pid()
+	func()
+	# all done
+	os._exit(os.EX_OK)
 
 def patch_ak4_requests():
 	patch_line_147 = '            response = None'
@@ -143,6 +370,306 @@ def patch_ak4_requests():
 		file1.writelines(new_file)
 		file1.close()
 
+def choose_torrent(sources_list):
+	sources_dict = {}
+	for idx, i in enumerate(sources_list):
+		source_name = '%s SIZE=%s SEEDS=%s PACK=%s   %s' % (i['release_title'], i['size'], i['seeds'], i['pack_size'], i['info'])
+		#tools.log(i, '\n')
+		sources_dict[source_name] = str(idx)
+
+	result = tools.selectFromDict(sources_dict, 'Torrent')
+	torrent = sources_list[int(result)]
+	#tools.log(torrent)
+	return torrent
+
+def get_movie_meta(tmdb=None, movie_name=None, year=None, imdb=None):
+	if imdb:
+		tmdb = tools.get_tmdb_from_imdb(imdb, 'movie')
+	if not tmdb:
+		if year:
+			url = 'search/movie?query=%s&primary_release_year=%s&language=en&page=1&' % (movie_name, year)
+			response = tools.get_tmdb_data(url, cache_days=7)
+			for i in response['results']:
+				if int(year) == int(i['release_date'][:4]):
+					tmdb = i['id']
+					break
+		else:
+			url = 'search/movie?query=%s&language=en&page=1&' % (movie_name)
+			response = tools.get_tmdb_data(url, cache_days=7)
+			options = {}
+			if len(response['results']) == 1:
+				tmdb = response['results'][0]['id']
+			else:
+				for i in response['results']:
+					list_name = '%s (%s)' % (i['title'], str(i['release_date'][:4]))
+					options[list_name] = str(i['id'])
+				tmdb = tools.selectFromDict(options, 'Movie')
+	tools.log(str(movie_name), 'tmdb=', str(tmdb))
+	if tmdb:
+		url = 'movie/%s?language=en&append_to_response=external_ids,alternative_titles&' % (tmdb)
+		response = tools.get_tmdb_data(url, cache_days=7)
+		alternative_titles = []
+		for i in response['alternative_titles']['titles']:
+			if i['iso_3166_1'] in ('US','UK','GB','AU'):
+				alternative_titles.append(i['title'])
+		imdb = response['external_ids']['imdb_id']
+		movie_name = response['title']
+		backdrop_path = 'https://www.themoviedb.org/t/p/original/' + response['backdrop_path']
+		imdb = response['imdb_id']
+		vote_average = response['vote_average']
+		release_date = response['release_date']
+		poster_path = 'https://www.themoviedb.org/t/p/original/' + response['poster_path']
+		original_title = response['original_title']
+		movie_meta = {'download_type': 'movie', 'episode': '', 'imdb_id': imdb, 'is_movie': True, 'is_tvshow': False, 'media_type': 'movie', 'season': '', 'title': movie_name, 'tmdb_id': tmdb, 'tvshow': '', 'tvshow_year': '', 'year': response['release_date'][:4],
+		'info': {'mediatype': 'movie', 'episode': '', 'imdb_id': imdb, 'is_movie': True, 'is_tvshow': False, 'media_type': 'movie', 'season': '', 'title': movie_name, 'tmdb_id': tmdb, 'tvshow': '', 'tvshow_year': '', 'year': response['release_date'][:4]}
+		}
+		return movie_meta
+
+def get_episode_meta(season, episode,tmdb=None, show_name=None, year=None):
+	show = {}
+	if not tmdb:
+		if year:
+			url = 'search/tv?query=%s&first_air_date_year=%s&language=en&page=1&' % (show_name, year)
+			response = tools.get_tmdb_data(url, cache_days=7)
+			for i in response['results']:
+				if int(year) == int(i['first_air_date'][:4]):
+					tmdb = i['id']
+					break
+		else:
+			url = 'search/tv?query=%s&language=en&page=1&' % (show_name)
+			response = tools.get_tmdb_data(url, cache_days=7)
+			options = {}
+			if len(response['results']) == 1:
+				tmdb = response['results'][0]['id']
+			for i in response['results']:
+				if i['name'] == show_name:
+					tmdb = i['id']
+			if not tmdb:
+				for i in response['results']:
+					list_name = '%s (%s)' % (i['name'], str(i['first_air_date'][:4]))
+					options[list_name] = str(i['id'])
+				tmdb = selectFromDict(options, 'Show')
+	tools.log(str(show_name), 'tmdb=', str(tmdb))
+	if tmdb:
+		url = 'tv/%s?language=en&append_to_response=external_ids,alternative_titles&' % (tmdb)
+		response = tools.get_tmdb_data(url, cache_days=7)
+		alternative_titles = []
+		for i in response['alternative_titles']['results']:
+			if i['iso_3166_1'] in ('US','UK','GB','AU'):
+				alternative_titles.append(i['title'])
+
+		imdb = response['external_ids']['imdb_id']
+		tvdb = response['external_ids']['tvdb_id']
+		show_name = response['name']
+		status = response['status']
+		if status.lower() in ('ended','cancelled'):
+			is_airing = 0
+		else:
+			is_airing = 1
+		backdrop_path = 'https://www.themoviedb.org/t/p/original/' + response['backdrop_path']
+		episode_run_time = response['episode_run_time']
+		first_air_date = response['first_air_date']
+		tot_episode_count = 0
+		for i in response['seasons']:
+			if i['season_number'] == season:
+				absolute_tmdb = tot_episode_count + episode
+				if episode == 1:
+					absolute_tmdb_ep_1 = absolute_tmdb
+				else:
+					absolute_tmdb_ep_1 = tot_episode_count
+			if i['season_number'] > 0:
+				tot_episode_count = tot_episode_count + i['episode_count']
+			total_seasons = i['season_number']
+		url = 'tv/%s/season/%s?language=en&' % (tmdb, season)
+		response = tools.get_tmdb_data(url, cache_days=7)
+
+		show_year = '(' + str(first_air_date[:4]) + ')'
+		if not show_year in str(show_name) and not str(first_air_date[:4]) in str(show_name):
+			alternative_titles.append(show_name + ' ' + show_year)
+			alternative_titles.append(show_name + ' - ' + first_air_date[:4])
+
+		season_dict = {}
+		season_dict['episodes'] = []
+		for i in response['episodes']:
+			curr_episode = {'aliases': alternative_titles, 'originaltitle': i['name'],'tvshowtitle': show_name,'tvshow': show_name, 'download_type': 'episode', 'episode': i['episode_number'], 'imdb_id': imdb, 'imdbnumber': imdb,'air_date': i['air_date'],'episode_number': i['episode_number'],'episode_type': i['episode_type'],'name': i['name'],'runtime': i['runtime'],'season_number': i['season_number'],'show_id': i['show_id'],'still_path': 'https://www.themoviedb.org/t/p/original/' +i['still_path'],
+			'vote_average': i['vote_average'], 'imdb': imdb, 'tvdb': tvdb, 'tmdb': tmdb, 'season': i['season_number'], 'info': 
+			{'aliases': alternative_titles, 'originaltitle': i['name'], 'tvshowtitle': show_name, 'episode': i['episode_number'], 'imdb_id': imdb, 'imdbnumber': imdb, 'mediatype': 'episode', 'season': i['season_number'], 'title': i['name'], 'tmdb_id': tmdb, 'tmdb_show_id': tmdb, 'tvdb_id': tvdb, 'tvdb_show_id': tvdb, 'tvshow': show_name, 'tvshow.imdb_id': imdb, 'tvshow.tmdb_id': tmdb, 'tvshow.tvdb_id': tvdb, 'tvshow.year': str(first_air_date[:4]), 'tvshowtitle': show_name, 'year': str(i['air_date'][:4])}
+			, 'is_airing': is_airing, 'is_movie': False, 'is_tvshow': True, 'media_type': 'episode', 'mediatype': 'episode', 'title': i['name'], 'tmdb_id': tmdb, 'tvshow': show_name, 'tvshow_year': first_air_date[:4], 'year': i['air_date'][:4]}
+			season_episodes = i['episode_number']
+			if i['episode_number'] == episode:
+				episode_title = i['name']
+				episode_year = i['air_date'][:4]
+			if i['episode_number'] == 1:
+				curr_episode['absoluteNumber'] = absolute_tmdb_ep_1
+			else:
+				curr_episode['absoluteNumber'] = absolute_tmdb_ep_1 + i['episode_number'] -1 
+			season_dict['episodes'].append(curr_episode)
+		for idx, i in enumerate(season_dict['episodes']):
+			season_dict['episodes'][idx]['episode_count'] = i['episode_number']
+			season_dict['episodes'][idx]['season_count'] = total_seasons
+			season_dict['episodes'][idx]['show_episode_count'] = tot_episode_count
+		show = {'tmdb': tmdb, 'imdb': imdb, 'tvdb': tvdb, 'name': show_name, 'first_air_date': first_air_date, 'tot_episode_count': tot_episode_count, 'total_seasons': total_seasons, 'backdrop_path': backdrop_path, 'episode_run_time': episode_run_time}
+		show['tmdb_seasons'] = season_dict
+		show['tmdb_seasons_episode_tot'] = season_episodes
+		show['tmdb_absolute_number'] = absolute_tmdb
+		show['status'] = status
+		show['alternative_titles'] = alternative_titles
+
+		url = 'http://api.tvmaze.com/lookup/shows?thetvdb='+str(tvdb)
+		response = tools.get_response_cache(url=url, cache_days=7.0, folder='TVMaze')
+
+		show['tvmaze_runtime'] = response['runtime']
+		show['tvmaze_averageRuntime'] = response['averageRuntime']
+		show['tvmaze_premiered'] = response['premiered']
+		show['tvmaze_show_id'] = response['id']
+
+		url = 'http://api.tvmaze.com/shows/'+str(show['tvmaze_show_id'])+'/episodes'
+		response = tools.get_response_cache(url=url, cache_days=7.0, folder='TVMaze')
+		season_dict = {}
+		season_dict['episodes'] = []
+		tot_episode_count = 0
+		for i in response: #year
+			if i['season'] > 0:
+				tot_episode_count = tot_episode_count + 1
+			if i['season'] == season:
+				curr_episode = {'aliases': alternative_titles,'originaltitle': i['name'], 'tvshowtitle': show_name, 'tvshow': show_name, 'download_type': 'episode', 'episode': i['number'], 'air_date': i['airdate'],'episode_number': i['number'],'episode_type': i['type'],'name': i['name'],'runtime': i['runtime'],'season_number': i['season'],'show_id': show['tvmaze_show_id'],'still_path': i['image']['original'],
+				'vote_average': i['rating']['average'], 'tmdb': tmdb, 'imdb': imdb, 'tvdb': tvdb, 'imdb_id': imdb,'imdbnumber': imdb, 'is_airing': is_airing, 'is_movie': False, 'is_tvshow': True, 'media_type': 'episode','mediatype': 'episode', 'season': i['season'], 'title':  i['name'], 'tmdb_id': tmdb, 'tvshow': show_name, 'tvshow_year': first_air_date[:4], 'year': i['airdate'][:4], 
+				'info': {'aliases': alternative_titles, 'originaltitle': i['name'], 'tvshowtitle': show_name, 'episode': i['number'],'imdb_id': imdb,'imdbnumber': imdb,'mediatype': 'episode','season': i['season'],'title': i['name'],'tmdb_id': tmdb,'tmdb_show_id': tmdb,'tvdb_id': tvdb,'tvdb_show_id': tvdb,'tvshow': show_name,'tvshow.imdb_id': imdb,'tvshow.tmdb_id': tmdb,'tvshow.tvdb_id': tvdb,'tvshow.year': str(first_air_date[:4]),'tvshowtitle': show_name,'year': str(i['airdate'][:4])},
+				}
+				season_episodes = i['number']
+			if i['season'] == season and i['number'] == episode:
+				absolute_tvmaze = tot_episode_count
+			if i['season'] == season:
+				curr_episode['absoluteNumber'] = tot_episode_count
+				season_dict['episodes'].append(curr_episode)
+			total_seasons = i['season']
+		for idx, i in enumerate(season_dict['episodes']):
+			season_dict['episodes'][idx]['season_count'] = total_seasons
+			season_dict['episodes'][idx]['show_episode_count'] = tot_episode_count
+		show['tvmaze_total_seasons'] = i['season']
+		show['tvmaze_seasons'] = season_dict
+		show['tvmaze_seasons_episode_tot'] = season_episodes
+		show['tvmaze_absolute_number'] = absolute_tvmaze
+		show['tvmaze_tot_episode_count'] = tot_episode_count
+		show['tvmaze_total_seasons'] = total_seasons
+
+	#import pprint
+	#from pprint import pprint
+	#ptools.log(show)
+	episode_meta = {'year': episode_year, 'episode': episode,'imdb_id': imdb,'imdbnumber': imdb,'mediatype': 'episode','season': season,'title': episode_title,'tvshow_year': first_air_date[:4], 'tvshow': show_name,'is_movie': False, 'is_tvshow': True, 'tmdb_id': tmdb,'imdb_id': imdb, 'media_type': 'episode', 'download_type': 'episode','absoluteNumber': show['tmdb_absolute_number'],'episode_count': show['tmdb_seasons_episode_tot'],'info': {'tvshow': show_name, 'episode': episode,'imdb_id': imdb,'imdbnumber': imdb,'mediatype': 'episode','season': season,'title': episode_title,'tmdb_id': tmdb,'tmdb_show_id': tmdb,
+	'tvdb_id': tvdb,'tvdb_show_id': tvdb,'tvshow.imdb_id': imdb,'tvshow.tmdb_id': tmdb,'tvshow.tvdb_id': tvdb,'tvshow.year': first_air_date[:4],'tvshowtitle': show_name,'year': episode_year},'is_airing': is_airing,'season_count': show['total_seasons'],'show_episode_count': show['tot_episode_count']}
+	show['episode_meta'] = episode_meta
+	return show
+
+def uncached_magnet(magnet_link, torr_id, magnet_added, download_folder):
+	if file_info['status'] != 'downloaded':
+		response = delete_torrent(api_key, torrent_id)
+		ids = [element['id'] for element in data['files']]
+		files = [element['path'] for element in data['files']]
+		files = [x.encode('utf-8') for x in files]
+		files, ids = zip(*sorted(zip(files,ids)))
+		download_count = 0
+		for x in files:
+			if '.mp4' in str(x) or '.avi' in str(x) or '.mkv' in str(x):
+				tools.log('SLEEPING_10_SECONDS!!!')
+				time.sleep(10)
+				tools.log('')
+				tools.log('')
+
+				torrent_id = add_magnet(api_key, magnet_link)
+				params = {'files': ids[files.index(x)]}
+				file_info2 = select_files_individual(api_key, torrent_id, params)
+				if file_info2['status'] == 'downloaded':
+					folder = file_info2['original_filename']
+					if '.mp4' in str(folder) or '.avi' in str(folder) or '.mkv' in str(folder):
+						folder = None
+					for file in file_info2['links']:
+						new_link = unrestrict_link(api_key, file)
+						file_name = os.path.basename(new_link['filename'])
+						if new_link['filename'][0:1].lower() == new_link['filename'][0:1]:
+							file_name = getSentenceCase(os.path.basename(new_link['filename']))
+						else:
+							file_name = os.path.basename(new_link['filename'])
+						if folder:
+							download_folder2 = download_folder + folder + '/'
+							folder = None
+							if not os.path.exists(download_folder2):
+								os.makedirs(download_folder2)
+						save_path = os.path.join(download_folder2, file_name)
+						download_link = new_link['download']
+						if not save_path in str(magnet_download):
+							download_file(download_link, save_path)
+							magnet_download.append(save_path)
+							tools.log(f"Downloaded '{file_name}' successfully!")
+						if save_path in str(magnet_download):
+							download_count = download_count + 1
+				else:
+					if file_info2['filename'] in str(magnet_added):
+						delete_torrent(api_key, torrent_id)
+					else:
+						magnet_added.append(file_info2['filename'])
+		if download_count == file_count:
+			remove_line_from_file(file_path, magnet_link)
+			tools.log("All files downloaded. Removed magnet link from the file.")
+		else:
+			remove_line_from_file(file_path, magnet_link)
+			add_line_to_file(file_path, magnet_link)
+
+
+def unprocessed_rd_http(magnet_link, file_path, torr_id, download_folder):
+		if magnet_link.startswith('http'):
+			tools.log(f"Downloading RD HTTP link: {magnet_link}")
+			#file_name = os.path.basename(magnet_link)
+			#save_path = os.path.join(download_folder, file_name)
+			#download_file(magnet_link, save_path)
+			#tools.log(magnet_link)
+			new_link = unrestrict_link(api_key, magnet_link)
+			tools.log(new_link)
+			#exit()
+			if new_link:
+				file_name = os.path.basename(new_link['filename'])
+				if new_link['filename'][0:1].lower() == new_link['filename'][0:1]:
+					file_name = getSentenceCase(os.path.basename(new_link['filename']))
+				else:
+					file_name = os.path.basename(new_link['filename'])
+				save_path = os.path.join(download_folder, file_name)
+				download_link = new_link['download']
+				download_file(download_link, save_path)
+				download_bool = True
+				remove_line_from_file(file_path, magnet_link)
+				tools.log(f"Download of '{file_name}' complete! Removed link from the file.")
+			else:
+				download_bool = False
+				tools.log(f"HOSTER FAIL '{magnet_link}'.")
+				remove_line_from_file(file_path, magnet_link)
+
+def cached_magnet(magnet_link, file_path, torr_id, download_folder):
+	if file_info['status'] == 'downloaded':
+		tools.log(file_info)
+		folder = file_info['original_filename']
+		if '.mp4' in str(folder) or '.avi' in str(folder) or '.mkv' in str(folder):
+			folder = None
+		for file in file_info['links']:
+			new_link = unrestrict_link(api_key, file)
+			tools.log(new_link)
+			if new_link['filename'][0:1].lower() == new_link['filename'][0:1]:
+				file_name = getSentenceCase(os.path.basename(new_link['filename']))
+			else:
+				file_name = os.path.basename(new_link['filename'])
+			if folder:
+				download_folder2 = download_folder + folder + '/'
+				if not os.path.exists(download_folder2):
+					os.makedirs(download_folder2)
+			save_path = os.path.join(download_folder2, file_name)
+			download_link = new_link['download']
+			download_bool = True
+			download_file(download_link, save_path)
+			tools.log(f"Downloaded '{file_name}' successfully!")
+
+		remove_line_from_file(file_path, magnet_link)
+		tools.log("All files downloaded. Removed magnet link from the file.")
+
+
 def rd_auth():
 	'''
 import getSources
@@ -150,7 +677,7 @@ getSources.rd_auth()
 	'''
 	rd_api = real_debrid.RealDebrid()
 	rd_api.auth()
-	print('AUTH_DONE')
+	tools.log('AUTH_DONE')
 	return
 	
 def get_providers_dict():
@@ -186,7 +713,7 @@ getSources.get_providers_dict()
 
 	for root, dirs, files in os.walk(tools.A4KPROVIDERS_PATH, topdown=False):
 		for name in files:
-			#print(os.path.join(root, name))
+			#tools.log(os.path.join(root, name))
 			if '.py' == name[-3:] and '__init__.py' != name:
 				file = str(os.path.join(root, name).split('providers')[1])
 				if '/' in str(file):
@@ -194,7 +721,7 @@ getSources.get_providers_dict()
 				else:
 					splits = str(file).split('\\')
 				providers_dict[splits[3]].append(tuple([str('providers.%s.%s.%s') % (splits[1],splits[2],splits[3]), splits[4].replace('.py',''), splits[1], True]))
-	#print(providers_dict)
+	#tools.log(providers_dict)
 	return providers_dict
 
 def setup_providers(provider_url):
@@ -252,131 +779,43 @@ getSources.enable_disable_providers()
 				if update != '':
 					providers_dict[i][xdx] = tuple([providers_dict_test[i][xdx][0], providers_dict_test[i][xdx][1], providers_dict_test[i][xdx][2], update_status])
 				update = ''
-	#print(providers_dict)
+	#tools.log(providers_dict)
 	tools.write_all_text(tools.PROVIDERS_JSON,str(providers_dict))
 	for idx, i in enumerate(providers_dict_test):
 		for xdx, x in enumerate(providers_dict_test[i]):
-			print(x)
+			tools.log(x)
 	return
 
 def get_subtitles(VIDEO_META, file_path):
 	"""
 import getSources
-video_meta = {'media_type': 'movie', 'download_type': 'movie', 'tmdb_id': item_information['info']['tmdb_id'], 'year': item_information['info']['year'], 'season': '', 'episode': '', 'tvshow': '', 'tvshow_year': '', 'title': item_information['info']['title'], 'filename': file_name, 'filename_without_ext': filename_without_ext, 'subs_filename': subs_filename,'imdb_id': item_information['info']['imdbnumber'], 'filesize': '', 'filehash': '', 'is_tvshow': False, 'is_movie': True,
-'url': stream_link, 'magnet': g.CURR_SOURCE['magnet'], 'release_title': g.CURR_SOURCE['release_title'], 'CURR_LABEL': g.CURR_LABEL, 'package': g.CURR_SOURCE['package'], 'file_name': unquote(stream_link).split('/')[-1], 'item_information.art': item_information['art']}
-getSources.get_subtitles(video_meta)
+meta = getSources.get_movie_meta(movie_name='Point Break',year=1991)
+info = meta
 
 import getSources
-file_path = ' '
-video_meta = {'media_type': 'episode', 'download_type': 'episode', 'tmdb_id': 4224500, 'trakt_episode_id': 7350184, 'trakt_show_id': 162206, 'trakt_season_id': 303222, 'year': '2023', 'season': 2, 'episode': 9, 'tvshow': 'Star Trek: Strange New Worlds', 'tvshow_year': '2022', 'title': 'Subspace Rhapsody', 'filename': 'Star.Trek.Strange.New.Worlds.S02E09.720p.x264-FENiX.mkv', 'filename_without_ext': 'Star.Trek.Strange.New.Worlds.S02E09.720p.x264-FENiX', 'subs_filename': 'Star.Trek.Strange.New.Worlds.S02E09.720p.x264-FENiX.srt', 'imdb_id': 'tt22805762', 'filesize': '', 'filehash': '', 'is_tvshow': True, 'is_movie': False, 'url': ' ', 'magnet': 'magnet:?xt=urn:btih:0D2D32A8EC858DE6E29BACA66A6CF75EF9C68531&', 'release_title': 'Star.trek.strange.new.worlds.s02e09.720p.x264-fenix', 'CURR_LABEL': 'Star.trek.strange.new.worlds.s02e09.720p.x264-fenix', 'package': 'single', 'file_name': 'Star.Trek.Strange.New.Worlds.S02E09.720p.x264-FENiX.mkv', 'item_information.art': {'thumb': 'https://image.tmdb.org/t/p/w500/a7Cu3KpMBkCh8Tgxgja87WgFE6u.jpg', 'poster': 'http://assets.fanart.tv/fanart/tv/382389/tvposter/star-trek-strange-new-worlds-5ec96da7761d2.jpg', 'fanart': 'http://assets.fanart.tv/fanart/tv/382389/showbackground/star-trek-strange-new-worlds-6266990a6d0f9.jpg', 'clearlogo': 'http://assets.fanart.tv/fanart/tv/382389/hdtvlogo/star-trek-strange-new-worlds-626698d2d926e.png', 'tvshow.poster': 'http://assets.fanart.tv/fanart/tv/382389/tvposter/star-trek-strange-new-worlds-5ec96da7761d2.jpg', 'tvshow.fanart': 'http://assets.fanart.tv/fanart/tv/382389/showbackground/star-trek-strange-new-worlds-6266990a6d0f9.jpg', 'tvshow.clearlogo': 'http://assets.fanart.tv/fanart/tv/382389/hdtvlogo/star-trek-strange-new-worlds-626698d2d926e.png', 'tvshow.banner': 'http://assets.fanart.tv/fanart/tv/382389/tvbanner/star-trek-strange-new-worlds-62741e382c2f4.jpg', 'tvshow.landscape': 'http://assets.fanart.tv/fanart/tv/382389/tvthumb/star-trek-strange-new-worlds-62740b84a557c.jpg', 'tvshow.clearart': 'http://assets.fanart.tv/fanart/tv/382389/hdclearart/star-trek-strange-new-worlds-63fdca1b5adc1.png', 'tvshow.thumb': 'http://assets.fanart.tv/fanart/tv/382389/tvposter/star-trek-strange-new-worlds-5ec96da7761d2.jpg'}, 'episode_meta': None}
-getSources.get_subtitles(video_meta, file_path)
+meta = getSources.get_episode_meta(season=1,episode=1,show_name='The Flash', year=2014)
+info = meta['episode_meta']
+
+##FILEPATH!!
+getSources.get_subtitles(info , '')
+
 """
-	tools.VIDEO_META = VIDEO_META
-	if 'http' in str(file_path):
-		tools.VIDEO_META = tools.set_size_and_hash_url(tools.VIDEO_META, file_path)
-	else:
-		tools.VIDEO_META = tools.set_size_and_hash(tools.VIDEO_META, file_path)
+	try:
+		VIDEO_META['file_name'] = os.path.basename(file_path)
+		VIDEO_META['filename'] = VIDEO_META['file_name']
+		VIDEO_META['filename_without_ext'] = os.path.splitext(VIDEO_META['file_name'])[0]
+		tools.VIDEO_META = VIDEO_META
+		if 'http' in str(file_path):
+			tools.VIDEO_META = tools.set_size_and_hash_url(tools.VIDEO_META, file_path)
+		else:
+			tools.VIDEO_META = tools.set_size_and_hash(tools.VIDEO_META, file_path)
+	except:
+		pass
 	#os.environ['A4KSUBTITLES_API_MODE'] = str({'kodi': 'false'})
 	import subtitles
 	subfile = subtitles.SubtitleService().get_subtitle()
 	tools.VIDEO_META['SUB_FILE'] = tools.SUB_FILE
 	return tools.VIDEO_META
-
-
-class TorrentCacheCheck:
-	def __init__(self, scraper_class):
-		self.premiumize_cached = []
-		self.realdebrid_cached = []
-		self.all_debrid_cached = []
-		self.threads = ThreadPool()
-
-		self.episode_strings = None
-		self.season_strings = None
-		self.scraper_class = scraper_class
-		self.rd_api = real_debrid.RealDebrid()
-
-	def store_torrent(self, torrent):
-		"""
-		Pushes cached torrents back up to the calling class
-		:param torrent: Torrent to return
-		:type torrent: dict
-		:return: None
-		:rtype: None
-		"""
-		try:
-			sources_information = self.scraper_class.sources_information
-			# Compare and combine source meta
-			tor_key = torrent['hash'] + torrent['debrid_provider']
-			sources_information['cached_hashes'].add(torrent['hash'])
-			if tor_key in sources_information['torrentCacheSources']:
-				c_size = sources_information['torrentCacheSources'][tor_key].get('size', 0)
-				n_size = torrent.get('size', 0)
-				info = torrent.get('info', [])
-
-				if c_size < n_size:
-					sources_information['torrentCacheSources'].update({tor_key: torrent})
-
-					sources_information['torrentCacheSources'][tor_key]['info'] \
-						.extend([i for i in info if
-								 i not in sources_information['torrentCacheSources'][tor_key].get('info', [])])
-			else:
-				sources_information['torrentCacheSources'].update({tor_key: torrent})
-		except AttributeError:
-			return
-
-	def torrent_cache_check(self, torrent_list, info):
-		"""
-		Run cache check threads for given torrents
-		:param torrent_list: List of torrents to check
-		:type torrent_list: list
-		:param info: Metadata on item to check
-		:type info: dict
-		:return: None
-		:rtype: None
-		"""
-		self.threads.put(self._realdebrid_worker, copy.deepcopy(torrent_list), info)
-		self.threads.wait_completion()
-
-	def _realdebrid_worker(self, torrent_list, info):
-		#try:
-		if 1==1:
-			hash_list = [i['hash'] for i in torrent_list]
-			api = real_debrid.RealDebrid()
-			real_debrid_cache = api.check_hash(hash_list)
-
-			for i in torrent_list:
-				try:
-					if 'rd' not in real_debrid_cache.get(i['hash'], {}):
-						continue
-					if len(real_debrid_cache[i['hash']]['rd']) >= 1:
-						if self.scraper_class.media_type == 'episode':
-							self._handle_episode_rd_worker(i, real_debrid_cache, info)
-						else:
-							self._handle_movie_rd_worker(i, real_debrid_cache)
-				except KeyError:
-					pass
-		#except Exception:
-		#	#g.log_stacktrace()
-		#	print(Exception)
-
-	def _handle_movie_rd_worker(self, source, real_debrid_cache):
-		for storage_variant in real_debrid_cache[source['hash']]['rd']:
-			if not self.rd_api.is_streamable_storage_type(storage_variant):
-				continue
-			else:
-				source['debrid_provider'] = 'real_debrid'
-				self.store_torrent(source)
-
-	def _handle_episode_rd_worker(self, source, real_debrid_cache, info):
-		for storage_variant in real_debrid_cache[source['hash']]['rd']:
-
-			if not self.rd_api.is_streamable_storage_type(storage_variant):
-				continue
-
-			if tools.get_best_episode_match('filename', storage_variant.values(), info):
-				source['debrid_provider'] = 'real_debrid'
-				self.store_torrent(source)
-				break
 
 
 class Sources(object):
@@ -454,14 +893,14 @@ class Sources(object):
 		:rtype: tuple
 		"""
 		try:
-			print('Starting Scraping', 'debug')
-			print("Timeout: {}".format(self.timeout), 'debug')
-			#print("Pre-term-enabled: {}".format(self.preem_enabled), 'debug')
-			#print("Pre-term-limit: {}".format(self.preem_limit), 'debug')
-			#print("Pre-term-res: {}".format(self.preem_resolutions), 'debug')
-			#print("Pre-term-type: {}".format(self.preem_type), 'debug')
-			#print("Pre-term-cloud-files: {}".format(self.preem_cloudfiles), 'debug')
-			#print("Pre-term-adaptive-files: {}".format(self.preem_adaptive_sources), 'debug')
+			tools.log('Starting Scraping', 'debug')
+			tools.log("Timeout: {}".format(self.timeout), 'debug')
+			#tools.log("Pre-term-enabled: {}".format(self.preem_enabled), 'debug')
+			#tools.log("Pre-term-limit: {}".format(self.preem_limit), 'debug')
+			#tools.log("Pre-term-res: {}".format(self.preem_resolutions), 'debug')
+			#tools.log("Pre-term-type: {}".format(self.preem_type), 'debug')
+			#tools.log("Pre-term-cloud-files: {}".format(self.preem_cloudfiles), 'debug')
+			#tools.log("Pre-term-adaptive-files: {}".format(self.preem_adaptive_sources), 'debug')
 
 			#self._handle_pre_scrape_modifiers()
 			self._get_imdb_info()
@@ -473,7 +912,7 @@ class Sources(object):
 
 			self._update_progress()
 			if self._prem_terminate():
-				print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+				tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 				return self._finalise_results()
 
 			self._init_providers()
@@ -490,13 +929,13 @@ class Sources(object):
 			while not ( len(self.torrent_providers) ) > 0:
 				self.runtime = time.time() - start_time
 				if self.runtime > 5:
-					print('No providers enabled', 'warning')
+					tools.log('No providers enabled', 'warning')
 					return
 
 			self._update_progress()
 
 			# Keep alive for gui display and threading
-			print('Entering Keep Alive', 'info')
+			tools.log('Entering Keep Alive', 'info')
 
 			while self.progress < 100:
 				self.runtime = time.time() - start_time
@@ -514,12 +953,12 @@ class Sources(object):
 
 				time.sleep(0.20)
 
-			print('Exited Keep Alive', 'info')
+			tools.log('Exited Keep Alive', 'info')
 			return self._finalise_results()
 
 		finally:
 			#self.window.close()
-			print('EXIT')
+			tools.log('EXIT')
 
 	#def _handle_pre_scrape_modifiers(self):
 	#	"""
@@ -539,7 +978,7 @@ class Sources(object):
 		random.shuffle(self.torrent_providers)
 		for i in self.torrent_providers:
 			try: self.torrent_threads.put(self._get_torrent, self.item_information, i)
-			except: print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+			except: tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 
 	def _is_playable_source(self, filtered=False):
 		stats = self.sources_information['statistics']
@@ -550,11 +989,11 @@ class Sources(object):
 		return False
 
 	def _finalise_results(self):
-		#print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+		#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		self.allow_provider_requests = False
 		self._send_provider_stop_event()
 		
-		print(self.sources_information['allTorrents'].values())
+		tools.log(self.sources_information['allTorrents'].values())
 		
 		uncached = [i for i in self.sources_information['allTorrents'].values()
 					if i['hash'] not in self.sources_information['cached_hashes']]
@@ -585,11 +1024,12 @@ class Sources(object):
 				if year is not None and year != self.item_information['info']['year']:
 					self.item_information['info']['year'] = str(year)
 			except requests.exceptions.ConnectionError as ce:
-				print("Unable to obtain IMDB suggestions to confirm movie year", "warning")
-				print(ce, "debug")
+				tools.log("Unable to obtain IMDB suggestions to confirm movie year", "warning")
+				tools.log(ce, "debug")
 
 	@staticmethod
 	def _imdb_suggestions(imdb_id):
+		import json
 		try:
 			import requests
 			from requests.adapters import HTTPAdapter
@@ -604,7 +1044,7 @@ class Sources(object):
 			resp = json.loads(resp.text)['d'][0]
 			return resp
 		except (ValueError, KeyError):
-			print("Failed to get IMDB suggestion", "warning")
+			tools.log("Failed to get IMDB suggestion", "warning")
 			return {}
 
 	def _send_provider_stop_event(self):
@@ -626,7 +1066,7 @@ class Sources(object):
 			else:
 				providers = reload_module(importlib.import_module("providers"))
 		except ValueError:
-			print('No providers installed', 'warning')
+			tools.log('No providers installed', 'warning')
 			return
 
 		#providers_dict = {'hosters': [], 
@@ -647,7 +1087,7 @@ class Sources(object):
 		#('providers.a4kScrapers.en.torrent', 'yts', 'a4kScrapers')], 
 		#'adaptive': []}
 		#providers_dict = providers.get_relevant(self.language)
-		#print(providers_dict)
+		#tools.log(providers_dict)
 		
 		#providers_dict = get_providers_dict()
 		providers_dict = get_providers()
@@ -657,7 +1097,7 @@ class Sources(object):
 		try:
 			self.torrent_providers = torrent_providers
 		except:
-			print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+			tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 
 	def _exit_thread(self, provider_name):
 		if provider_name in self.sources_information['statistics']['remainingProviders']:
@@ -691,13 +1131,13 @@ class Sources(object):
 
 			provider_module = importlib.import_module("{}.{}".format(provider[0], provider[1]))
 			if not hasattr(provider_module, "sources"):
-				print("Invalid provider, Source Class missing", "warning")
+				tools.log("Invalid provider, Source Class missing", "warning")
 				return
 
 			provider_source = provider_module.sources()
 
 			if not hasattr(provider_source, self.media_type):
-				print("Skipping provider: {} - Does not support {} types".format(provider_name, self.media_type),
+				tools.log("Skipping provider: {} - Does not support {} types".format(provider_name, self.media_type),
 					  "warning")
 				return
 
@@ -753,7 +1193,7 @@ class Sources(object):
 				# Check Debrid Providers for cached copies
 				TorrentCacheCheck(self).torrent_cache_check([i for i in torrent_results], info)
 
-				print("{} cache check took {} seconds".format(provider_name, time.time() - start_time), "debug")
+				tools.log("{} cache check took {} seconds".format(provider_name, time.time() - start_time), "debug")
 
 			self.running_providers.remove(provider_source)
 
@@ -870,7 +1310,7 @@ class Sources(object):
 	
 	def _prem_terminate(self):  # pylint: disable=method-hidden
 		if self.canceled:
-			print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+			tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 			tools.PRE_TERM_BLOCK = True
 			return True
 
@@ -900,13 +1340,13 @@ class Sources(object):
 			if self.preem_type == 0 and self._get_filtered_count_by_resolutions(
 					self.preem_resolutions, self.sources_information['statistics']['filtered']['torrentsCached']
 			) >= self.preem_limit:
-				print(pre_term_log_string, 'info')
+				tools.log(pre_term_log_string, 'info')
 				self.PRE_TERM_BLOCK = True
 				return True
 			if self.preem_type == 1 and self._get_filtered_count_by_resolutions(
 				self.preem_resolutions, self.sources_information['statistics']['filtered']['hosters']
 			) >= self.preem_limit:
-				print(pre_term_log_string, 'info')
+				tools.log(pre_term_log_string, 'info')
 				self.PRE_TERM_BLOCK = True
 				return True
 			if self.preem_type == 2 and self._get_filtered_count_by_resolutions(
@@ -914,12 +1354,12 @@ class Sources(object):
 			) + self._get_filtered_count_by_resolutions(
 				self.preem_resolutions, self.sources_information['statistics']['filtered']['hosters']
 			) >= self.preem_limit:
-					print(pre_term_log_string, 'info')
+					tools.log(pre_term_log_string, 'info')
 					self.PRE_TERM_BLOCK = True
 					return True
 
 		except (ValueError, KeyError, IndexError) as e:
-			print("Error getting data for preterm determination: {}".format(repr(e)), "error")
+			tools.log("Error getting data for preterm determination: {}".format(repr(e)), "error")
 			pass
 
 		return False
@@ -949,3 +1389,99 @@ class Sources(object):
 
 		return int(torrent['seeds'])
 
+
+
+class TorrentCacheCheck:
+	def __init__(self, scraper_class):
+		self.premiumize_cached = []
+		self.realdebrid_cached = []
+		self.all_debrid_cached = []
+		self.threads = ThreadPool()
+
+		self.episode_strings = None
+		self.season_strings = None
+		self.scraper_class = scraper_class
+		self.rd_api = real_debrid.RealDebrid()
+
+	def store_torrent(self, torrent):
+		"""
+		Pushes cached torrents back up to the calling class
+		:param torrent: Torrent to return
+		:type torrent: dict
+		:return: None
+		:rtype: None
+		"""
+		try:
+			sources_information = self.scraper_class.sources_information
+			# Compare and combine source meta
+			tor_key = torrent['hash'] + torrent['debrid_provider']
+			sources_information['cached_hashes'].add(torrent['hash'])
+			if tor_key in sources_information['torrentCacheSources']:
+				c_size = sources_information['torrentCacheSources'][tor_key].get('size', 0)
+				n_size = torrent.get('size', 0)
+				info = torrent.get('info', [])
+
+				if c_size < n_size:
+					sources_information['torrentCacheSources'].update({tor_key: torrent})
+
+					sources_information['torrentCacheSources'][tor_key]['info'] \
+						.extend([i for i in info if
+								 i not in sources_information['torrentCacheSources'][tor_key].get('info', [])])
+			else:
+				sources_information['torrentCacheSources'].update({tor_key: torrent})
+		except AttributeError:
+			return
+
+	def torrent_cache_check(self, torrent_list, info):
+		"""
+		Run cache check threads for given torrents
+		:param torrent_list: List of torrents to check
+		:type torrent_list: list
+		:param info: Metadata on item to check
+		:type info: dict
+		:return: None
+		:rtype: None
+		"""
+		self.threads.put(self._realdebrid_worker, copy.deepcopy(torrent_list), info)
+		self.threads.wait_completion()
+
+	def _realdebrid_worker(self, torrent_list, info):
+		#try:
+		if 1==1:
+			hash_list = [i['hash'] for i in torrent_list]
+			api = real_debrid.RealDebrid()
+			real_debrid_cache = api.check_hash(hash_list)
+
+			for i in torrent_list:
+				try:
+					if 'rd' not in real_debrid_cache.get(i['hash'], {}):
+						continue
+					if len(real_debrid_cache[i['hash']]['rd']) >= 1:
+						if self.scraper_class.media_type == 'episode':
+							self._handle_episode_rd_worker(i, real_debrid_cache, info)
+						else:
+							self._handle_movie_rd_worker(i, real_debrid_cache)
+				except KeyError:
+					pass
+		#except Exception:
+		#	#g.log_stacktrace()
+		#	tools.log(Exception)
+
+	def _handle_movie_rd_worker(self, source, real_debrid_cache):
+		for storage_variant in real_debrid_cache[source['hash']]['rd']:
+			if not self.rd_api.is_streamable_storage_type(storage_variant):
+				continue
+			else:
+				source['debrid_provider'] = 'real_debrid'
+				self.store_torrent(source)
+
+	def _handle_episode_rd_worker(self, source, real_debrid_cache, info):
+		for storage_variant in real_debrid_cache[source['hash']]['rd']:
+
+			if not self.rd_api.is_streamable_storage_type(storage_variant):
+				continue
+
+			if tools.get_best_episode_match('filename', storage_variant.values(), info):
+				source['debrid_provider'] = 'real_debrid'
+				self.store_torrent(source)
+				break
