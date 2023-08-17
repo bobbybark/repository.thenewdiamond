@@ -41,6 +41,7 @@ info = meta['episode_meta']
 info = meta['tmdb_seasons']['episodes'][11]
 uncached, sources_list, item_information= Sources(info).get_sources()
 torrent = getSources.choose_torrent(sources_list)
+sources_list = tools.SourceSorter(info).sort_sources(sources_list)
 
 response = rd_api.add_magnet(torrent['magnet'])
 torr_id = response['id']

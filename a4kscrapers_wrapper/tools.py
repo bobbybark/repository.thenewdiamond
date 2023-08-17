@@ -51,6 +51,51 @@ PID_FILE = os.path.join(ADDON_USERDATA_PATH, 'pid')
 
 DOWNLOAD_FOLDER = '/home/osmc/Movies'
 
+def set_setting(setting_name, setting_value):
+	#setting_line = '    <setting id="%s">%s</setting>' % (setting_name, setting_value)
+	new_setting_file = ''
+	update = False
+	with open(SETTING_XML) as f:
+		lines = f.readlines()
+		for line in lines:
+			if setting_name in str(line):
+				line_split_1 = line.split('"')[0] + '"'
+				line_split_2 = setting_name
+				line_split_3 = '"' + line.split('"',2)[2].split('>')[0] + '>'
+				line_split_4 = setting_value
+				line_split_5 = '<' + line.split('"',2)[2].split('<')[1]
+				setting_line = str(line_split_1) + str(line_split_2) + str(line_split_3) + str(line_split_4) + str(line_split_5)
+				new_setting_file = new_setting_file + setting_line
+				if setting_line != line:
+					update = True
+			else:
+				new_setting_file = new_setting_file + line
+	if update == True:
+		with open(SETTING_XML, 'w') as file:
+			# Write new content to the file
+			file.write(new_setting_file)
+
+def get_setting(setting_name, var_type = 'string'):
+	return_var = None
+	setting_name = setting_name + '"'
+	with open(SETTING_XML) as f:
+		lines = f.readlines()
+		for line in lines:
+			if setting_name in str(line):
+				return_var = line.split('>')[1].split('</')[0]
+	if var_type == 'string':
+		return_var = str(return_var)
+	elif var_type == 'bool':
+		if return_var.lower() == 'true':
+			return_var = True
+		if return_var.lower() == 'false':
+			return_var = False
+	elif var_type == 'int':
+		return_var = int(return_var)
+	elif var_type == 'float':
+		return_var = float(return_var)
+	return return_var
+
 fanart_api_key = get_setting("fanart.apikey", 'string')
 tmdb_API_key = get_setting("tmdb.apikey", 'string')
 tvdb_apikey =  get_setting("tvdb.apikey", 'string')
@@ -210,10 +255,11 @@ def get_accepted_resolution_set():
 	:rtype set
 	"""
 	resolutions = ["4K", "1080p", "720p", "SD"]
-	max_res = get_setting("general.maxResolution", 'int')
-	min_res = get_setting("general.minResolution", 'int')
+	#max_res = get_setting("general.maxResolution", 'int')
+	#min_res = get_setting("general.minResolution", 'int')
 
-	return set(resolutions[max_res:min_res+1])
+	#return set(resolutions[max_res:min_res+1])
+	return set(resolutions)
 
 
 
@@ -623,52 +669,6 @@ def progressbar(it, prefix="", size=60, out=sys.stdout): # Python3.3+
 		yield item
 		show(i+1)
 	log("\n", flush=True, file=out)
-
-
-def set_setting(setting_name, setting_value):
-	#setting_line = '    <setting id="%s">%s</setting>' % (setting_name, setting_value)
-	new_setting_file = ''
-	update = False
-	with open(SETTING_XML) as f:
-		lines = f.readlines()
-		for line in lines:
-			if setting_name in str(line):
-				line_split_1 = line.split('"')[0] + '"'
-				line_split_2 = setting_name
-				line_split_3 = '"' + line.split('"',2)[2].split('>')[0] + '>'
-				line_split_4 = setting_value
-				line_split_5 = '<' + line.split('"',2)[2].split('<')[1]
-				setting_line = str(line_split_1) + str(line_split_2) + str(line_split_3) + str(line_split_4) + str(line_split_5)
-				new_setting_file = new_setting_file + setting_line
-				if setting_line != line:
-					update = True
-			else:
-				new_setting_file = new_setting_file + line
-	if update == True:
-		with open(SETTING_XML, 'w') as file:
-			# Write new content to the file
-			file.write(new_setting_file)
-
-def get_setting(setting_name, var_type = 'string'):
-	return_var = None
-	setting_name = setting_name + '"'
-	with open(SETTING_XML) as f:
-		lines = f.readlines()
-		for line in lines:
-			if setting_name in str(line):
-				return_var = line.split('>')[1].split('</')[0]
-	if var_type == 'string':
-		return_var = str(return_var)
-	elif var_type == 'bool':
-		if return_var.lower() == 'true':
-			return_var = True
-		if return_var.lower() == 'false':
-			return_var = False
-	elif var_type == 'int':
-		return_var = int(return_var)
-	elif var_type == 'float':
-		return_var = float(return_var)
-	return return_var
 
 
 
@@ -1114,6 +1114,7 @@ class SourceSorter:
 			yield source
 
 	def sort_sources(self, sources_list):
+		print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		"""Takes in a list of sources and filters and sorts them according to Seren's sort settings
 
 		 :param sources_list: list of sources
@@ -1123,6 +1124,7 @@ class SourceSorter:
 		 """
 
 		filtered_sources = list(self.filter_sources(sources_list))
+		filtered_sources = list(sources_list)
 		if (len(filtered_sources) == 0 and len(sources_list) > 0):
 			#response = None
 			#if not g.get_bool_runtime_setting('tempSilent'):
