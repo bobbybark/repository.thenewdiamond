@@ -51,6 +51,70 @@ PID_FILE = os.path.join(ADDON_USERDATA_PATH, 'pid')
 
 DOWNLOAD_FOLDER = '/home/osmc/Movies'
 
+sort_method_names = {
+	0: 'None',
+	1: '_get_quality_sort_key',
+	2: '_get_type_sort_key',
+	3: '_get_debrid_priority_key',
+	4: '_get_size_sort_key',
+	5: '_get_low_cam_sort_key',
+	6: '_get_hevc_sort_key',
+	7: '_get_hdr_sort_key',
+	8: '_get_audio_channels_sort_key'
+}
+sort_method_list = {
+	'0': 'None',
+	'1': 'Quality Priority',
+	'2': 'Service Type Priority',
+	'3': 'Debrid Service Priority',
+	'4': 'Size Sort (GB''s)',
+	'5': 'Low Quality Cam Sort',
+	'6': 'HEVC Sort',
+	'7': 'HDR Sort',
+	'8': 'Audio Channels Sort'
+}
+
+type_priority_settings = {
+	0: None,
+	1: "cloud",
+	2: "adaptive",
+	3: "torrent",
+	4: "hoster"
+}
+
+true_false = {
+	'true': 1,
+	'false': 0
+}
+
+torrent_choices = {
+	'Add to RD Cache (whole pack)': 1,
+	'Add to RD Cache + Unrestrict (whole pack)': 2,
+	'Unrestrict specific files': 3,
+	'Add to downloader list (whole pack)': 4,
+	'Add to downloader list (specific files)': 5,
+	'Add to downloader list (whole pack + subtitles)': 6,
+	'Add to downloader list (specific files + subtitles)': 7,
+	'(Uncached) Add to RD (whole pack) ': 8,
+	'(Uncached) Add to RD (individual files) ': 9
+}
+
+program_choices = {
+	'Search Torrent (episode)': 1,
+	'Search Torrent (movie)': 2,
+	'Start downloader service (if not running)': 3,
+	'check downloader status': 4,
+	'Setup Providers': 5,
+	'enable_disable_providers': 6,
+	'setup_userdata_folder': 7,
+	'rd_auth': 8,
+	'auto_clean_caches': 9,
+	'default settings.xml': 10,
+	'setup filters/limits/sorting': 11,
+	'get current filters/limits/sorting ': 12
+}
+
+
 def set_setting(setting_name, setting_value):
 	#setting_line = '    <setting id="%s">%s</setting>' % (setting_name, setting_value)
 	new_setting_file = ''
@@ -86,9 +150,9 @@ def get_setting(setting_name, var_type = 'string'):
 	if var_type == 'string':
 		return_var = str(return_var)
 	elif var_type == 'bool':
-		if return_var.lower() == 'true':
+		if str(return_var).lower() == 'true':
 			return_var = True
-		if return_var.lower() == 'false':
+		if str(return_var).lower() == 'false':
 			return_var = False
 	elif var_type == 'int':
 		return_var = int(return_var)
@@ -190,13 +254,46 @@ INFO_TYPES = {
 	"3D": [" 3d"],
 }
 
+
 def log(*args, **kwargs):
 	for i in args:
 		try:
 			import xbmc
-			xbmc.log(str(i)+'===>A4K_Wrapper', level=xbmc.LOGFATAL)
+			xbmc.log(str(i)+'===>A4K_Wrapper', level=xbmc.LOGINFO)
 		except:
 			print(i)
+
+def auto_clean_cache(days=None):
+	import os 
+	import datetime
+	import glob
+
+	path = ADDON_USERDATA_PATH
+	if days==None:
+		days = -30
+	else:
+		days = int(days)*-1
+
+	today = datetime.datetime.today()#gets current time
+	if not os.path.exists(path):
+		os.mkdir(path)
+	os.chdir(path) #changing path to current path(same as cd command)
+
+	#we are taking current folder, directory and files 
+	#separetly using os.walk function
+	for root,directories,files in os.walk(path,topdown=False): 
+		for name in files:
+			#this is the last modified time
+			t = os.stat(os.path.join(root, name))[8] 
+			filetime = datetime.datetime.fromtimestamp(t) - today
+			#checking if file is more than 7 days old 
+			#or not if yes then remove them
+			if filetime.days <= days:
+				if len(name) == 36 and '.txt' == name[-4:]:
+					#print(os.path.join(root, name), filetime.days)
+					log(str(os.path.join(root, name))+'===>DELETE')
+					os.remove(os.path.join(root, name))
+
 
 def strip_non_ascii_and_unprintable(text):
 	"""
@@ -254,7 +351,7 @@ def get_accepted_resolution_set():
 	:return: set of resolutions
 	:rtype set
 	"""
-	resolutions = ["4K", "1080p", "720p", "SD"]
+	resolutions = approved_qualities
 	#max_res = get_setting("general.maxResolution", 'int')
 	#min_res = get_setting("general.minResolution", 'int')
 
@@ -444,7 +541,7 @@ requests.Session.put = _monkey_check(requests.Session.put)
 def selectFromDict(options, name):
 	index = 0
 	indexValidList = []
-	log('Select a ' + name + ':')
+	log('Select a ' + str(name) + ':')
 	for optionName in options:
 		index = index + 1
 		indexValidList.extend([options[optionName]])
@@ -459,11 +556,11 @@ def selectFromDict(options, name):
 				if options[i] == selected:
 					selection = i
 					break
-			log('Selected ' +  name + ': ' + selection)
+			log('Selected ' +  str(name) + ': ' + str(selection))
 			inputValid = True
 			break
 		else:
-			log('Please select a valid ' + name + ' number')
+			log('Please select a valid ' + str(name) + ' number')
 	return selected
 
 def get_http(url, headers=False):
@@ -1050,18 +1147,9 @@ class SourceSorter:
 		self.filter_set = self._get_filters()
 
 		# Size filter settings
-		self.enable_size_limit = True
+		self.enable_size_limit = get_setting("general.enablesizelimit", 'bool')
 		setting_mediatype = 'episode' if self.mediatype == 'episode' else 'movie'
-		#self.size_limit = g.get_int_setting("general.sizelimit.{}".format(setting_mediatype)) * 1024
 
-		#if setting_mediatype == 'movie':
-		#	self.size_limit = 3.59992
-		#else:
-		#	self.size_limit = 0.9
-		#if setting_mediatype == 'movie':
-		#	self.size_minimum = 1.1
-		#else:
-		#	self.size_minimum = 0.1
 		self.size_limit = get_setting("general.sizelimit.{}".format(setting_mediatype), 'float') * 1024
 		self.size_minimum = get_setting("general.sizeminimum.{}".format(setting_mediatype), 'float') * 1024
 
@@ -1087,6 +1175,7 @@ class SourceSorter:
 		return current_filters.difference({"HDR", "DV"})
 
 	def filter_sources(self, source_list):
+		print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		# Iterate sources, yielding only those that are not filtered
 		for source in source_list:
 			# Quality filter
@@ -1178,18 +1267,335 @@ class SourceSorter:
 
 		self.sort_methods = sort_methods
 
+	def sizeof_fmt(self, num, suffix="B"):
+		for unit in ("", " Ki", " Mi", " Gi", " Ti", " Pi", " Ei", " Zi"):
+			if abs(num) < 1024.0:
+				return f"{num:3.1f}{unit}{suffix}"
+			num /= 1024.0
+		return f"{num:.1f}Yi{suffix}"
+
+	def default_sort_methods(self):
+		"""
+import getSources, get_meta, tools
+info = get_meta.blank_meta()
+tools.SourceSorter(info).default_sort_methods()
+"""
+		set_setting("general.sortmethod.1",'5') #CAM_LOW
+		set_setting("general.sortmethod.1.reverse",'false')
+		set_setting("general.sortmethod.2",'1') #Quality
+		set_setting("general.sortmethod.2.reverse",'false')
+		set_setting("general.sortmethod.3",'4') #Size
+		set_setting("general.sortmethod.3.reverse",'false')
+		set_setting("general.sortmethod.4",'0')
+		set_setting("general.sortmethod.4.reverse",'false')
+		set_setting("general.sortmethod.4",'0')
+		set_setting("general.sortmethod.5.reverse",'false')
+		set_setting("general.sortmethod.6",'0')
+		set_setting("general.sortmethod.6.reverse",'false')
+		set_setting("general.sortmethod.7",'0')
+		set_setting("general.sortmethod.7.reverse",'false')
+		set_setting("general.sortmethod.8",'0')
+		set_setting("general.sortmethod.8.reverse",'false')
+		set_setting("general.minResolution",'3') #SD_MIN
+		set_setting("general.maxResolution",'0') #4k_MAX
+		set_setting("general.enablesizelimit",'false')
+		set_setting("general.sizelimit.movie",'30')
+		set_setting("general.sizelimit.episode",'3')
+		set_setting("general.sizeminimum.movie",'0')
+		set_setting("general.sizeminimum.episode",'0')
+		set_setting("general.filters",'HI10,HC,WMV,3D,HYBRID,SCR,CAM')
+		set_setting("general.sourcetypesort.1",'1') #cloud
+		set_setting("general.sourcetypesort.2",'0') 
+		set_setting("general.sourcetypesort.3",'0') 
+		set_setting("general.sourcetypesort.4",'0') 
+		set_setting("general.hdrsort.1",'2') #HDR
+		set_setting("general.hdrsort.2",'0') 
+		set_setting("general.debridsort.1",'2') #rd
+		set_setting("general.debridsort.2",'0') 
+		set_setting("general.debridsort.3",'0') 
+		
+
+	def get_sort_methods(self):
+		"""
+import getSources, get_meta, tools
+info = get_meta.blank_meta()
+tools.SourceSorter(info).get_sort_methods()
+"""
+		print('FILTERS=',self._get_filters())
+		print('')
+		print('FILTERS=disable_hdr=',self.disable_hdr)
+		print('FILTERS=disable_dv=',self.disable_dv)
+		print('')
+		min_res = approved_qualities[get_setting("general.minResolution", 'int')]
+		max_res = approved_qualities[get_setting("general.maxResolution", 'int')]
+		print('RESOLUTION_MIN=',min_res)
+		print('RESOLUTION_MAX=',max_res)
+		print('')
+		self._get_type_sort_order()
+		self._get_hdr_sort_order()
+		self._get_debrid_sort_order()
+		print('SOURCE_TYPE_SORT=',list(self.type_priorities)[0])
+		print('HDR_SORT=',list(self.hdr_priorities)[0])
+		print('DEBRID_SORT=',list(self.debrid_priorities)[0])
+		print('enablesizelimit=',get_setting("general.enablesizelimit", 'bool'))
+		for i in ('episode','movie'):
+				size_limit = get_setting("general.sizelimit.{}".format(i), 'float') * 1024
+				size_minimum = get_setting("general.sizeminimum.{}".format(i), 'float') * 1024
+				print('SIZE_MIN=', i,self.sizeof_fmt(size_minimum*1024*1024))
+				print('SIZE_MAX=', i,self.sizeof_fmt(size_limit*1024*1024))
+				print('')
+		for i in self.sort_methods:
+			for x in sort_method_names:
+				if sort_method_names[x] in str(i):
+					print(sort_method_list[str(x)], '	REVERSE=',i[1])
+		print('')
+
+	def _set_quality_sort_key(self):
+		#print('_set_quality_sort_key')
+		set_setting("general.sortmethod.{}".format(self.sort_int),self.setting_int)
+		#print('REVERSE/TRUE/FALSE')
+		result = selectFromDict(true_false, 'REVERSE Source Types Sort')
+		set_setting("general.sortmethod.{}.reverse".format(self.sort_int), result)
+		self._set_quality_sort_method()
+
+	def _set_quality_sort_method(self):
+		#print('RESOLUTION_MAX_MIN')
+		sort_method_list = {
+			'4K': '0',
+			'1080p': '1',
+			'720p': '2',
+			'SD': '3',
+		}
+		for i in ('minResolution','maxResolution'):
+			result = selectFromDict(true_false, 'Select ' + i)
+			set_setting("general.{}".format(i), str(result))
+
+	def _set_type_sort_key(self):
+		#print('_set_type_sort_key')
+		set_setting("general.sortmethod.{}".format(self.sort_int),self.setting_int)
+		#print('REVERSE/TRUE/FALSE')
+		result = selectFromDict(true_false, 'REVERSE Source Types Sort')
+		set_setting("general.sortmethod.{}.reverse".format(self.sort_int), result)
+		self._set_type_sort_method()
+
+	def _set_type_sort_method(self):
+		#print('SOURCE_TYPE_SORT')
+		set_setting("general.sourcetypesort.1",'1') #cloud
+		set_setting("general.sourcetypesort.2",'0') 
+		set_setting("general.sourcetypesort.3",'0') 
+		set_setting("general.sourcetypesort.4",'0') 
+		"""
+		type_priority_settings_list = {
+			'None': 0,
+			'cloud': 1,
+			'adaptive': 2,
+			'torrent': 3,
+			'hoster': 4,
+		}
+		for i in range(1, 5):
+			message = 'Set Types Sort Filter: ' + str(i)
+			result = selectFromDict(type_priority_settings_list, 'Pick Source Types Sort')
+			if result == '0':
+				for x in range(i, 5):
+					set_setting("general.sourcetypesort.{}".format(x),'0')
+				break
+			else:
+				set_setting("general.sourcetypesort.{}".format(x),result)
+		"""
+
+	def _set_debrid_priority_key(self):
+		#print('_set_debrid_priority_key')
+		set_setting("general.sortmethod.{}".format(self.sort_int),self.setting_int)
+		#print('REVERSE/TRUE/FALSE')
+		result = selectFromDict(true_false, 'REVERSE Debrid Types Sort')
+		set_setting("general.sortmethod.{}.reverse".format(self.sort_int), result)
+		self._set_debrid_priority_method()
+
+	def _set_debrid_priority_method(self):
+		#print('DEBRID_TYPE_SORT')
+		set_setting("general.debridsort.1",'2') #rd
+		set_setting("general.debridsort.2",'0') 
+		set_setting("general.debridsort.3",'0') 
+		"""
+		debrid_priority_settings = {
+			'None': 0,
+			'premiumize': 1,
+			'real_debrid': 2,
+			'all_debrid': 3,
+		}
+		for i in range(1, 4):
+			message = 'Set Debrid Sort Filter: ' + str(i)
+			result = selectFromDict(type_priority_settings_list, 'Pick Debrid Types Sort')
+			if result == '0':
+				for x in range(i, 4):
+					set_setting("general.debridsort.{}".format(x),'0')
+				break
+			else:
+				set_setting("general.debridsort.{}".format(x),result)
+		"""
+
+
+	def _set_size_sort_key(self):
+		#print('_set_size_sort_key')
+		set_setting("general.sortmethod.{}".format(self.sort_int),self.setting_int)
+		#print('REVERSE/TRUE/FALSE')
+		result = selectFromDict(true_false, 'REVERSE Sizes Sort')
+		set_setting("general.sortmethod.{}.reverse".format(self.sort_int), result)
+		self._set_size_sort_method()
+
+	def _set_size_sort_method(self):
+		#print('SIZE_LIMIT_ENABLE')
+		result = selectFromDict(true_false, 'Size Limit enable')
+		set_setting("general.enablesizelimit", result)
+		if result == 'true':
+			#print('SIZE_MAX_MIN')
+			for i in ('episode','movie'):
+					size_limit = input('Set size upper limit for ' + i + ' in Gb:  ')
+					size_minimum = input('Set size lower limit for ' + i + ' in Gb:  ')
+					set_setting("general.sizelimit.{}".format(i), str(size_limit))
+					set_setting("general.sizeminimum.{}".format(i), str(size_minimum))
+
+	def _set_low_cam_sort_key(self):
+		#print('_set_low_cam_sort_key')
+		#print(self.sort_int)
+		#print(self.setting_int)
+		#exit()
+		set_setting("general.sortmethod.{}".format(self.sort_int),self.setting_int)
+		#print('REVERSE/TRUE/FALSE')
+		result = selectFromDict(true_false, 'REVERSE Low Quality Cam Sort')
+		set_setting("general.sortmethod.{}.reverse".format(self.sort_int), result)
+
+	def _set_hevc_sort_key(self):
+		#print('_set_hevc_sort_key')
+		set_setting("general.sortmethod.{}".format(self.sort_int),self.setting_int)
+		#print('REVERSE/TRUE/FALSE')
+		result = selectFromDict(true_false, 'REVERSE HEVC Sort')
+		set_setting("general.sortmethod.{}.reverse".format(self.sort_int), result)
+
+	def _set_hdr_sort_key(self):
+		#print('_set_hdr_sort_key')
+		set_setting("general.sortmethod.{}".format(self.sort_int),self.setting_int)
+		#print('REVERSE/TRUE/FALSE')
+		result = selectFromDict(true_false, 'REVERSE HDR Sort')
+		set_setting("general.sortmethod.{}.reverse".format(self.sort_int), result)
+		self._set_hdr_sort_method()
+
+
+	def _set_hdr_sort_method(self):
+		#print('HDR_SORT')
+		hdr_priority_settings = {
+			'None': 0,
+			'DV': 1,
+			'HDR': 2,
+		}
+		for i in range(1, 3):
+			message = 'Set HDR Sort Filter: ' + str(i)
+			result = selectFromDict(type_priority_settings_list, 'Pick Debrid Types Sort')
+			if result == '0':
+				for x in range(i, 3):
+					set_setting("general.hdrsort.{}".format(x),'0')
+				break
+			else:
+				set_setting("general.hdrsort.{}".format(x),result)
+
+
+	def _set_audio_channels_sort_key():
+		#print('_set_audio_channels_sort_key')
+		set_setting("general.sortmethod.{}".format(self.sort_int),self.setting_int)
+		#print('REVERSE/TRUE/FALSE')
+		result = selectFromDict(true_false, 'REVERSE AUDIO Sort')
+		set_setting("general.sortmethod.{}.reverse".format(self.sort_int), result)
+
+	def _set_filters():
+		#print('_set_filters')
+		filter_string = ''
+		curr_filters = self._get_filters()
+		if len(curr_filters) == 1:
+			filter_string = curr_filters[0]
+		else:
+			for i in curr_filters:
+				filter_string = filter_string + i + ','
+			filter_string = filter_string[:-1]
+		result = selectFromDict(true_false, 'HDR Disable')
+		if result == 'true':
+			filter_string = filter_string + 'HDR'
+		#print('HDR_DISABLE')
+		#print('DV_DISABLE')
+		result = selectFromDict(true_false, 'DV Disable')
+		if result == 'true':
+			filter_string = filter_string + 'DV'
+		set_setting("general.filters" , filter_string)
+
+
+	def set_sort_method_settings(self):
+		"""
+import getSources, get_meta, tools
+info = get_meta.blank_meta()
+tools.SourceSorter(info).set_sort_method_settings()
+"""
+		sort_method_settings = {
+				0: None,
+				1: self._set_quality_sort_key,
+				2: self._set_type_sort_key,
+				3: self._set_debrid_priority_key,
+				4: self._set_size_sort_key,
+				5: self._set_low_cam_sort_key,
+				6: self._set_hevc_sort_key,
+				7: self._set_hdr_sort_key,
+				8: self._set_audio_channels_sort_key
+			}
+		self.get_sort_methods()
+		sort_method_list2 = {}
+		for i in sort_method_list:
+			sort_method_list2[sort_method_list[i]] = i
+		for i in range(1, 9):
+			message = 'Set Sort Filter Number: ' + str(i) + '	(DEFAULT=CAM_LOW//QUALITY//SIZE)'
+			print(message)
+			result = selectFromDict(sort_method_list2, ' Sorting method')
+			if result == '0':
+				for x in range(i, 9):
+					set_setting("general.sortmethod.{}".format(x),'0')
+					set_setting("general.sortmethod.{}.reverse".format(x), 'false')
+				break
+			else:
+				self.setting_int = result
+				self.sort_int = i
+				sort_method_settings[int(result)]()
+		sort_method_settings = {
+			'None (Exit)': 0,
+			'HDR Sorting': 1,
+			'Size limits': 2,
+			#'Debrid Type Sorting': 3,
+			#'Source Type Sorting': 4,
+			'Quality Limits': 5,
+			'Set Filters': 6,
+			'Defaults': 7
+			}
+		for i in range(1, 7):
+			result = selectFromDict(sort_method_settings, 'Setup Further Sorts/Filters/Limits')
+			if result == 0:
+				break
+			if result == 1:
+				self._set_hdr_sort_method
+			if result == 2:
+				self._set_size_sort_method
+			if result == 3:
+				self._set_debrid_priority_method
+			if result == 4:
+				self._set_type_sort_method
+			if result == 5:
+				self._set_quality_sort_method
+			if result == 6:
+				self._set_filters
+			if result == 7:
+				self.default_sort_methods()
+		self.get_sort_methods()
+
 	def _get_type_sort_order(self):
 		"""
 		Get seren settings for type sort priority
 		"""
 		type_priorities = {}
-		type_priority_settings = {
-			0: None,
-			1: "cloud",
-			2: "adaptive",
-			3: "torrent",
-			4: "hoster"
-		}
 
 		for i in range(1, 5):
 			tp = type_priority_settings.get(

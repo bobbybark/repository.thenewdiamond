@@ -6,9 +6,14 @@ import time
 
 try:
 	from resources.lib.modules.globals import g
+	ADDON_USERDATA_PATH = g.ADDON_USERDATA_PATH
+	tmdb_API_key = g.get_setting("tmdb.apikey")
+	fanart_api_key = g.get_setting("fanart.apikey")
 except:
 	import tools
-
+	ADDON_USERDATA_PATH = tools.ADDON_USERDATA_PATH
+	tmdb_API_key = tools.tmdb_API_key
+	fanart_api_key = tools.fanart_api_key
 
 try:
 	unicode = unicode  # noqa # pylint: disable=undefined-variable
@@ -92,8 +97,9 @@ def get_response_cache(url='', cache_days=7.0, folder=False, headers=False):
 	now = time.time()
 	url = url.encode('utf-8')
 	hashed_url = hashlib.md5(url).hexdigest()
-	try: cache_path = os.path.join(g.ADDON_USERDATA_PATH, folder)
-	except: cache_path = os.path.join(tools.ADDON_USERDATA_PATH, folder)
+	#try: cache_path = os.path.join(g.ADDON_USERDATA_PATH, folder)
+	#except: cache_path = os.path.join(tools.ADDON_USERDATA_PATH, folder)
+	cache_path = os.path.join(ADDON_USERDATA_PATH, folder)
 
 	if not os.path.exists(cache_path):
 		os.mkdir(cache_path)
@@ -127,8 +133,9 @@ def get_tmdb_from_imdb(imdb, media_type):
 	return tmdb
 
 def get_tmdb_data(url='', cache_days=14, folder='TheMovieDB'):
-	try: url = 'https://api.themoviedb.org/3/%sapi_key=%s' % (url, tools.tmdb_API_key)
-	except: url = 'https://api.themoviedb.org/3/%sapi_key=%s' % (url, g.get_setting("tmdb.apikey"))
+	#try: url = 'https://api.themoviedb.org/3/%sapi_key=%s' % (url, tools.tmdb_API_key)
+	#except: url = 'https://api.themoviedb.org/3/%sapi_key=%s' % (url, g.get_setting("tmdb.apikey"))
+	url = 'https://api.themoviedb.org/3/%sapi_key=%s' % (url, tmdb_API_key)
 	return get_response_cache(url, cache_days, folder)
 
 def get_tvshow_ids(tvshow_id=None, cache_time=14):
@@ -142,8 +149,9 @@ def get_tvshow_ids(tvshow_id=None, cache_time=14):
 	return external_ids
 
 def get_fanart_data(url='', tmdb_id=None, media_type=None, cache_days=14, folder='FanartTV'):
-	try: fanart_api = g.get_setting("fanart.apikey")
-	except: fanart_api = tools.fanart_api_key
+	#try: fanart_api = g.get_setting("fanart.apikey")
+	#except: fanart_api = tools.fanart_api_key
+	fanart_api = fanart_api_key
 	if media_type =='tv':
 		tvdb_id = get_tvshow_ids(tmdb_id)
 		tvdb_id = tvdb_id['tvdb_id']
@@ -158,7 +166,36 @@ def get_fanart_data(url='', tmdb_id=None, media_type=None, cache_days=14, folder
 	return get_response_cache(url, cache_days, folder)
 
 
+def blank_meta():
+	meta = {'year': '', 'episode': 1, 'imdb_id': '', 'imdbnumber': '', 'mediatype': '', 'season': 1, 'title': '', 'tvshow_year': '', 'tvshow': '', 'is_movie': False, 'is_tvshow': True, 'tmdb_id': 1, 'media_type': 'episode', 'download_type': 'episode', 'absoluteNumber': 1, 'episode_count': 1, 'info': {'tvshow': '', 'episode': 1, 'imdb_id': '', 'imdbnumber': '', 'mediatype': '', 'season': 1, 'title': '', 'tmdb_id': 1, 'tmdb_show_id': 1, 'tvdb_id': 1, 'tvdb_show_id': 1, 'tvshow.imdb_id': '', 'tvshow.tmdb_id': 1, 'tvshow.tvdb_id': 1, 'tvshow.year': '', 'tvshowtitle': '', 'year': ''}, 'is_airing': 0, 'season_count': 1, 'show_episode_count': 1}
+	return meta
+
 def get_movie_meta(tmdb=None, movie_name=None, year=None, imdb=None):
+
+	def tmdb_meta(tmdb):
+
+		if tmdb:
+			url = 'movie/%s?language=en&append_to_response=external_ids,alternative_titles&' % (tmdb)
+			response = get_tmdb_data(url, cache_days=7)
+			alternative_titles = []
+			for i in response['alternative_titles']['titles']:
+				if i['iso_3166_1'] in ('US','UK','GB','AU'):
+					alternative_titles.append(i['title'])
+			imdb = response['external_ids']['imdb_id']
+			movie_name = response['title']
+			try: backdrop_path = 'https://www.themoviedb.org/t/p/original/' + response['backdrop_path']
+			except: backdrop_path = None
+			imdb = response['imdb_id']
+			vote_average = response['vote_average']
+			release_date = response['release_date']
+			try: poster_path = 'https://www.themoviedb.org/t/p/original/' + response['poster_path']
+			except: poster_path = None
+			original_title = response['original_title']
+			movie_meta = {'download_type': 'movie', 'episode': '', 'imdb_id': imdb, 'is_movie': True, 'is_tvshow': False, 'media_type': 'movie', 'season': '', 'title': movie_name, 'tmdb_id': tmdb, 'tvshow': '', 'tvshow_year': '', 'year': response['release_date'][:4],
+			'info': {'mediatype': 'movie', 'episode': '', 'imdb_id': imdb, 'is_movie': True, 'is_tvshow': False, 'media_type': 'movie', 'season': '', 'title': movie_name, 'tmdb_id': tmdb, 'tvshow': '', 'tvshow_year': '', 'year': response['release_date'][:4]}
+			}
+			return movie_meta
+
 	if imdb:
 		tmdb = get_tmdb_from_imdb(imdb, 'movie')
 	if not tmdb:
@@ -176,32 +213,147 @@ def get_movie_meta(tmdb=None, movie_name=None, year=None, imdb=None):
 			if len(response['results']) == 1:
 				tmdb = response['results'][0]['id']
 			else:
-				for i in response['results']:
-					list_name = '%s (%s)' % (i['title'], str(i['release_date'][:4]))
-					options[list_name] = str(i['id'])
-				tmdb = selectFromDict(options, 'Movie')
+				if interactive:
+					for i in response['results']:
+						list_name = '%s (%s)' % (i['title'], str(i['release_date'][:4]))
+						options[list_name] = str(i['id'])
+					tmdb = selectFromDict(options, 'Movie')
+				else:
+					for i in response['results']:
+						tmdb = i['id']
+						try: 
+							movie = tmdb_meta(tmdb)
+							return movie
+						except: 
+							tmdb = None
+							continue
 	log(str(movie_name), 'tmdb=', str(tmdb))
 	if tmdb:
-		url = 'movie/%s?language=en&append_to_response=external_ids,alternative_titles&' % (tmdb)
-		response = get_tmdb_data(url, cache_days=7)
-		alternative_titles = []
-		for i in response['alternative_titles']['titles']:
-			if i['iso_3166_1'] in ('US','UK','GB','AU'):
-				alternative_titles.append(i['title'])
-		imdb = response['external_ids']['imdb_id']
-		movie_name = response['title']
-		backdrop_path = 'https://www.themoviedb.org/t/p/original/' + response['backdrop_path']
-		imdb = response['imdb_id']
-		vote_average = response['vote_average']
-		release_date = response['release_date']
-		poster_path = 'https://www.themoviedb.org/t/p/original/' + response['poster_path']
-		original_title = response['original_title']
-		movie_meta = {'download_type': 'movie', 'episode': '', 'imdb_id': imdb, 'is_movie': True, 'is_tvshow': False, 'media_type': 'movie', 'season': '', 'title': movie_name, 'tmdb_id': tmdb, 'tvshow': '', 'tvshow_year': '', 'year': response['release_date'][:4],
-		'info': {'mediatype': 'movie', 'episode': '', 'imdb_id': imdb, 'is_movie': True, 'is_tvshow': False, 'media_type': 'movie', 'season': '', 'title': movie_name, 'tmdb_id': tmdb, 'tvshow': '', 'tvshow_year': '', 'year': response['release_date'][:4]}
-		}
-		return movie_meta
+		movie = tmdb_meta(tmdb)
+	return movie
 
-def get_episode_meta(season, episode,tmdb=None, show_name=None, year=None):
+
+
+def get_episode_meta(season, episode,tmdb=None, show_name=None, year=None, interactive=False):
+
+	def tmdb_meta(tmdb):
+		if tmdb:
+			url = 'tv/%s?language=en&append_to_response=external_ids,alternative_titles&' % (tmdb)
+			response = get_tmdb_data(url, cache_days=7)
+			alternative_titles = []
+			for i in response['alternative_titles']['results']:
+				if i['iso_3166_1'] in ('US','UK','GB','AU'):
+					alternative_titles.append(i['title'])
+
+			imdb = response['external_ids']['imdb_id']
+			tvdb = response['external_ids']['tvdb_id']
+			show_name = response['name']
+			status = response['status']
+			if status.lower() in ('ended','cancelled'):
+				is_airing = 0
+			else:
+				is_airing = 1
+			try: backdrop_path = 'https://www.themoviedb.org/t/p/original/' + response['backdrop_path']
+			except: backdrop_path = None
+			episode_run_time = response['episode_run_time']
+			first_air_date = response['first_air_date']
+			tot_episode_count = 0
+			for i in response['seasons']:
+				if i['season_number'] == season:
+					absolute_tmdb = tot_episode_count + episode
+					if episode == 1:
+						absolute_tmdb_ep_1 = absolute_tmdb
+					else:
+						absolute_tmdb_ep_1 = tot_episode_count
+				if i['season_number'] > 0:
+					tot_episode_count = tot_episode_count + i['episode_count']
+				total_seasons = i['season_number']
+			url = 'tv/%s/season/%s?language=en&' % (tmdb, season)
+			response = get_tmdb_data(url, cache_days=7)
+
+			show_year = '(' + str(first_air_date[:4]) + ')'
+			if not show_year in str(show_name) and not str(first_air_date[:4]) in str(show_name):
+				alternative_titles.append(show_name + ' ' + show_year)
+				alternative_titles.append(show_name + ' - ' + first_air_date[:4])
+
+			season_dict = {}
+			season_dict['episodes'] = []
+			for i in response['episodes']:
+				s_e = str('S%sE%s' % (str(i['season_number']).zfill(2),str(i['episode_number']).zfill(2)))
+				try: still_path = 'https://www.themoviedb.org/t/p/original/' +i['still_path']
+				except: still_path = None
+				curr_episode = {'S_E': s_e, 'episode_number': i['episode_number'], 'season': i['season_number'], 'name': i['name'],'runtime': i['runtime'], 'tvshow': show_name, 'imdb': imdb, 'tvdb': tvdb, 'tmdb': tmdb, 'aliases': alternative_titles, 'originaltitle': i['name'],'tvshowtitle': show_name, 'download_type': 'episode', 'episode': i['episode_number'], 'imdb_id': imdb, 'imdbnumber': imdb,'air_date': i['air_date'],'episode_type': i['episode_type'],'season_number': i['season_number'],'show_id': i['show_id'],'still_path': still_path, 'vote_average': i['vote_average'], 'info': 
+				{'aliases': alternative_titles, 'originaltitle': i['name'], 'tvshowtitle': show_name, 'episode': i['episode_number'], 'imdb_id': imdb, 'imdbnumber': imdb, 'mediatype': 'episode', 'season': i['season_number'], 'title': i['name'], 'tmdb_id': tmdb, 'tmdb_show_id': tmdb, 'tvdb_id': tvdb, 'tvdb_show_id': tvdb, 'tvshow': show_name, 'tvshow.imdb_id': imdb, 'tvshow.tmdb_id': tmdb, 'tvshow.tvdb_id': tvdb, 'tvshow.year': str(first_air_date[:4]), 'tvshowtitle': show_name, 'year': str(i['air_date'][:4])}
+				, 'is_airing': is_airing, 'is_movie': False, 'is_tvshow': True, 'media_type': 'episode', 'mediatype': 'episode', 'title': i['name'], 'tmdb_id': tmdb, 'tvshow': show_name, 'tvshow_year': first_air_date[:4], 'year': i['air_date'][:4]}
+				season_episodes = i['episode_number']
+				if i['episode_number'] == episode:
+					episode_title = i['name']
+					episode_year = i['air_date'][:4]
+				if i['episode_number'] == 1:
+					curr_episode['absoluteNumber'] = absolute_tmdb_ep_1
+				else:
+					curr_episode['absoluteNumber'] = absolute_tmdb_ep_1 + i['episode_number'] -1 
+				season_dict['episodes'].append(curr_episode)
+			for idx, i in enumerate(season_dict['episodes']):
+				season_dict['episodes'][idx]['episode_count'] = i['episode_number']
+				season_dict['episodes'][idx]['season_count'] = total_seasons
+				season_dict['episodes'][idx]['show_episode_count'] = tot_episode_count
+			show = {'tmdb': tmdb, 'imdb': imdb, 'tvdb': tvdb, 'name': show_name, 'first_air_date': first_air_date, 'tot_episode_count': tot_episode_count, 'total_seasons': total_seasons, 'backdrop_path': backdrop_path, 'episode_run_time': episode_run_time}
+			show['tmdb_seasons'] = season_dict
+			show['tmdb_seasons_episode_tot'] = season_episodes
+			show['tmdb_absolute_number'] = absolute_tmdb
+			show['status'] = status
+			show['alternative_titles'] = alternative_titles
+
+			url = 'http://api.tvmaze.com/lookup/shows?thetvdb='+str(tvdb)
+			response = get_response_cache(url=url, cache_days=7.0, folder='TVMaze')
+
+			show['tvmaze_runtime'] = response['runtime']
+			show['tvmaze_averageRuntime'] = response['averageRuntime']
+			show['tvmaze_premiered'] = response['premiered']
+			show['tvmaze_show_id'] = response['id']
+
+			url = 'http://api.tvmaze.com/shows/'+str(show['tvmaze_show_id'])+'/episodes'
+			response = get_response_cache(url=url, cache_days=7.0, folder='TVMaze')
+			season_dict = {}
+			season_dict['episodes'] = []
+			tot_episode_count = 0
+			for i in response: #year
+				if i['season'] > 0:
+					tot_episode_count = tot_episode_count + 1
+				if i['season'] == season:
+					try: still_path = i['image']['original']
+					except: still_path = None
+					curr_episode = {'aliases': alternative_titles,'originaltitle': i['name'], 'tvshowtitle': show_name, 'tvshow': show_name, 'download_type': 'episode', 'episode': i['number'], 'air_date': i['airdate'],'episode_number': i['number'],'episode_type': i['type'],'name': i['name'],'runtime': i['runtime'],'season_number': i['season'],'show_id': show['tvmaze_show_id'],'still_path': still_path,
+					'vote_average': i['rating']['average'], 'tmdb': tmdb, 'imdb': imdb, 'tvdb': tvdb, 'imdb_id': imdb,'imdbnumber': imdb, 'is_airing': is_airing, 'is_movie': False, 'is_tvshow': True, 'media_type': 'episode','mediatype': 'episode', 'season': i['season'], 'title':  i['name'], 'tmdb_id': tmdb, 'tvshow': show_name, 'tvshow_year': first_air_date[:4], 'year': i['airdate'][:4], 
+					'info': {'aliases': alternative_titles, 'originaltitle': i['name'], 'tvshowtitle': show_name, 'episode': i['number'],'imdb_id': imdb,'imdbnumber': imdb,'mediatype': 'episode','season': i['season'],'title': i['name'],'tmdb_id': tmdb,'tmdb_show_id': tmdb,'tvdb_id': tvdb,'tvdb_show_id': tvdb,'tvshow': show_name,'tvshow.imdb_id': imdb,'tvshow.tmdb_id': tmdb,'tvshow.tvdb_id': tvdb,'tvshow.year': str(first_air_date[:4]),'tvshowtitle': show_name,'year': str(i['airdate'][:4])},
+					}
+					season_episodes = i['number']
+				if i['season'] == season and i['number'] == episode:
+					absolute_tvmaze = tot_episode_count
+				if i['season'] == season:
+					curr_episode['absoluteNumber'] = tot_episode_count
+					season_dict['episodes'].append(curr_episode)
+				total_seasons = i['season']
+			for idx, i in enumerate(season_dict['episodes']):
+				season_dict['episodes'][idx]['season_count'] = total_seasons
+				season_dict['episodes'][idx]['show_episode_count'] = tot_episode_count
+			show['tvmaze_total_seasons'] = i['season']
+			show['tvmaze_seasons'] = season_dict
+			show['tvmaze_seasons_episode_tot'] = season_episodes
+			show['tvmaze_absolute_number'] = absolute_tvmaze
+			show['tvmaze_tot_episode_count'] = tot_episode_count
+			show['tvmaze_total_seasons'] = total_seasons
+
+		#import pprint
+		#from pprint import pprint
+		#pprint(show)
+		episode_meta = {'year': episode_year, 'episode': episode,'imdb_id': imdb,'imdbnumber': imdb,'mediatype': 'episode','season': season,'title': episode_title,'tvshow_year': first_air_date[:4], 'tvshow': show_name,'is_movie': False, 'is_tvshow': True, 'tmdb_id': tmdb,'imdb_id': imdb, 'media_type': 'episode', 'download_type': 'episode','absoluteNumber': show['tmdb_absolute_number'],'episode_count': show['tmdb_seasons_episode_tot'],'info': {'tvshow': show_name, 'episode': episode,'imdb_id': imdb,'imdbnumber': imdb,'mediatype': 'episode','season': season,'title': episode_title,'tmdb_id': tmdb,'tmdb_show_id': tmdb,
+		'tvdb_id': tvdb,'tvdb_show_id': tvdb,'tvshow.imdb_id': imdb,'tvshow.tmdb_id': tmdb,'tvshow.tvdb_id': tvdb,'tvshow.year': first_air_date[:4],'tvshowtitle': show_name,'year': episode_year},'is_airing': is_airing,'season_count': show['total_seasons'],'show_episode_count': show['tot_episode_count']}
+		show['episode_meta'] = episode_meta
+		return show
+
+
 	show = {}
 	if not tmdb:
 		if year:
@@ -218,125 +370,32 @@ def get_episode_meta(season, episode,tmdb=None, show_name=None, year=None):
 			if len(response['results']) == 1:
 				tmdb = response['results'][0]['id']
 			for i in response['results']:
-				if i['name'] == show_name:
+				#if i['name'] == show_name:
+				#	tmdb = i['id']
+				if interactive == False:
 					tmdb = i['id']
-			if not tmdb:
-				for i in response['results']:
-					list_name = '%s (%s)' % (i['name'], str(i['first_air_date'][:4]))
-					options[list_name] = str(i['id'])
-				tmdb = selectFromDict(options, 'Show')
+					try: 
+						show = tmdb_meta(tmdb)
+						return show
+					except: 
+						tmdb = None
+						continue
+				#show = tmdb_meta(tmdb)
+				
+				if interactive:
+					for i in response['results']:
+						list_name = '%s (%s)' % (i['name'], str(i['first_air_date'][:4]))
+						options[list_name] = str(i['id'])
+					tmdb = selectFromDict(options, 'Show')
+			#if not tmdb:
+			#	for i in response['results']:
+			#		list_name = '%s (%s)' % (i['name'], str(i['first_air_date'][:4]))
+			#		options[list_name] = str(i['id'])
+			#	tmdb = selectFromDict(options, 'Show')
 	log(str(show_name), 'tmdb=', str(tmdb))
 	if tmdb:
-		url = 'tv/%s?language=en&append_to_response=external_ids,alternative_titles&' % (tmdb)
-		response = get_tmdb_data(url, cache_days=7)
-		alternative_titles = []
-		for i in response['alternative_titles']['results']:
-			if i['iso_3166_1'] in ('US','UK','GB','AU'):
-				alternative_titles.append(i['title'])
-
-		imdb = response['external_ids']['imdb_id']
-		tvdb = response['external_ids']['tvdb_id']
-		show_name = response['name']
-		status = response['status']
-		if status.lower() in ('ended','cancelled'):
-			is_airing = 0
-		else:
-			is_airing = 1
-		backdrop_path = 'https://www.themoviedb.org/t/p/original/' + response['backdrop_path']
-		episode_run_time = response['episode_run_time']
-		first_air_date = response['first_air_date']
-		tot_episode_count = 0
-		for i in response['seasons']:
-			if i['season_number'] == season:
-				absolute_tmdb = tot_episode_count + episode
-				if episode == 1:
-					absolute_tmdb_ep_1 = absolute_tmdb
-				else:
-					absolute_tmdb_ep_1 = tot_episode_count
-			if i['season_number'] > 0:
-				tot_episode_count = tot_episode_count + i['episode_count']
-			total_seasons = i['season_number']
-		url = 'tv/%s/season/%s?language=en&' % (tmdb, season)
-		response = get_tmdb_data(url, cache_days=7)
-
-		show_year = '(' + str(first_air_date[:4]) + ')'
-		if not show_year in str(show_name) and not str(first_air_date[:4]) in str(show_name):
-			alternative_titles.append(show_name + ' ' + show_year)
-			alternative_titles.append(show_name + ' - ' + first_air_date[:4])
-
-		season_dict = {}
-		season_dict['episodes'] = []
-		for i in response['episodes']:
-			curr_episode = {'aliases': alternative_titles, 'originaltitle': i['name'],'tvshowtitle': show_name,'tvshow': show_name, 'download_type': 'episode', 'episode': i['episode_number'], 'imdb_id': imdb, 'imdbnumber': imdb,'air_date': i['air_date'],'episode_number': i['episode_number'],'episode_type': i['episode_type'],'name': i['name'],'runtime': i['runtime'],'season_number': i['season_number'],'show_id': i['show_id'],'still_path': 'https://www.themoviedb.org/t/p/original/' +i['still_path'],
-			'vote_average': i['vote_average'], 'imdb': imdb, 'tvdb': tvdb, 'tmdb': tmdb, 'season': i['season_number'], 'info': 
-			{'aliases': alternative_titles, 'originaltitle': i['name'], 'tvshowtitle': show_name, 'episode': i['episode_number'], 'imdb_id': imdb, 'imdbnumber': imdb, 'mediatype': 'episode', 'season': i['season_number'], 'title': i['name'], 'tmdb_id': tmdb, 'tmdb_show_id': tmdb, 'tvdb_id': tvdb, 'tvdb_show_id': tvdb, 'tvshow': show_name, 'tvshow.imdb_id': imdb, 'tvshow.tmdb_id': tmdb, 'tvshow.tvdb_id': tvdb, 'tvshow.year': str(first_air_date[:4]), 'tvshowtitle': show_name, 'year': str(i['air_date'][:4])}
-			, 'is_airing': is_airing, 'is_movie': False, 'is_tvshow': True, 'media_type': 'episode', 'mediatype': 'episode', 'title': i['name'], 'tmdb_id': tmdb, 'tvshow': show_name, 'tvshow_year': first_air_date[:4], 'year': i['air_date'][:4]}
-			season_episodes = i['episode_number']
-			if i['episode_number'] == episode:
-				episode_title = i['name']
-				episode_year = i['air_date'][:4]
-			if i['episode_number'] == 1:
-				curr_episode['absoluteNumber'] = absolute_tmdb_ep_1
-			else:
-				curr_episode['absoluteNumber'] = absolute_tmdb_ep_1 + i['episode_number'] -1 
-			season_dict['episodes'].append(curr_episode)
-		for idx, i in enumerate(season_dict['episodes']):
-			season_dict['episodes'][idx]['episode_count'] = i['episode_number']
-			season_dict['episodes'][idx]['season_count'] = total_seasons
-			season_dict['episodes'][idx]['show_episode_count'] = tot_episode_count
-		show = {'tmdb': tmdb, 'imdb': imdb, 'tvdb': tvdb, 'name': show_name, 'first_air_date': first_air_date, 'tot_episode_count': tot_episode_count, 'total_seasons': total_seasons, 'backdrop_path': backdrop_path, 'episode_run_time': episode_run_time}
-		show['tmdb_seasons'] = season_dict
-		show['tmdb_seasons_episode_tot'] = season_episodes
-		show['tmdb_absolute_number'] = absolute_tmdb
-		show['status'] = status
-		show['alternative_titles'] = alternative_titles
-
-		url = 'http://api.tvmaze.com/lookup/shows?thetvdb='+str(tvdb)
-		response = get_response_cache(url=url, cache_days=7.0, folder='TVMaze')
-
-		show['tvmaze_runtime'] = response['runtime']
-		show['tvmaze_averageRuntime'] = response['averageRuntime']
-		show['tvmaze_premiered'] = response['premiered']
-		show['tvmaze_show_id'] = response['id']
-
-		url = 'http://api.tvmaze.com/shows/'+str(show['tvmaze_show_id'])+'/episodes'
-		response = get_response_cache(url=url, cache_days=7.0, folder='TVMaze')
-		season_dict = {}
-		season_dict['episodes'] = []
-		tot_episode_count = 0
-		for i in response: #year
-			if i['season'] > 0:
-				tot_episode_count = tot_episode_count + 1
-			if i['season'] == season:
-				curr_episode = {'aliases': alternative_titles,'originaltitle': i['name'], 'tvshowtitle': show_name, 'tvshow': show_name, 'download_type': 'episode', 'episode': i['number'], 'air_date': i['airdate'],'episode_number': i['number'],'episode_type': i['type'],'name': i['name'],'runtime': i['runtime'],'season_number': i['season'],'show_id': show['tvmaze_show_id'],'still_path': i['image']['original'],
-				'vote_average': i['rating']['average'], 'tmdb': tmdb, 'imdb': imdb, 'tvdb': tvdb, 'imdb_id': imdb,'imdbnumber': imdb, 'is_airing': is_airing, 'is_movie': False, 'is_tvshow': True, 'media_type': 'episode','mediatype': 'episode', 'season': i['season'], 'title':  i['name'], 'tmdb_id': tmdb, 'tvshow': show_name, 'tvshow_year': first_air_date[:4], 'year': i['airdate'][:4], 
-				'info': {'aliases': alternative_titles, 'originaltitle': i['name'], 'tvshowtitle': show_name, 'episode': i['number'],'imdb_id': imdb,'imdbnumber': imdb,'mediatype': 'episode','season': i['season'],'title': i['name'],'tmdb_id': tmdb,'tmdb_show_id': tmdb,'tvdb_id': tvdb,'tvdb_show_id': tvdb,'tvshow': show_name,'tvshow.imdb_id': imdb,'tvshow.tmdb_id': tmdb,'tvshow.tvdb_id': tvdb,'tvshow.year': str(first_air_date[:4]),'tvshowtitle': show_name,'year': str(i['airdate'][:4])},
-				}
-				season_episodes = i['number']
-			if i['season'] == season and i['number'] == episode:
-				absolute_tvmaze = tot_episode_count
-			if i['season'] == season:
-				curr_episode['absoluteNumber'] = tot_episode_count
-				season_dict['episodes'].append(curr_episode)
-			total_seasons = i['season']
-		for idx, i in enumerate(season_dict['episodes']):
-			season_dict['episodes'][idx]['season_count'] = total_seasons
-			season_dict['episodes'][idx]['show_episode_count'] = tot_episode_count
-		show['tvmaze_total_seasons'] = i['season']
-		show['tvmaze_seasons'] = season_dict
-		show['tvmaze_seasons_episode_tot'] = season_episodes
-		show['tvmaze_absolute_number'] = absolute_tvmaze
-		show['tvmaze_tot_episode_count'] = tot_episode_count
-		show['tvmaze_total_seasons'] = total_seasons
-
-	#import pprint
-	#from pprint import pprint
-	#pprint(show)
-	episode_meta = {'year': episode_year, 'episode': episode,'imdb_id': imdb,'imdbnumber': imdb,'mediatype': 'episode','season': season,'title': episode_title,'tvshow_year': first_air_date[:4], 'tvshow': show_name,'is_movie': False, 'is_tvshow': True, 'tmdb_id': tmdb,'imdb_id': imdb, 'media_type': 'episode', 'download_type': 'episode','absoluteNumber': show['tmdb_absolute_number'],'episode_count': show['tmdb_seasons_episode_tot'],'info': {'tvshow': show_name, 'episode': episode,'imdb_id': imdb,'imdbnumber': imdb,'mediatype': 'episode','season': season,'title': episode_title,'tmdb_id': tmdb,'tmdb_show_id': tmdb,
-	'tvdb_id': tvdb,'tvdb_show_id': tvdb,'tvshow.imdb_id': imdb,'tvshow.tmdb_id': tmdb,'tvshow.tvdb_id': tvdb,'tvshow.year': first_air_date[:4],'tvshowtitle': show_name,'year': episode_year},'is_airing': is_airing,'season_count': show['total_seasons'],'show_episode_count': show['tot_episode_count']}
-	show['episode_meta'] = episode_meta
+		show = tmdb_meta(tmdb)
 	return show
-	
 
 
 def get_fanart_results(tvdb_id, media_type=None, show_season = None):

@@ -37,6 +37,8 @@ def get_autocomplete_items(search_str, limit=10, provider=None):
         provider = GoogleProvider(youtube=True, limit=limit)
     elif SETTING("autocomplete_provider") == "google":
         provider = GoogleProvider(limit=limit)
+    elif SETTING("autocomplete_provider") == "IMDB":
+        provider = IMDBProvider(limit=limit)
     elif SETTING("autocomplete_provider") == "bing":
         provider = BingProvider(limit=limit)
     else:
@@ -115,6 +117,29 @@ class BingProvider(BaseProvider):
         else:
             return result[1]
 
+class IMDBProvider(BaseProvider):
+
+    BASE_URL = "https://v2.sg.media-imdb.com/"
+
+    def __init__(self, *args, **kwargs):
+        super(IMDBProvider, self).__init__(*args, **kwargs)
+
+    def fetch_data(self, search_str):
+        url = "suggests/%s/%s.json" % (search_str[0],quote_plus(search_str))
+        result = get_JSON_response(url=self.BASE_URL + url,
+                                   headers=HEADERS,
+                                   folder="IMDB")
+        imdb_response = result
+        result = [search_str, []]
+        for i in imdb_response['d']:
+            if 'trailers' in str(i).lower() and 'Trailers' not in result[1]:
+                result[1].append('Trailers')
+            if i.get('q') in ('feature', 'TV series','tvSeries', 'movie') and i.get('qid') in ('feature', 'TV series','tvSeries', 'movie'):
+                result[1].append(i['l'])
+        if not result:
+            return []
+        else:
+            return result[1]
 
 class LocalDictProvider(BaseProvider):
 
@@ -159,9 +184,15 @@ def get_JSON_response(url="", cache_days=7.0, folder=False, headers=False):
         results = read_from_file(path)
         log("loaded file for %s. time: %f" % (url, time.time() - now))
     else:
-        response = get_http(url, headers)
+        if folder == 'IMDB':
+            response = get_imdb_http(url, headers)
+        else:
+            response = get_http(url, headers)
         try:
-            results = json.loads(response)
+            if folder == 'IMDB':
+                results = response
+            else:
+                results = json.loads(response)
             log("download %s. time: %f" % (url, time.time() - now))
             save_to_file(results, hashed_url, cache_path)
         except Exception:
@@ -176,6 +207,25 @@ def get_JSON_response(url="", cache_days=7.0, folder=False, headers=False):
     else:
         return []
 
+def get_imdb_http(url=None, headers=False):
+    """
+    fetches data from *url, returns it as a string
+    """
+    succeed = 0
+    if not headers:
+        headers = HEADERS
+    while succeed < 2 and not MONITOR.abortRequested():
+        try:
+            r = requests.get(url, headers=headers)
+            if r.status_code != 200:
+                raise Exception
+            r = json.loads(r.text[r.text.index('(')+1:-1])
+            return r
+        except Exception:
+            log("get_http: could not get data from %s" % url)
+            xbmc.sleep(1000)
+            succeed += 1
+    return None
 
 def get_http(url=None, headers=False):
     """

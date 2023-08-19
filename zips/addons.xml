@@ -836,7 +836,7 @@ v1.0.25 (marcelveldt)
   </extension>
 </addon>
 
-<addon id="script.module.autocompletion" name="AutoCompletion library" version="2.0.3" provider-name="Philipp Temminghoff (phil65),sualfred">
+<addon id="script.module.autocompletion" name="AutoCompletion library" version="3.0.1" provider-name="henryjfry">
     <requires>
         <import addon="xbmc.python" version="3.0.0" />
         <import addon="script.module.requests" version="2.9.1"/>
@@ -995,7 +995,7 @@ v0.28.0 (2020-02-08)
 	</extension>
 </addon>
 
-<addon id="plugin.program.autocompletion" name="AutoCompletion for virtual keyboard" version="2.0.5" provider-name="henryjfry">
+<addon id="plugin.program.autocompletion" name="AutoCompletion for virtual keyboard" version="3.0.1" provider-name="henryjfry">
     <requires>
         <import addon="xbmc.python" version="3.0.0" />
         <import addon="script.module.simplejson" version="3.3.0"/>

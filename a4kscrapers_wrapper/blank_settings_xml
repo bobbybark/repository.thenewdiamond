@@ -15,6 +15,9 @@
     <setting id="general.timeout">45</setting>
     <setting id="rd.cloudInspection">true</setting>
     <setting id="general.autocache">true</setting>
+    <setting id="tmdb.apikey"></setting>
+    <setting id="tvdb.apikey"></setting>
+    <setting id="fanart.apikey"></setting>
     <setting id="general.cacheAssistMode" default="true">0</setting>
     <setting id="general.cachelocation">1</setting>
     <setting id="preem.enabled">false</setting>
@@ -27,11 +30,11 @@
     <setting id="preem.adaptiveSources">false</setting>
     <setting id="general.maxResolution">0</setting>
     <setting id="general.minResolution">3</setting>
-    <setting id="general.enablesizelimit">true</setting>
+    <setting id="general.enablesizelimit">false</setting>
     <setting id="general.sizelimit.movie">30</setting>
     <setting id="general.sizelimit.episode">10</setting>
-    <setting id="general.sizeminimum.movie">1</setting>
-    <setting id="general.sizeminimum.episode">0.1</setting>
+    <setting id="general.sizeminimum.movie">0</setting>
+    <setting id="general.sizeminimum.episode">0</setting>
     <setting id="general.filters">HI10,DV,HDR,HC,WMV,3D,HEVC,HYBRID,SCR,CAM</setting>
     <setting id="general.lastreleasenamepriority">true</setting>
     <setting id="general.sortmethod.1">5</setting>
