@@ -350,8 +350,13 @@ def run_downloader(magnet_list, download_path):
 		with open(magnet_list, 'r') as fp:
 			num_lines = sum(1 for line in fp if line.rstrip())
 		log('REMAINING_LINES_MAGNET_LIST =   '+str(num_lines))
-		download_type = curr_download.get('download_type', None)
-		magnet =  curr_download.get('magnet', None)
+
+		try: 
+			download_type = curr_download.get('download_type', None)
+			magnet =  curr_download.get('magnet', None)
+		except:
+			download_type, magnet = None, None
+
 		if download_type and magnet:
 			#filename = curr_download['filename']
 			#filename_without_ext = curr_download['filename_without_ext']
@@ -416,8 +421,14 @@ def run_downloader(magnet_list, download_path):
 				start_time = time.time()
 				curr_download = tools.get_download_line(magnet_list)
 		else:
-			if 'magnet' in str(curr_download):
-				response = rd_api.add_magnet(curr_download)
+			if str(curr_download).strip()[:4] == 'http':
+				download_http_rd_link(rd_api, download_path, curr_download)
+				tools.delete_download_line(magnet_list, curr_download)
+				rd_api.delete_download(rd_api.UNRESTRICT_FILE_ID)
+				start_time = time.time()
+				curr_download = tools.get_download_line(magnet_list)
+			elif str(curr_download).strip()[:6] == 'magnet':
+				response = rd_api.add_magnet(str(curr_download).strip())
 				torr_id = response['id']
 				response = rd_api.torrent_select_all(torr_id)
 				torr_info = rd_api.torrent_info(torr_id)
@@ -430,6 +441,24 @@ def run_downloader(magnet_list, download_path):
 					processed_files = download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr_info, processed_files, magnet_list, False)
 					start_time = time.time()
 					curr_download = tools.get_download_line(magnet_list)
+				elif torr_info['status'] == 'downloaded':
+					active_magnets.append(curr_download)
+					processed_files = download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr_info, processed_files, magnet_list, True)
+					start_time = time.time()
+					curr_download = tools.get_download_line(magnet_list)
+		print(processed_files)
+		print('sleep')
+		time.sleep(10)
+		curr_download = tools.get_download_line(magnet_list)
+		sleep_count = 0
+		while not curr_download:
+			if sleep_count > 90:
+				break
+			print('NO CONTENT SLEEP ' + str(100-sleep_count) + '  remaining')
+			time.sleep(10)
+			sleep_count = sleep_count + 10
+			curr_download = tools.get_download_line(magnet_list)
+			
 
 
 def choose_torrent(sources_list):
@@ -597,8 +626,26 @@ def uncached_magnet(magnet_link, torr_id, magnet_added, download_folder):
 			remove_line_from_file(file_path, magnet_link)
 			add_line_to_file(file_path, magnet_link)
 
+
+def download_http_rd_link(rd_api, download_path, curr_download):
+	unrestrict_link = curr_download
+	download_folder = download_path
+
+	log(unrestrict_link, download_path)
+	download_link = rd_api.resolve_hoster(unrestrict_link)
+	download_id = rd_api.UNRESTRICT_FILE_ID
+	log(download_link, download_id)
+	file_name = os.path.basename(download_link)
+	file_name = unquote(file_name)
+	download_path2 = os.path.join(download_path, file_name)
+
+	if not os.path.exists(download_folder):
+		os.makedirs(download_folder)
+	tools.download_progressbar(download_link, download_path2)
+
+
 def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr_info, processed_files, magnet_list, test_download):
-	print('download_uncached_magnet')
+	#print('download_uncached_magnet')
 	torr_info = rd_api.torrent_info_files(torr_info)
 	sorted_torr_info = sorted(torr_info['files_links'], key=lambda x: x['pack_path'])
 	number_rd = 0
@@ -615,9 +662,9 @@ def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr
 			mode = 'tvmaze'
 		else:
 			mode = 'tmdb'
-		print(mode)
+		#print(mode)
 		result_dict = source_tools.match_episodes_season_pack(curr_download, sorted_torr_info, mode=mode)
-		print(result_dict)
+		#print(result_dict)
 
 		for idx, i in enumerate(result_dict['pack_paths']):
 			if pack_path in i or pack_path == i:
@@ -648,7 +695,7 @@ def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr
 		log(sub_path)
 
 	def is_movie_process(torr_id, torr_info):
-		print('is_movie_process')
+		#print('is_movie_process')
 		folder = curr_download['CURR_LABEL']
 		if '.mp4' in str(folder) or '.avi' in str(folder) or '.mkv' in str(folder):
 			folder = None
@@ -673,8 +720,8 @@ def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr
 		log(sub_path)
 
 	def plain_download(torr_id, torr_info):
-		print('DOWNLOAD_TO_MAIN_FOLDER_NO_META')
-		print(torr_info)
+		#print('DOWNLOAD_TO_MAIN_FOLDER_NO_META')
+		#print(torr_info)
 		folder = torr_info['original_filename']
 		if '.mp4' in str(folder) or '.avi' in str(folder) or '.mkv' in str(folder):
 			folder = None
@@ -685,6 +732,8 @@ def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr
 		log(download_link, download_id)
 		file_name = os.path.basename(download_link)
 		download_folder = os.path.join(download_path, folder)
+		if not os.path.exists(download_folder):
+			os.makedirs(download_folder)
 		download_path2 = os.path.join(download_folder, file_name)
 		tools.download_progressbar(download_link, download_path2)
 
@@ -696,44 +745,50 @@ def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr
 		else:
 			continue
 
-		response = rd_api.add_magnet(curr_download['magnet'])
+		try: magnet = curr_download['magnet']
+		except: magnet = curr_download
+		response = rd_api.add_magnet(magnet)
 		torr_id = response['id']
 		response = rd_api.torrent_select(torr_id, i['pack_file_id'])
+		pack_path = i['pack_path']
 		if test_download == False:
-			log('Added ' + str(i['pack_path']))
+			log('Added ' + str(pack_path))
 			torr_info2 = rd_api.torrent_info(torr_id)
 			if torr_info2['status'] == 'downloaded':
 				rd_api.delete_torrent(torr_id)
 
-		if i['pack_path'] in processed_files:
-			downloaded_streams = downloaded_streams + 1
+		if str(pack_path) in str(processed_files):
+			print('DELETE_TORR_ID')
 			rd_api.delete_torrent(torr_id)
 			continue
 		if test_download:
 			torr_info = rd_api.torrent_info(torr_id)
 			if torr_info['status'] == 'downloaded':
-				pack_path = i['pack_path']
+				#pack_path = i['pack_path']
 				try: is_tvshow = curr_download['episode_meta']['is_tvshow']
 				except: is_tvshow = False
 				try: is_movie = curr_download['episode_meta']['is_movie']
 				except: is_movie = False
 				if is_tvshow:
-					is_tvshow_process(torr_id, torr_info, tot_streams, i['pack_path'])
+					is_tvshow_process(torr_id, torr_info, tot_streams, pack_path)
 				if is_movie:
 					is_movie_process(torr_id, torr_info)
 				if is_tvshow == False and is_movie == False:
 					plain_download(torr_id, torr_info)
 				rd_api.delete_torrent(torr_id)
+				rd_api.delete_download(rd_api.UNRESTRICT_FILE_ID)
 				processed_files.append(pack_path)
+				downloaded_streams = downloaded_streams + 1
 			if torr_info['status'] != 'downloaded':
-				log('Added ' + str(i['pack_path']))
+				log('Added ' + str(pack_path))
 
 				rd_api.delete_torrent(torr_id)
-	if downloaded_streams != tot_streams and number_rd != downloaded_streams:
+
+	if int(downloaded_streams) != int(number_rd):
 		curr_download = tools.get_download_line(magnet_list)
 		tools.delete_download_line(magnet_list, curr_download)
 		tools.add_download_line(magnet_list, curr_download)
-	else:
+	if int(downloaded_streams) == int(number_rd):
 		curr_download = tools.get_download_line(magnet_list)
 		tools.delete_download_line(magnet_list, curr_download)
 	return processed_files
@@ -741,7 +796,7 @@ def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr
 
 
 def download_cached_movie(rd_api, download_path, curr_download, torr_id, torr_info):
-	print('download_cached_movie')
+	#print('download_cached_movie')
 	folder = curr_download['CURR_LABEL']
 	download_folder = os.path.join(download_path, folder)
 	torr_info = rd_api.torrent_info_files(torr_info)
@@ -777,9 +832,10 @@ def download_cached_movie(rd_api, download_path, curr_download, torr_id, torr_in
 	log(sub_path)
 
 	rd_api.delete_torrent(torr_id)
+	rd_api.delete_download(rd_api.UNRESTRICT_FILE_ID)
 
 def download_cached_episode(rd_api, download_path, curr_download, torr_id, torr_info):
-	print('download_cached_episode')
+	#print('download_cached_episode')
 	folder = curr_download['CURR_LABEL']
 	download_folder = os.path.join(download_path, folder)
 	torr_info = rd_api.torrent_info_files(torr_info)
@@ -806,9 +862,11 @@ def download_cached_episode(rd_api, download_path, curr_download, torr_id, torr_
 	sub_out = os.path.basename(tools.SUB_FILE)
 	sub_path = os.path.join(download_folder, sub_out)
 	shutil.copyfile(tools.SUB_FILE, sub_path)
+	rd_api.delete_download(rd_api.UNRESTRICT_FILE_ID)
 	log(sub_path)
 
 	rd_api.delete_torrent(torr_id)
+
 
 
 def download_cached_magnet_pack(rd_api, download_path, curr_download, torr_id, torr_info):
@@ -850,9 +908,11 @@ def download_cached_magnet_pack(rd_api, download_path, curr_download, torr_id, t
 		sub_out = os.path.basename(tools.SUB_FILE)
 		sub_path = os.path.join(download_folder, sub_out)
 		shutil.copyfile(tools.SUB_FILE, sub_path)
+		rd_api.delete_download(rd_api.UNRESTRICT_FILE_ID)
 		log(sub_path)
 
 	rd_api.delete_torrent(torr_id)
+	
 
 def cached_magnet(magnet_link, file_path, torr_id, download_folder):
 	if file_info['status'] == 'downloaded':

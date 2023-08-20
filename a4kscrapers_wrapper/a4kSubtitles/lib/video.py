@@ -378,7 +378,8 @@ def get_meta(core):
 		#except: pass
 
 		meta_json = json.dumps(tools.VIDEO_META, indent=2)
-		logger.debug(meta_json)
+		#print(meta_json)
+		#logger.debug(meta_json)
 
 		meta = json.loads(meta_json)
 		meta = utils.DictAsObject(meta)

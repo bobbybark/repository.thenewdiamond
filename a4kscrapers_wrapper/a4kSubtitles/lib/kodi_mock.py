@@ -39,6 +39,7 @@ xbmc.Monitor = lambda: __monitor
 
 def __log(msg, label):
 	print(msg, label)
+
 xbmc.log = __log
 xbmc.LOGDEBUG = 'debug'
 xbmc.LOGINFO = 'info'

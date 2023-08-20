@@ -317,6 +317,8 @@ def delete_download_line(file_path, curr_download):
 	lines = read_all_text(file_path).split('\n')
 	out_file = ''
 	for i in lines:
+		if i.strip() == '':
+			continue
 		i_ep_meta, i_tmdb, i_movie, i_imdb, curr_download_magnet, curr_download_ep_meta, curr_download_tmdb, curr_download_movie, curr_download_imdb = None, None, None, None, None, None, None, None, None
 		i_dict = None
 		try: i_dict = eval(i)
@@ -338,13 +340,13 @@ def delete_download_line(file_path, curr_download):
 			curr_download_imdb = curr_download.get('imdb')
 
 			if i_magnet ==  curr_download_magnet and i_ep_meta ==  curr_download_ep_meta and i_tmdb ==  curr_download_tmdb and i_movie ==  curr_download_movie and i_imdb ==  curr_download_imdb:
-				print('skip')
+				#print('skip')
 				continue
 		if str(i) == str(curr_download) or str(i).strip() == '':
-			print('skip')
+			#print('skip')
 			continue
 		else:
-			print('write')
+			#print('write')
 			out_file = out_file + i + '\n'
 	write_all_text(file_path, out_file)
 	time.sleep(1)
