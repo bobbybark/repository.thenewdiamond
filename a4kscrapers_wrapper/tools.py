@@ -294,6 +294,80 @@ def auto_clean_cache(days=None):
 					log(str(os.path.join(root, name))+'===>DELETE')
 					os.remove(os.path.join(root, name))
 
+def get_download_line(file_path):
+	lines = read_all_text(file_path).split('\n')
+	for line in lines:
+		if line.strip() == '':
+			continue
+		try: 
+			line = eval(line)
+			return line
+		except: 
+			return line
+
+def add_download_line(file_path, curr_download):
+	lines = read_all_text(file_path).split('\n')
+	out_file = ''
+	for i in lines:
+		out_file = out_file + i + '\n'
+	out_file = out_file + str(curr_download) + '\n'
+	write_all_text(file_path, out_file)
+
+def delete_download_line(file_path, curr_download):
+	lines = read_all_text(file_path).split('\n')
+	out_file = ''
+	for i in lines:
+		i_ep_meta, i_tmdb, i_movie, i_imdb, curr_download_magnet, curr_download_ep_meta, curr_download_tmdb, curr_download_movie, curr_download_imdb = None, None, None, None, None, None, None, None, None
+		i_dict = None
+		try: i_dict = eval(i)
+		except: i_dict = i
+		try:
+			i_magnet = i_dict.get('magnet')
+		except:
+			i_magnet = None
+		if i_magnet:
+			i_ep_meta = i_dict.get('episode_meta')
+			i_tmdb = i_dict.get('tmdb_seasons')
+			i_movie = i_dict.get('is_movie')
+			i_imdb = i_dict.get('imdb')
+
+			curr_download_magnet = curr_download.get('magnet')
+			curr_download_ep_meta = curr_download.get('episode_meta')
+			curr_download_tmdb = curr_download.get('tmdb_seasons')
+			curr_download_movie = curr_download.get('is_movie')
+			curr_download_imdb = curr_download.get('imdb')
+
+			if i_magnet ==  curr_download_magnet and i_ep_meta ==  curr_download_ep_meta and i_tmdb ==  curr_download_tmdb and i_movie ==  curr_download_movie and i_imdb ==  curr_download_imdb:
+				print('skip')
+				continue
+		if str(i) == str(curr_download) or str(i).strip() == '':
+			print('skip')
+			continue
+		else:
+			print('write')
+			out_file = out_file + i + '\n'
+	write_all_text(file_path, out_file)
+	time.sleep(1)
+
+
+def getSentenceCase(source: str):
+	file_type = source.split('.')[-1]
+	source = source.replace('.'+file_type,'')
+	output = ""
+	isFirstWord = True
+	for c in source:
+		if isFirstWord and not c.isspace():
+			c = c.upper()
+			isFirstWord = False
+		elif not isFirstWord and c in ".!?":
+			isFirstWord = True
+		else:
+			if c.upper() != c:
+				c = c.lower()
+		output = output + c
+	output = output + '.' + file_type
+	output = output.replace(re.search('[S][0-9]*[e][0-9]*', output)[0],re.search('[S][0-9]*[e][0-9]*', output)[0].upper())
+	return output
 
 def strip_non_ascii_and_unprintable(text):
 	"""
@@ -745,12 +819,20 @@ def download_file(url, save_as):
 
 def download_progressbar(url, file_path):
 	from urllib.request import urlretrieve
+	from urllib.parse import unquote
 	import sys
 	global rem_file # global variable to be used in dlProgress
 	rem_file = url.split('/')[-1]
+
+	start = time.time()
 	def dlProgress(count, blockSize, totalSize):
 		percent = int(count*blockSize*100/totalSize)
-		sys.stdout.write("\r" + rem_file + "...%d%%" % percent)
+		done = int(50 * count*blockSize / totalSize)
+		suffix = "\r[%s%s] %s   %s  %s   Kbps" % ('=' * done, ' ' * (50-done),str(percent)+'%',unquote(rem_file), (1/1000)*count*blockSize//(time.time() - start))
+		message = "\r" + rem_file + "...%d%%" % percent
+		message = message + suffix
+		#sys.stdout.write("\r" + rem_file + "...%d%%" % percent)
+		sys.stdout.write(message)
 		sys.stdout.flush()
 	urlretrieve(url, file_path, reporthook=dlProgress)
 	return file_path

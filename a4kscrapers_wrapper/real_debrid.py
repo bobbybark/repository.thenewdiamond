@@ -339,7 +339,9 @@ class RealDebrid:
 		for idx,i in enumerate(files):
 			file_path = os.path.join(tools.DOWNLOAD_FOLDER,release_name + i['path'])
 			download_dir = os.path.join(tools.DOWNLOAD_FOLDER,release_name)
-			files_links.append({'unrestrict_link': torr_info['links'][idx], 'pack_file_id': i['id'], 'pack_path': i['path'], 'download_path': file_path, 'download_dir': download_dir})
+			try: unrestrict_link = torr_info['links'][idx]
+			except: unrestrict_link = ''
+			files_links.append({'unrestrict_link': unrestrict_link, 'pack_file_id': i['id'], 'pack_path': i['path'], 'download_path': file_path, 'download_dir': download_dir})
 		torr_info['files_links'] = files_links
 		return torr_info
 
@@ -360,6 +362,7 @@ class RealDebrid:
 		response = self.post_url(url, post_data)
 		try:
 			self.UNRESTRICT_FILE = response["download"]
+			self.UNRESTRICT_FILE_ID = response["id"]
 			return response["download"]
 		except KeyError:
 			raise tools.UnexpectedResponse(response)

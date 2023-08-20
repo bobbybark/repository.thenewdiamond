@@ -33,6 +33,13 @@ def main():
 	except KeyboardInterrupt: 
 		print('\nEXIT')
 		return
+
+
+	if result == 3:
+		magnet_list = '/home/osmc/.kodi/userdata/addon_data/plugin.video.seren_downloader/magnet_list.txt'
+		download_path = '/home/osmc/Movies'
+		getSources.run_downloader(magnet_list, download_path)
+
 	if result == 5:
 		tools.setup_userdata()
 		getSources.setup_providers('https://bit.ly/a4kScrapers')

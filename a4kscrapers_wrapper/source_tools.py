@@ -381,6 +381,7 @@ def filter_movie_title(org_release_title, release_title, movie_title, simple_inf
 	return True
 
 def multi_parts_check(simple_info, release_title=None):
+	#tools.log(release_title)
 	multi_dict = tools.episodes_parts_lists_multi()
 	part_number_title = []
 	for i in multi_dict:
@@ -445,10 +446,10 @@ def run_show_filters(simple_info, pack_title=None, release_title=None):
 			filter_fn = get_filter_single_episode_fn(simple_info)
 			result_dict['get_filter_single_episode_fn'] = filter_fn(simple_info['clean_release'])
 			result_dict['filter_single_special_episode'] = filter_single_special_episode(simple_info, simple_info['clean_release'])
-			part_number_title, part_number_release = parts_check(simple_info, simple_info['clean_release'])
+			part_number_title, part_number_release = parts_check(simple_info, simple_info['query_title'])
 			result_dict['part_number_title'] = part_number_title
 			result_dict['part_number_release'] = part_number_release
-			multi_part_number_title, multi_part_number_release = multi_parts_check(simple_info, simple_info['clean_release'])
+			multi_part_number_title, multi_part_number_release = multi_parts_check(simple_info, simple_info['query_title'])
 			result_dict['multi_part_number_title'] = multi_part_number_title
 			result_dict['multi_part_number_release'] = multi_part_number_release
 			filter_fn = get_filter_single_absolute_episode_fn(simple_info)
@@ -460,7 +461,16 @@ def run_show_filters(simple_info, pack_title=None, release_title=None):
 			filter_fn = get_filter_show_pack_fn(simple_info)
 			result_dict['get_filter_show_pack_fn'] = filter_fn(simple_info['clean_pack'])
 
+		result_dict['episode_number'] = simple_info['episode_number']
 		#tools.write_all_text(path, str(result_dict))
+		result_dict_test = result_dict
+		if ': True' in str(result_dict):
+			if result_dict['part_number_release'] != [] or result_dict['part_number_title'] != []:
+				if result_dict['part_number_release'] != result_dict['part_number_title']:
+					for i in result_dict_test:
+						if result_dict_test[i] == True:
+							result_dict[i] = False
+			#tools.log(result_dict)
 		return result_dict
 
 def filter_check_episode_title_match(simple_info, release_title):
