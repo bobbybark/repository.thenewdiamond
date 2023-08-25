@@ -9,7 +9,10 @@ import shutil
 from . import kodi
 from . import logger
 
-import tools
+try:
+	import tools
+except:
+	from a4kscrapers_wrapper import tools
 
 try:
     from .third_party import chardet

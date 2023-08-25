@@ -9,7 +9,10 @@ import importlib
 kodi = sys.modules[__name__]
 api_mode = os.getenv('A4KSUBTITLES_API_MODE')
 
-import tools
+try:
+	import tools
+except:
+	from a4kscrapers_wrapper import tools
 
 from inspect import currentframe, getframeinfo
 #print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))

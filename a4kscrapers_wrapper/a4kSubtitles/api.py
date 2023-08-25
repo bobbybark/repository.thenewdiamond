@@ -3,7 +3,11 @@
 import os
 import json
 import importlib
-from a4kSubtitles import core
+try:
+	from a4kSubtitles import core
+except:
+	try: from a4kscrapers_wrapper.a4kSubtitles import core
+	except: from . import core
 
 api_mode_env_name = 'A4KSUBTITLES_API_MODE'
 

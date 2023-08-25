@@ -5,8 +5,12 @@ import importlib
 import os
 import sys
 
-import tools
-from thread_pool import ThreadPool
+try:
+	from thread_pool import ThreadPool
+	import tools
+except:
+	from a4kscrapers_wrapper.thread_pool import ThreadPool
+	from a4kscrapers_wrapper import tools
 #from resources.lib.modules.globals import g
 
 
@@ -56,7 +60,10 @@ class A4kSubtitlesAdapter:
 	"""
 
 	def __init__(self):
-		from a4kSubtitles import api
+		try: 
+			from a4kSubtitles import api
+		except:
+			from a4kscrapers_wrapper.a4kSubtitles import api
 		#path = tools.translate_path(
 		#	os.path.join(g.ADDONS_PATH, "/plugin.video.seren_downloader/resources/lib/modules")
 		#)

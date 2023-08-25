@@ -1,7 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import importlib
-from a4kSubtitles.lib import utils
+try:
+	from a4kSubtitles.lib import utils
+	import tools
+	prefix = 'a4kSubtitles'
+except:
+	from a4kscrapers_wrapper.a4kSubtitles.lib import utils
+	from a4kscrapers_wrapper import tools
+	prefix = 'a4kscrapers_wrapper.a4kSubtitles'
+
 
 __all = utils.get_all_relative_entries(__file__)
 __display_names = {
@@ -19,7 +27,8 @@ def __set_fn_if_missing(service, fn_name, fn):
 services = {}
 for service_name in __all:
 	try:
-		service = services[service_name] = importlib.import_module('a4kSubtitles.services.%s' % service_name)
+	#if 1==1:
+		service = services[service_name] = importlib.import_module('%s.services.%s' % (prefix, service_name))
 
 		service.context = utils.DictAsObject({})
 		service.display_name = __display_names[service_name]
@@ -30,5 +39,5 @@ for service_name in __all:
 		assert service.parse_search_response
 		assert service.build_download_request
 	except:
-		print('SUBTITLE_SERVICES_INIT_EXCEPTION!!')
+		tools.log('SUBTITLE_SERVICES_INIT_EXCEPTION!!')
 		continue

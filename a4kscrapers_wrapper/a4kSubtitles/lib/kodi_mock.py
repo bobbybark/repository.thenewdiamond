@@ -38,7 +38,11 @@ __monitor.waitForAbort = lambda _: False
 xbmc.Monitor = lambda: __monitor
 
 def __log(msg, label):
-	print(msg, label)
+	try:
+		import xbmc
+		xbmc.log(str(msg)+'===>PHIL', level=xbmc.LOGINFO)
+	except:
+		print(msg, label)
 
 xbmc.log = __log
 xbmc.LOGDEBUG = 'debug'

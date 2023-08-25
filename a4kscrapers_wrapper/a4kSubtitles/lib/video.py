@@ -10,7 +10,10 @@ import threading
 from .kodi import xbmc, xbmcvfs, get_bool_setting
 from . import logger, cache, utils, request
 
-import tools
+try:
+	import tools
+except:
+	from a4kscrapers_wrapper import tools
 #from resources.lib.modules.globals import g
 
 from inspect import currentframe, getframeinfo

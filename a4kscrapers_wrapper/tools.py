@@ -40,16 +40,32 @@ folder = folder.replace(getframeinfo(currentframe()).filename.split('/')[-1],'')
 #print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 
 #ADDON_USERDATA_PATH = './user_data'
-ADDON_USERDATA_PATH = os.path.join(folder, 'user_data')
-ADDON_NAME = 'plugin.video.a4kWrapper'
-A4KPROVIDERS_PATH = os.path.join(ADDON_USERDATA_PATH, 'providers')
-SETTING_XML = os.path.join(ADDON_USERDATA_PATH, 'settings.xml')
-PROVIDERS_JSON = os.path.join(ADDON_USERDATA_PATH, 'provider.json')
-OPENSUB_USERNAME = 'username'
-OPENSUB_PASSWORD = 'password'
-PID_FILE = os.path.join(ADDON_USERDATA_PATH, 'pid')
+try:
+	from resources.lib import Utils
+	from resources.lib.library import addon_ID
+	ADDON_USERDATA_PATH = Utils.ADDON_DATA_PATH
+	ADDON_NAME = addon_ID()
+	A4KPROVIDERS_PATH = os.path.join(ADDON_USERDATA_PATH, 'providers')
+	SETTING_XML = os.path.join(ADDON_USERDATA_PATH, 'settings.xml')
+	PROVIDERS_JSON = os.path.join(ADDON_USERDATA_PATH, 'provider.json')
+	OPENSUB_USERNAME = 'username'
+	OPENSUB_PASSWORD = 'password'
+	PID_FILE = os.path.join(ADDON_USERDATA_PATH, 'pid')
+	diamond = True
 
-DOWNLOAD_FOLDER = '/home/osmc/Movies'
+
+except:
+	ADDON_USERDATA_PATH = os.path.join(folder, 'user_data')
+	if not os.path.exists(ADDON_USERDATA_PATH):
+		ADDON_USERDATA_PATH = folder.replace('.kodi/addons', '.kodi/userdata/addon_data').replace('a4kscrapers_wrapper/','')
+	ADDON_NAME = 'plugin.video.a4kWrapper'
+	A4KPROVIDERS_PATH = os.path.join(ADDON_USERDATA_PATH, 'providers')
+	SETTING_XML = os.path.join(ADDON_USERDATA_PATH, 'settings.xml')
+	PROVIDERS_JSON = os.path.join(ADDON_USERDATA_PATH, 'provider.json')
+	OPENSUB_USERNAME = 'username'
+	OPENSUB_PASSWORD = 'password'
+	PID_FILE = os.path.join(ADDON_USERDATA_PATH, 'pid')
+	diamond = False
 
 sort_method_names = {
 	0: 'None',
@@ -127,7 +143,8 @@ def set_setting(setting_name, setting_value):
 				line_split_2 = setting_name
 				line_split_3 = '"' + line.split('"',2)[2].split('>')[0] + '>'
 				line_split_4 = setting_value
-				line_split_5 = '<' + line.split('"',2)[2].split('<')[1]
+				try: line_split_5 = '<' + line.split('"',2)[2].split('<')[1]
+				except: line_split_5 = '</setting>\n'
 				setting_line = str(line_split_1) + str(line_split_2) + str(line_split_3) + str(line_split_4) + str(line_split_5)
 				new_setting_file = new_setting_file + setting_line
 				if setting_line != line:
@@ -160,9 +177,20 @@ def get_setting(setting_name, var_type = 'string'):
 		return_var = float(return_var)
 	return return_var
 
-fanart_api_key = get_setting("fanart.apikey", 'string')
-tmdb_API_key = get_setting("tmdb.apikey", 'string')
-tvdb_apikey =  get_setting("tvdb.apikey", 'string')
+
+DOWNLOAD_FOLDER = get_setting("DOWNLOAD_FOLDER", 'string')
+if diamond:
+	fanart_api_key = get_setting("fanart_api", 'string')
+	tmdb_API_key = get_setting("tmdb_api", 'string')
+	tvdb_apikey =  get_setting("tvdb_api", 'string')
+if diamond == False:
+	fanart_api_key = get_setting("fanart.apikey", 'string')
+	tmdb_API_key = get_setting("tmdb.apikey", 'string')
+	tvdb_apikey =  get_setting("tvdb.apikey", 'string')
+	if tmdb_API_key == None or tmdb_API_key == 'None' or tmdb_API_key == '':
+		fanart_api_key = get_setting("fanart_api", 'string')
+		tmdb_API_key = get_setting("tmdb_api", 'string')
+		tvdb_apikey =  get_setting("tvdb_api", 'string')
 
 VIDEO_META = None
 SUB_FILE = None
@@ -295,7 +323,8 @@ def auto_clean_cache(days=None):
 					os.remove(os.path.join(root, name))
 
 def get_download_line(file_path):
-	lines = read_all_text(file_path).split('\n')
+	try: lines = read_all_text(file_path).split('\n')
+	except: return None
 	for line in lines:
 		if line.strip() == '':
 			continue
@@ -615,16 +644,21 @@ requests.Session.delete = _monkey_check(requests.Session.delete)
 requests.Session.put = _monkey_check(requests.Session.put)
 
 def selectFromDict(options, name):
+	print('\n\n')
 	index = 0
 	indexValidList = []
-	log('Select a ' + str(name) + ':')
+	log('\nSelect a ' + str(name) + ':\n')
 	for optionName in options:
 		index = index + 1
 		indexValidList.extend([options[optionName]])
 		log(str(index) + ') ' + optionName)
 	inputValid = False
 	while not inputValid:
-		inputRaw = input(name + ': ')
+		try: 
+			inputRaw = input('\n' + name + ': ')
+		except: 
+			print('EXIT\n')
+			return
 		inputNo = int(inputRaw) - 1
 		if inputNo > -1 and inputNo < len(indexValidList):
 			selected = indexValidList[inputNo]
@@ -632,7 +666,7 @@ def selectFromDict(options, name):
 				if options[i] == selected:
 					selection = i
 					break
-			log('Selected ' +  str(name) + ': ' + str(selection))
+			log('\nSelected ' +  str(name) + ': ' + str(selection)+'\n')
 			inputValid = True
 			break
 		else:
@@ -726,31 +760,39 @@ def episodes_parts_lists():
 	parts_numbers = []
 	parts_words = []
 	parts_numbers2 = []
-	for i in range(1,20):
+	for i in range(1,5):
 		parts_numbers.append(' ('+str(i)+')')
 		parts_roman.append(' Part '+str(int_to_roman(i)))
 		parts_words.append(' Part ' + str(int_to_en(i)))
 		parts_numbers2.append(' Part ' + str(i))
 	return parts_roman, parts_numbers, parts_words, parts_numbers2
 
-def episodes_parts_lists_multi():
+def episodes_parts_lists_multi(number_one, number_two):
 	multi_dict = {}
-	for i in range(1,20):
-		test_dict = {'roman': [int_to_roman(i), int_to_roman(i+1)], 'numbers': ['('+str(i)+')','('+str(i+1)+')'], 'words': [int_to_en(i), int_to_en(i+1)], 'numbers2': [i, i+1]}
+	start = max(int(number_one)-1,1)
+	end = int(number_two)+1
+	for i in range(start, end):
+		#test_dict = {'roman': [int_to_roman(i), int_to_roman(i+1)], 'numbers': ['('+str(i)+')','('+str(i+1)+')'], 'words': [int_to_en(i), int_to_en(i+1)], 'numbers2': [i, i+1], 'numbers3': ['('+str(i).zfill(2)+')','('+str(i+1).zfill(2)+')'],'numbers3': [str(i).zfill(2), str(i+1).zfill(2)],}
+		test_dict = {'numbers': ['('+str(i)+')','('+str(i+1)+')'], 'words': [int_to_en(i), int_to_en(i+1)], 'numbers2': [i, i+1], 'numbers3': ['('+str(i).zfill(2)+')','('+str(i+1).zfill(2)+')'],'numbers3': [str(i).zfill(2), str(i+1).zfill(2)],}
 		multi_dict[i] = []
 		for j in test_dict:
-			multi_dict[i].append( str((' %s+%s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
-			multi_dict[i].append( str((' %s + %s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
-			multi_dict[i].append( str((' %sand%s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
-			multi_dict[i].append( str((' %s and %s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
-			multi_dict[i].append( str((' %s&%s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
-			multi_dict[i].append( str((' %s & %s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
-			multi_dict[i].append( str((' Part %s %s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
-			multi_dict[i].append( str((' Part %s-%s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
-			multi_dict[i].append( str((' Part %s - %s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
-			multi_dict[i].append( str((' Parts %s %s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
-			multi_dict[i].append( str((' Parts %s-%s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
-			multi_dict[i].append( str((' Parts %s - %s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+			multi_dict[i].append( str(('%s+%s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+			multi_dict[i].append( str(('%s + %s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+			multi_dict[i].append( str(('%sand%s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+			multi_dict[i].append( str(('%s and %s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+
+			multi_dict[i].append( str(('E%sE%s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+			multi_dict[i].append( str(('E%s E%s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+
+			multi_dict[i].append( str(('%s&%s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+			multi_dict[i].append( str(('%s & %s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+			#multi_dict[i].append( str((' Part %s %s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+			#multi_dict[i].append( str((' Part %s-%s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+			#multi_dict[i].append( str((' Part %s - %s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+			#multi_dict[i].append( str((' Parts %s %s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+			#multi_dict[i].append( str((' Parts %s-%s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+			#multi_dict[i].append( str((' Parts %s - %s') % (str(test_dict[j][0]), str(test_dict[j][1]))) )
+			
 	return multi_dict
 
 def int_to_en(num):
@@ -798,7 +840,8 @@ def int_to_en(num):
 
 def int_to_roman(number):
 	""" Convert an integer to a Roman numeral. """
-	if not 0 < number < 4000:
+
+	if not 0 < int(number) < 4000:
 		raise ValueError
 	ints = (1000, 900,  500, 400, 100,  90, 50,  40, 10,  9,   5,  4,   1)
 	nums = ('M',  'CM', 'D', 'CD','C', 'XC','L','XL','X','IX','V','IV','I')
@@ -1259,7 +1302,7 @@ class SourceSorter:
 		return current_filters.difference({"HDR", "DV"})
 
 	def filter_sources(self, source_list):
-		print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+		#print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		# Iterate sources, yielding only those that are not filtered
 		for source in source_list:
 			# Quality filter

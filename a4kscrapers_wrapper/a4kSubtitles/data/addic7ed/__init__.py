@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from a4kSubtitles.lib import utils, request, kodi
+try: from a4kSubtitles.lib import utils, request, kodi
+except: from a4kscrapers_wrapper.a4kSubtitles.lib import utils, request, kodi
 
 __languages_filename = 'languages.json'
 __tvshows_filename = 'tvshows.json'

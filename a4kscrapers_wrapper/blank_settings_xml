@@ -4,6 +4,9 @@
     <setting id="rd.client_id"></setting>
     <setting id="rd.expiry"></setting>
     <setting id="rd.secret"></setting>
+    <setting id="DOWNLOAD_FOLDER"></setting>
+    <setting id="magnet_list"></setting>
+    <setting id="download_path"></setting>
     <setting id="realdebrid.enabled">true</setting>
     <setting id="rd.username"></setting>
     <setting id="rd.premiumstatus"></setting>

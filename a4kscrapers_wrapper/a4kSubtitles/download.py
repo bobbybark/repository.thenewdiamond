@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 #from resources.lib.modules.globals import g
-import tools
+try:
+	import tools
+except:
+	from a4kscrapers_wrapper import tools
 import os
 from inspect import currentframe, getframeinfo
 #print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))

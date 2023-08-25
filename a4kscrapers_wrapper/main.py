@@ -1,11 +1,21 @@
-import getSources
-import real_debrid
-import tools
-import source_tools
-import get_meta
-from get_meta import get_episode_meta
-from get_meta import get_movie_meta
-from getSources import Sources
+try:
+	import getSources
+	import real_debrid
+	import tools
+	import source_tools
+	import get_meta
+	from get_meta import get_episode_meta
+	from get_meta import get_movie_meta
+	from getSources import Sources
+except:
+	from a4kscrapers_wrapper import getSources
+	from a4kscrapers_wrapper import real_debrid
+	from a4kscrapers_wrapper import tools
+	from a4kscrapers_wrapper import source_tools
+	from a4kscrapers_wrapper import get_meta
+	from a4kscrapers_wrapper.get_meta import get_episode_meta
+	from a4kscrapers_wrapper.get_meta import get_movie_meta
+	from a4kscrapers_wrapper.getSources import Sources
 
 import sys
 
@@ -34,10 +44,15 @@ def main():
 		print('\nEXIT')
 		return
 
+	if result == 1:
+		getSources.run_tv_search()
+
+	if result == 2:
+		getSources.run_movie_search()
 
 	if result == 3:
-		magnet_list = '/home/osmc/.kodi/userdata/addon_data/plugin.video.seren_downloader/magnet_list.txt'
-		download_path = '/home/osmc/Movies'
+		magnet_list = tools.get_setting('magnet_list')
+		download_path = tools.get_setting('download_path')
 		getSources.run_downloader(magnet_list, download_path)
 
 	if result == 5:

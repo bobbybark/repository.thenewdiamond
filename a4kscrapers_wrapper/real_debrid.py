@@ -4,9 +4,16 @@
 import time
 
 #from database.cache import use_cache
-import tools
+
 import os
-from thread_pool import ThreadPool
+try:
+	from thread_pool import ThreadPool
+	import tools
+except:
+	from a4kscrapers_wrapper import tools
+	from a4kscrapers_wrapper.thread_pool import ThreadPool
+	
+	
 
 try:
 	from functools import cached_property  # Supported from py3.8
@@ -67,6 +74,62 @@ class RealDebrid:
 				tools.log("Authentication with Real-Debrid has failed, please try again")
 				raise
 		return False
+
+	def auth_kodi(self):
+		import xbmcgui, xbmc
+		#url = "client_id={}&new_credentials=yes".format(self.client_id)
+		#url = self.oauth_url + self.device_code_url.format(url)
+		#url = "client_id={}&code={}".format(RD_AUTH_CLIENT_ID, self.device_code)
+		#tools.log(url)
+		#url = self.oauth_url + self.device_credentials_url.format(url)
+		#tools.log(url)
+		self.client_id = tools.get_setting("rd.client_id")
+		if str(self.client_id).strip() == '' or str(self.client_id).strip() == None or self.client_id == None:
+			self.client_id = RD_AUTH_CLIENT_ID
+		url = "client_id={}&new_credentials=yes".format(self.client_id)
+		url = self.oauth_url + self.device_code_url.format(url)
+		#tools.log(RD_AUTH_CLIENT_ID)
+		#tools.log(self.client_id)
+		#tools.log(url)
+		response = self.session.get(url).json()
+		#tools.log(response)
+		#tools.copy2clip(response["user_code"])
+		success = False
+		try:
+			line1=str("Open this link in a browser: {}").format(str("https://real-debrid.com/device"))
+			line2=str("Enter the code: {}").format(str(response["user_code"]))
+			line3=str("This code has NOT! been copied to your clipboard")
+			progress_dialog = xbmcgui.DialogProgress()
+			progress_dialog.create(
+				tools.ADDON_NAME + ": " + str('Real-Debrid Auth'),
+				line1+'\n'+line2+'\n'+line3,
+			)
+			self.oauth_timeout = int(response["expires_in"])
+			token_ttl = int(response["expires_in"])
+			self.oauth_time_step = int(response["interval"])
+			self.device_code = response["device_code"]
+			progress_dialog.update(100)
+			while (
+				not success
+				and not token_ttl <= 0
+				and not progress_dialog.iscanceled()
+			):
+				xbmc.sleep(1000)
+				if token_ttl % self.oauth_time_step == 0:
+					success = self._auth_loop()
+				progress_percent = int(float((token_ttl * 100) / self.oauth_timeout))
+				progress_dialog.update(progress_percent)
+				token_ttl -= 1
+			progress_dialog.close()
+		finally:
+			del progress_dialog
+
+		if success:
+			self.token_request()
+
+			user_information = self.get_url("user")
+			if user_information["type"] != "premium":
+				xbmcgui.Dialog().ok(Utils.ADDON_NAME, "You appear to have authorized a non-premium account and will not be able to play items using this account")
 
 	def auth(self):
 		self.client_id = tools.get_setting("rd.client_id")
@@ -336,13 +399,32 @@ class RealDebrid:
 
 		files_links = []
 		release_name = torr_info['filename']
+		full_pack_bytes = int(torr_info['bytes'])
+		full_pack_original_bytes = int(torr_info['original_bytes'])
+		fraction_of_pack = 0
+		curr_diff_from_prev = 0
 		for idx,i in enumerate(files):
+			old_fraction_of_pack = fraction_of_pack
+			fraction_of_pack = float(int(i['bytes'])/full_pack_original_bytes)*100
+			if old_fraction_of_pack > 0:
+				curr_diff_from_prev = float((old_fraction_of_pack - fraction_of_pack)/old_fraction_of_pack)*100
 			file_path = os.path.join(tools.DOWNLOAD_FOLDER,release_name + i['path'])
 			download_dir = os.path.join(tools.DOWNLOAD_FOLDER,release_name)
 			try: unrestrict_link = torr_info['links'][idx]
 			except: unrestrict_link = ''
-			files_links.append({'unrestrict_link': unrestrict_link, 'pack_file_id': i['id'], 'pack_path': i['path'], 'download_path': file_path, 'download_dir': download_dir})
+			files_links.append({'unrestrict_link': unrestrict_link, 'pack_file_id': i['id'], 'pack_path': i['path'], 'pack_bytes': i['bytes'], 'download_path': file_path, 'download_dir': download_dir, 'full_pack_bytes': full_pack_bytes, 'full_pack_original_bytes': full_pack_original_bytes, 'fraction_of_pack': fraction_of_pack, 'curr_diff_from_prev': curr_diff_from_prev})
 		torr_info['files_links'] = files_links
+		torr_info['pack_length'] = len(torr_info['links'])
+		fracs = []
+		for i in torr_info['files_links']:
+			fracs.append(i['fraction_of_pack'])
+		for idx, i in enumerate(fracs):
+			pc_of_max_frac = abs(100*((i-max(fracs))/max(fracs)))
+			torr_info['files_links'][idx]['pc_of_max_frac'] = pc_of_max_frac
+			if pc_of_max_frac > 45:
+				torr_info['files_links'][idx]['double_ep'] = True
+			else:
+				torr_info['files_links'][idx]['double_ep'] = False
 		return torr_info
 
 
