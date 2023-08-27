@@ -18,14 +18,14 @@ try:
 	import real_debrid
 	import get_meta
 	import source_tools
-	import tools
+	import tools, distance
 	from tools import log
 except:
 	from a4kscrapers_wrapper.thread_pool import ThreadPool
 	from a4kscrapers_wrapper import real_debrid
 	from a4kscrapers_wrapper import get_meta
 	from a4kscrapers_wrapper import source_tools
-	from a4kscrapers_wrapper import tools
+	from a4kscrapers_wrapper import tools, distance
 	from a4kscrapers_wrapper.tools import log
 
 import urllib
@@ -248,10 +248,10 @@ for i in missing_list:
 for idx, i in enumerate(meta['tmdb_seasons']['episodes']):
 	test = output_ep.get(idx+1)
 	if test:
-		print(idx+1,test)
+		tools.log(idx+1,test)
 
-print(time.time()-start_time)
-print(time.time()-start_time)
+tools.log(time.time()-start_time)
+tools.log(time.time()-start_time)
 ##match multi episodes to season pack
 
 ###
@@ -453,15 +453,15 @@ def run_downloader(magnet_list, download_path):
 					processed_files = download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr_info, processed_files, magnet_list, True)
 					start_time = time.time()
 					curr_download = tools.get_download_line(magnet_list)
-		print(processed_files)
-		print('sleep')
+		tools.log(processed_files)
+		tools.log('sleep')
 		time.sleep(10)
 		curr_download = tools.get_download_line(magnet_list)
 		sleep_count = 0
 		while not curr_download:
 			if sleep_count > 90:
 				break
-			print('NO CONTENT SLEEP ' + str(100-sleep_count) + '  remaining')
+			tools.log('NO CONTENT SLEEP ' + str(100-sleep_count) + '  remaining')
 			time.sleep(10)
 			sleep_count = sleep_count + 10
 			curr_download = tools.get_download_line(magnet_list)
@@ -473,7 +473,7 @@ def run_tv_search():
 		season_number = input('Enter Season Number:  ')
 		episode_number = input('Enter Episode Number:  ')
 	except:
-		print('EXIT')
+		tools.log('EXIT')
 		return
 	meta = get_meta.get_episode_meta(season=season_number, episode=episode_number,tmdb=None, show_name=tv_show_title, year=None, interactive=True)
 	info = meta['episode_meta']
@@ -483,7 +483,7 @@ def run_tv_search():
 	download_path = tools.get_setting('download_path')
 	torrent_choices_test = []
 	if len(sources_list) == 0:
-		print('UNCACHED_NO_CACHED TORENTS FOUND!!')
+		tools.log('UNCACHED_NO_CACHED TORENTS FOUND!!')
 		sources_list = uncached
 		for i in torrent_choices:
 			if not 'uncached' in str(i).lower():
@@ -495,39 +495,44 @@ def run_tv_search():
 	for i in torrent_choices_test:
 		torrent_choices.pop(i)
 	torrent = choose_torrent(sources_list)
-	
+	if not torrent:
+		tools.log('EXIT')
+		return
 	result = tools.selectFromDict(torrent_choices, 'Torrent')
+	if not result:
+		tools.log('EXIT')
+		return
 	rd_api = real_debrid.RealDebrid()
 
 	if result == 1 or result == 8:#'Add to RD Cache (whole pack)': 1,#'(Uncached) Add to RD (whole pack) ': 8,
-		print(torrent)
+		tools.log(torrent)
 		response = rd_api.add_magnet(torrent['magnet'])
 		tools.log(response)
 		torr_id = response['id']
 		response = rd_api.torrent_select_all(torr_id)
 		torr_info = rd_api.torrent_info(torr_id)
-		print(torr_info)
+		tools.log(torr_info)
 	elif result == 2:#'Add to RD Cache + Unrestrict (whole pack)': 2,
-		print(torrent)
+		tools.log(torrent)
 		response = rd_api.add_magnet(torrent['magnet'])
 		tools.log(response)
 		torr_id = response['id']
 		response = rd_api.torrent_select_all(torr_id)
 		torr_info = rd_api.torrent_info(torr_id)
-		print(torr_info)
+		tools.log(torr_info)
 		for i in torr_info['links']:
 			unrestrict_link = i
 			download_link = rd_api.resolve_hoster(unrestrict_link)
 			download_id = rd_api.UNRESTRICT_FILE_ID
 			log(download_link, download_id)
 	elif result == 3:#'Unrestrict specific files': 3,
-		print(torrent)
+		tools.log(torrent)
 		response = rd_api.add_magnet(torrent['magnet'])
 		tools.log(response)
 		torr_id = response['id']
 		response = rd_api.torrent_select_all(torr_id)
 		torr_info = rd_api.torrent_info(torr_id)
-		print(torr_info)
+		tools.log(torr_info)
 		#sorted_torr_info = sorted(torr_info['files_links'], key=lambda x: x['pack_path'])
 		for i in torr_info['links']:
 			unrestrict_link = i
@@ -537,12 +542,12 @@ def run_tv_search():
 				download_id = rd_api.UNRESTRICT_FILE_ID
 				log(download_link, download_id)
 	elif result == 9:#'(Uncached) Add to RD (individual files) ': 9
-		print(torrent)
+		tools.log(torrent)
 		response = rd_api.add_magnet(torrent['magnet'])
 		tools.log(response)
 		torr_id = response['id']
 		torr_info = rd_api.torrent_info(torr_id)
-		print(torr_info)
+		tools.log(torr_info)
 		#sorted_torr_info = sorted(torr_info['files_links'], key=lambda x: x['pack_path'])
 		for i in torr_info['files']:
 			unrestrict_link = i
@@ -550,7 +555,7 @@ def run_tv_search():
 			if result and result.strip() != '':
 				response = rd_api.torrent_select(torr_id, i['id'])
 	elif result == 4:#'Add to downloader list (whole pack)': 4,
-		print(torrent)
+		tools.log(torrent)
 
 		meta['download_type'] = 'pack'
 		meta['download_type'] = 'movie'
@@ -560,9 +565,9 @@ def run_tv_search():
 	elif result == 7:#'Add to downloader list (specific files)': 5,
 		meta['download_type'] = 'episode'
 		meta['magnet'] = torrent['magnet']
-		print(torrent)
+		tools.log(torrent)
 	elif result == 6:#'Add to downloader list (whole pack + subtitles)': 6,
-		print(torrent)
+		tools.log(torrent)
 		meta['download_type'] = 'pack'
 		meta['download_type'] = 'movie'
 
@@ -570,7 +575,7 @@ def run_tv_search():
 	elif result == 7:#'Add to downloader list (specific files + subtitles)': 7,
 		meta['download_type'] = 'episode'
 		meta['magnet'] = torrent['magnet']
-		print(torrent)
+		tools.log(torrent)
 
 	return
 
@@ -578,7 +583,7 @@ def run_movie_search():
 	try: 
 		movie_title = input('Enter Movie Title:  ')
 	except:
-		print('EXIT')
+		tools.log('EXIT')
 		return
 
 	meta = get_meta.get_movie_meta(movie_name=movie_title,year=None, interactive=True)
@@ -596,7 +601,7 @@ def run_movie_search():
 		torrent_choices.pop(i)
 	torrent_choices_test = []
 	if len(sources_list) == 0:
-		print('UNCACHED_NO_CACHED TORENTS FOUND!!')
+		tools.log('UNCACHED_NO_CACHED TORENTS FOUND!!')
 		sources_list = uncached
 		for i in torrent_choices:
 			if not 'uncached' in str(i).lower():
@@ -619,28 +624,28 @@ def run_movie_search():
 	rd_api = real_debrid.RealDebrid()
 
 	if result == 1 or result == 8:#'Add to RD Cache (whole pack)': 1,#'(Uncached) Add to RD (whole pack) ': 8,
-		print(torrent)
+		tools.log(torrent)
 		response = rd_api.add_magnet(torrent['magnet'])
 		tools.log(response)
 		torr_id = response['id']
 		response = rd_api.torrent_select_all(torr_id)
 		torr_info = rd_api.torrent_info(torr_id)
-		print(torr_info)
+		tools.log(torr_info)
 	elif result == 2:#'Add to RD Cache + Unrestrict (whole pack)': 2,
-		print(torrent)
+		tools.log(torrent)
 		response = rd_api.add_magnet(torrent['magnet'])
 		tools.log(response)
 		torr_id = response['id']
 		response = rd_api.torrent_select_all(torr_id)
 		torr_info = rd_api.torrent_info(torr_id)
-		print(torr_info)
+		tools.log(torr_info)
 		for i in torr_info['links']:
 			unrestrict_link = i
 			download_link = rd_api.resolve_hoster(unrestrict_link)
 			download_id = rd_api.UNRESTRICT_FILE_ID
 			log(download_link, download_id)
 	elif result == 4:#'Add to downloader list (whole pack)': 4,
-		print(torrent)
+		tools.log(torrent)
 
 		meta['download_type'] = 'pack'
 		meta['download_type'] = 'movie'
@@ -648,7 +653,7 @@ def run_movie_search():
 		meta['magnet'] = torrent['magnet']
 
 	elif result == 6:#'Add to downloader list (whole pack + subtitles)': 6,
-		print(torrent)
+		tools.log(torrent)
 		meta['download_type'] = 'pack'
 		meta['download_type'] = 'movie'
 
@@ -694,10 +699,20 @@ def cloud_get_ep_season(rd_api, meta, torr_id, torr_info):
 							#log(i['name'], jdx+1)
 							#log(meta['tmdb_seasons']['episodes'][idx]['name'])
 							break
+						elif distance.jaro_similarity(i['name'],meta['tmdb_seasons']['episodes'][jdx]['name']) > 0.925:
+							tvmaze_adjusted_eps.append(jdx+1)
+							#log(i['name'], jdx+1)
+							#log(meta['tmdb_seasons']['episodes'][idx]['name'])
+							break
 				if i['name'] == meta['tmdb_seasons']['episodes'][idx]['name'] or str(i['name']) in str(meta['tmdb_seasons']['episodes'][idx]['name']) or str(meta['tmdb_seasons']['episodes'][idx]['name']) in str(i['name']):
 					tvmaze_adjusted_eps.append(jdx+1)
 					#log(i['name'], jdx+1)
 					#log(meta['tmdb_seasons']['episodes'][idx]['name'])
+				elif distance.jaro_similarity(i['name'],meta['tmdb_seasons']['episodes'][jdx]['name']) > 0.925:
+					tvmaze_adjusted_eps.append(jdx+1)
+					#log(i['name'], jdx+1)
+					#log(meta['tmdb_seasons']['episodes'][idx]['name'])
+					break
 			except: 
 				except_no = jdx+1
 				#log(meta['tvmaze_seasons']['episodes'][idx]['name'])
@@ -755,14 +770,14 @@ def cloud_get_ep_season(rd_api, meta, torr_id, torr_info):
 			if int(ij) == int(test_ep):
 				pack_path = result_dict['pack_paths'][ijx]
 				for ik in sorted_torr_info:
-					#print(ik)
+					#tools.log(ik)
 					if pack_path == ik['pack_path'] or ik['pack_path'] in str(pack_path) or pack_path in str(ik['pack_path']):
 						unrestrict_link = ik['unrestrict_link']
 						response = rd_api.resolve_hoster(unrestrict_link)
 						download_link = response
 						download_id = download_link.split('/')[4]
 						file_name = unquote(download_link).split('/')[-1]
-						log(download_link, download_id, pack_path, file_name)
+						#log(download_link, download_id, pack_path, file_name)
 						break
 	else:
 
@@ -770,14 +785,14 @@ def cloud_get_ep_season(rd_api, meta, torr_id, torr_info):
 			if int(ij) == int(simple_info['episode_number']):
 				pack_path = result_dict['pack_paths'][ijx]
 				for ik in sorted_torr_info:
-					#print(ik)
+					#tools.log(ik)
 					if pack_path == ik['pack_path'] or ik['pack_path'] in str(pack_path) or pack_path in str(ik['pack_path']):
 						unrestrict_link = ik['unrestrict_link']
 						response = rd_api.resolve_hoster(unrestrict_link)
 						download_link = response
 						download_id = download_link.split('/')[4]
 						file_name = unquote(download_link).split('/')[-1]
-						log(download_link, download_id, pack_path, file_name)
+						#log(download_link, download_id, pack_path, file_name)
 						new_meta = meta
 						break
 	return download_link, new_meta
@@ -787,13 +802,33 @@ def auto_scrape_rd(meta):
 	#from getSources import Sources
 	rd_api = real_debrid.RealDebrid()
 	#meta = get_meta.get_episode_meta(season=1,episode=1,show_name='Deep Space Nine')
-	info = meta['episode_meta']
+
+	if meta.get('download_type',False) == 'movie':
+		info = meta
+		download_type = meta.get('download_type',False)
+		meta['episode_meta'] = {}
+	else:
+		info = meta['episode_meta']
+	special_flag = False
+	if meta['episode_meta'].get('special',False) == True:
+		special_flag = True
 	#info = meta['tmdb_seasons']['episodes'][11]
 	uncached, sources_list, item_information = Sources(info).get_sources()
+
 	#torrent = getSources.choose_torrent(sources_list)
 	idx = 0
 	sources_list = tools.SourceSorter(info).sort_sources(sources_list)
 	uncached = tools.SourceSorter(info).sort_sources(uncached)
+	if special_flag == True and(len(sources_list) == 0 or len(sources_list)+len(uncached)<5):
+		info2 = info
+		info2['episode'] = str(meta['episode_meta']['alt_episode'])
+		info2['season'] = str(meta['episode_meta']['alt_season'])
+		info2['info']['episode'] = str(meta['episode_meta']['alt_episode'])
+		info2['info']['season'] = str(meta['episode_meta']['alt_season'])
+		uncached, sources_list, item_information = Sources(info2).get_sources()
+		sources_list = tools.SourceSorter(info2).sort_sources(sources_list)
+		uncached = tools.SourceSorter(info2).sort_sources(uncached)
+
 	download_link = None
 	while download_link == None:
 		try: 
@@ -835,9 +870,12 @@ def auto_scrape_rd(meta):
 		#	test = source_tools.run_show_filters(simple_info, release_title = i['pack_path'])
 		#	if ': True' in str(test):
 		#		log(test)
-
-		download_link, new_meta = cloud_get_ep_season(rd_api, meta, torr_id, torr_info)
-		return download_link, new_meta
+		if download_type == 'movie':
+			download_link, new_meta = cloud_movie(rd_api, meta, torr_id, torr_info)
+		else:
+			download_link, new_meta = cloud_get_ep_season(rd_api, meta, torr_id, torr_info)
+		if download_link:
+			return download_link, new_meta
 	"""
 	torr_info = rd_api.torrent_info_files(torr_info)
 	sorted_torr_info = sorted(torr_info['files_links'], key=lambda x: x['pack_path'])
@@ -899,7 +937,7 @@ def auto_scrape_rd(meta):
 			if int(ij) == int(simple_info['episode_number']):
 				pack_path = result_dict['pack_paths'][ijx]
 				for ik in sorted_torr_info:
-					#print(ik)
+					#tools.log(ik)
 					if pack_path == ik['pack_path'] or ik['pack_path'] in str(pack_path) or pack_path in str(ik['pack_path']):
 						unrestrict_link = ik['unrestrict_link']
 						response = rd_api.resolve_hoster(unrestrict_link)
@@ -914,7 +952,7 @@ def auto_scrape_rd(meta):
 			if int(ij) == int(simple_info['episode_number']):
 				pack_path = result_dict['pack_paths'][ijx]
 				for ik in sorted_torr_info:
-					#print(ik)
+					#tools.log(ik)
 					if pack_path == ik['pack_path'] or ik['pack_path'] in str(pack_path) or pack_path in str(ik['pack_path']):
 						unrestrict_link = ik['unrestrict_link']
 						response = rd_api.resolve_hoster(unrestrict_link)
@@ -946,9 +984,38 @@ def auto_scrape_rd(meta):
 	return download_link, new_meta
 	"""
 
+def cloud_movie(rd_api, meta, torr_id, torr_info):
+	download_link = None
+
+	torr_info = rd_api.torrent_info_files(torr_info)
+	sorted_torr_info = sorted(torr_info['files_links'], key=lambda x: x['pack_path'])
+	simple_info = tools._build_simple_movie_info(meta)
+	
+	simple_info['imdb_id'] = meta['imdb_id']
+	#tools.log(sorted_torr_info)
+	for i in sorted_torr_info:
+
+		test1 = source_tools.filter_movie_title(torr_info['filename'], source_tools.clean_title(torr_info['filename']), meta['title'], simple_info)
+		test2 = source_tools.filter_movie_title(i['pack_path'], source_tools.clean_title( i['pack_path']), meta['title'], simple_info)
+		if test1 or test2:
+			pack_path = i['pack_path']
+			break
+
+	for x in torr_info['files_links']:
+		if pack_path == x['pack_path']:
+			unrestrict_link = x['unrestrict_link']
+			break
+
+	#log(unrestrict_link, pack_path)
+	download_link = rd_api.resolve_hoster(unrestrict_link)
+	download_id = rd_api.UNRESTRICT_FILE_ID
+	#log(download_link, download_id)
+	
+	return download_link, meta
+
 
 def cloud_single_ep(rd_api, meta, torr_id, torr_info):
-	#print('download_cached_episode')
+	#tools.log('download_cached_episode')
 
 
 	torr_info = rd_api.torrent_info_files(torr_info)
@@ -963,10 +1030,10 @@ def cloud_single_ep(rd_api, meta, torr_id, torr_info):
 		if ': True' in str(test2):
 			unrestrict_link = i['unrestrict_link']
 
-	log(unrestrict_link, pack_path)
+	#log(unrestrict_link, pack_path)
 	download_link = rd_api.resolve_hoster(unrestrict_link)
 	download_id = rd_api.UNRESTRICT_FILE_ID
-	log(download_link, download_id)
+	#log(download_link, download_id)
 
 	#info = get_subtitles(info, download_path)
 	#sub_out = os.path.basename(tools.SUB_FILE)
@@ -986,118 +1053,107 @@ meta = get_meta.get_episode_meta(season=1,episode=3,show_name='Foundation',year=
 getSources.check_rd_cloud(meta)
 """
 	download_link = ''
-	info = meta['tvmaze_seasons']['episodes'][int(meta['episode_meta']['episode'])-1]
+	special_flag = False
+	if meta.get('download_type',False) == 'movie':
+		info = meta
+		download_type = meta.get('download_type',False)
+		meta['episode_meta'] = {}
+	else:
+		info = meta['tvmaze_seasons']['episodes'][int(meta['episode_meta']['episode'])-1]
+		download_type = meta.get('download_type',False)
+	if meta['episode_meta'].get('special',False) == True:
+		special_flag = True
 	#log(info)
-	simple_info = tools._build_simple_show_info(info)
+	if download_type == 'movie':
+		simple_info = tools._build_simple_movie_info(info)
+		simple_info['imdb_id'] = info['imdb_id']
+	else:
+		simple_info = tools._build_simple_show_info(info)
+
 	rd_api = real_debrid.RealDebrid()
 	for i in range(1,99):
-		print(i, 'download')
+		#tools.log('download', i)
 		result = rd_api.list_downloads_page(int(i))
 		if '[204]' in str(result):
 			break
 		for x in result:
-			test = source_tools.run_show_filters(simple_info, release_title = x['filename'])
+			if download_type == 'movie':
+				test = source_tools.filter_movie_title(x['filename'], source_tools.clean_title(x['filename']), meta['title'], simple_info)
+				if test:
+					test = ': True'
+			else:
+				test = source_tools.run_show_filters(simple_info, release_title = x['filename'])
 			if ': True' in str(test):
-				log(test)
+				#log(test)
 				download_link = x['download']
-				log(download_link, x['filename'])
+				log('download',download_link, x['filename'])
 				break
+			if special_flag == True:
+
+				simple_info2 = simple_info
+				if meta['episode_meta']['alt_episode'] != None:
+					simple_info2['episode_number'] = str(meta['episode_meta']['alt_episode'])
+					simple_info2['season_number'] = str(meta['episode_meta']['alt_season'])
+
+				test = source_tools.run_show_filters(simple_info2, release_title = x['filename'])
+
+				if ': True' in str(test):
+					log(test)
+					download_link = x['download']
+					log('special_download',download_link, x['filename'])
+					break
 		if download_link:
 			break
 	if download_link:
 		return download_link, meta
 	for i in range(1,99):
-		print(i, 'torrent')
+		#tools.log('torrent', i)
 		result = rd_api.list_torrents_page(int(i))
 		if '[204]' in str(result):
 			break
 		for x in result:
-			test = source_tools.run_show_filters(simple_info, pack_title = x['filename'])
-			test2 = source_tools.run_show_filters(simple_info, release_title = x['filename'])
+
+			if download_type == 'movie':
+				test = source_tools.filter_movie_title(x['filename'], source_tools.clean_title(x['filename']), meta['title'], simple_info)
+				if test:
+					test = ': True'
+				#test2 = source_tools.filter_movie_title(x['filename'], source_tools.clean_title(x['filename']), meta['title'], simple_info)
+				test2 = {}
+			else:
+				test = source_tools.run_show_filters(simple_info, pack_title = x['filename'])
+				test2 = source_tools.run_show_filters(simple_info, release_title = x['filename'])
 			if ': True' in str(test) or ': True' in str(test2):
-				log(test, test2)
+				#log(test, test2)
 				torr_id = x['id']
 				torr_info = rd_api.torrent_info(torr_id)
 
+				if download_type == 'movie':
+					download_link, meta = cloud_movie(rd_api, meta, torr_id, torr_info)
+					tools.log('cloud_movie',download_link,'download_link')
+					if download_link:
+						return download_link, meta
+
 				download_link, new_meta = cloud_get_ep_season(rd_api, meta, torr_id, torr_info)
-				return download_link, new_meta
-				"""
-				torr_info = rd_api.torrent_info_files(torr_info)
-				sorted_torr_info = sorted(torr_info['files_links'], key=lambda x: x['pack_path'])
-				#log(sorted_torr_info)
+				tools.log('cloud_get_ep_season',download_link,'download_link')
+				if download_link:
+					return download_link, new_meta
 
-				#mode = 'tvmaze'
-				result_dict = source_tools.match_episodes_season_pack(meta, sorted_torr_info)
+			if special_flag == True:
+				simple_info2 = simple_info
+				simple_info2['episode_number'] = str(meta['episode_meta']['alt_episode'])
+				simple_info2['season_number'] = str(meta['episode_meta']['alt_season'])
+				test = source_tools.run_show_filters(simple_info, pack_title = x['filename'])
+				test2 = source_tools.run_show_filters(simple_info, release_title = x['filename'])
+				if ': True' in str(test) or ': True' in str(test2):
+					log(test, test2)
+					torr_id = x['id']
+					torr_info = rd_api.torrent_info(torr_id)
 
-				log('RESULT_DICT',result_dict)
-				#log(meta['episode_meta']['title'])
-				try: 
-					meta_source = result_dict['concat'][0]['meta_source']
-				except:
-					download_link = cloud_single_ep(rd_api, meta, torr_id, torr_info)
-					return download_link
-
-				tvmaze_adjusted_eps = []
-				jdx = 0
-				if meta_source == 'tmdb_seasons' and len(meta['tmdb_seasons']['episodes']) < len(meta['tvmaze_seasons']['episodes']):
-					for idx, i in enumerate(meta['tvmaze_seasons']['episodes']):
-						try:
-							if i['name'] != meta['tmdb_seasons']['episodes'][idx]['name'] and not (str(i['name']) in str(meta['tmdb_seasons']['episodes'][idx]['name']) or str(meta['tmdb_seasons']['episodes'][idx]['name']) in str(i['name'])):
-								for jdx, ji in enumerate(meta['tvmaze_seasons']['episodes']):
-									if i['name'] == meta['tmdb_seasons']['episodes'][jdx]['name'] or str(i['name']) in str(meta['tmdb_seasons']['episodes'][jdx]['name']) or str(meta['tmdb_seasons']['episodes'][jdx]['name']) in str(i['name']) :
-										tvmaze_adjusted_eps.append(jdx+1)
-										#log(i['name'], jdx+1)
-										#log(meta['tmdb_seasons']['episodes'][idx]['name'])
-										break
-							if i['name'] == meta['tmdb_seasons']['episodes'][idx]['name'] or str(i['name']) in str(meta['tmdb_seasons']['episodes'][idx]['name']) or str(meta['tmdb_seasons']['episodes'][idx]['name']) in str(i['name']):
-								tvmaze_adjusted_eps.append(jdx+1)
-								#log(i['name'], jdx+1)
-								#log(meta['tmdb_seasons']['episodes'][idx]['name'])
-						except: 
-							except_no = jdx+1
-							#log(meta['tvmaze_seasons']['episodes'][idx]['name'])
-							pass
-				#log(tvmaze_adjusted_eps)
-				for i in result_dict['episode_numbers']:
-					if not int(i) in tvmaze_adjusted_eps:
-						tvmaze_adjusted_eps.append(int(i))
-				simple_info['episode_number'] = str(tvmaze_adjusted_eps[ int(simple_info['episode_number'])-1 ])
-
-				#log(simple_info['episode_number'])
-
-				#mode = 'tmdb'
-				#result_dict2 = source_tools.match_episodes_season_pack(meta, sorted_torr_info)
-				#log(result_dict2)
-				#if len(result_dict1['episode_numbers']) > len(result_dict2['episode_numbers']):
-				#	result_dict = result_dict1
-				#else:
-				#	result_dict = result_dict2
-				for ijx, ij in enumerate(result_dict['episode_numbers']):
-					if int(ij) == int(simple_info['episode_number']):
-						pack_path = result_dict['pack_paths'][ijx]
-						for ik in sorted_torr_info:
-							#print(ik)
-							if pack_path == ik['pack_path'] or ik['pack_path'] in str(pack_path) or pack_path in str(ik['pack_path']):
-								unrestrict_link = ik['unrestrict_link']
-								response = rd_api.resolve_hoster(unrestrict_link)
-								download_link = response
-								download_id = download_link.split('/')[4]
-								file_name = unquote(download_link).split('/')[-1]
-								log(download_link, download_id, pack_path, file_name, x['filename'])
-								break
-			if download_link:
-				break
-		if download_link:
-			break
-				#for ij in sorted_torr_info:
-				#	test = source_tools.run_show_filters(simple_info, release_title = ij['pack_path'])
-				#	if ': True' in str(test):
-				#		log(test)
-				#		break
-				#if ': True' in str(test):
-				#	log(ij)
-	return download_link
-				"""
+					download_link, new_meta = cloud_get_ep_season(rd_api, meta, torr_id, torr_info)
+					tools.log('SPECIAL_cloud_get_ep_season',download_link,'download_link')
+					if download_link:
+						return download_link, new_meta
+	return download_link, meta
 
 
 def unprocessed_rd_http(magnet_link, file_path, torr_id, download_folder):
@@ -1200,7 +1256,7 @@ def download_http_rd_link(rd_api, download_path, curr_download):
 
 
 def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr_info, processed_files, magnet_list, test_download):
-	#print('download_uncached_magnet')
+	#tools.log('download_uncached_magnet')
 	torr_info = rd_api.torrent_info_files(torr_info)
 	sorted_torr_info = sorted(torr_info['files_links'], key=lambda x: x['pack_path'])
 	number_rd = 0
@@ -1217,9 +1273,9 @@ def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr
 			mode = 'tvmaze'
 		else:
 			mode = 'tmdb'
-		#print(mode)
+		#tools.log(mode)
 		result_dict = source_tools.match_episodes_season_pack(curr_download, sorted_torr_info)
-		#print(result_dict)
+		#tools.log(result_dict)
 
 		for idx, i in enumerate(result_dict['pack_paths']):
 			if pack_path in i or pack_path == i:
@@ -1250,7 +1306,7 @@ def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr
 		log(sub_path)
 
 	def is_movie_process(torr_id, torr_info):
-		#print('is_movie_process')
+		#tools.log('is_movie_process')
 		folder = curr_download['CURR_LABEL']
 		if '.mp4' in str(folder) or '.avi' in str(folder) or '.mkv' in str(folder):
 			folder = None
@@ -1275,8 +1331,8 @@ def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr
 		log(sub_path)
 
 	def plain_download(torr_id, torr_info):
-		#print('DOWNLOAD_TO_MAIN_FOLDER_NO_META')
-		#print(torr_info)
+		#tools.log('DOWNLOAD_TO_MAIN_FOLDER_NO_META')
+		#tools.log(torr_info)
 		folder = torr_info['original_filename']
 		if '.mp4' in str(folder) or '.avi' in str(folder) or '.mkv' in str(folder):
 			folder = None
@@ -1313,7 +1369,7 @@ def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr
 				rd_api.delete_torrent(torr_id)
 
 		if str(pack_path) in str(processed_files):
-			print('DELETE_TORR_ID')
+			tools.log('DELETE_TORR_ID')
 			rd_api.delete_torrent(torr_id)
 			continue
 		if test_download:
@@ -1351,14 +1407,14 @@ def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr
 
 
 def download_cached_movie(rd_api, download_path, curr_download, torr_id, torr_info):
-	#print('download_cached_movie')
+	#tools.log('download_cached_movie')
 	folder = curr_download['CURR_LABEL']
 	download_folder = os.path.join(download_path, folder)
 	torr_info = rd_api.torrent_info_files(torr_info)
 	sorted_torr_info = sorted(torr_info['files_links'], key=lambda x: x['pack_path'])
 	simple_info = tools._build_simple_show_info(curr_download)
 	simple_info['imdb_id'] = curr_download['imdb_id']
-	#print(sorted_torr_info)
+	#tools.log(sorted_torr_info)
 	for i in sorted_torr_info:
 		#test = source_tools.run_show_filters(simple_info, pack_title = i['pack_path'])
 		test1 = source_tools.filter_movie_title(curr_download['CURR_LABEL'], source_tools.clean_title(curr_download['CURR_LABEL']), curr_download['title'], simple_info)
@@ -1390,7 +1446,7 @@ def download_cached_movie(rd_api, download_path, curr_download, torr_id, torr_in
 	rd_api.delete_download(rd_api.UNRESTRICT_FILE_ID)
 
 def download_cached_episode(rd_api, download_path, curr_download, torr_id, torr_info):
-	#print('download_cached_episode')
+	#tools.log('download_cached_episode')
 	folder = curr_download['CURR_LABEL']
 	download_folder = os.path.join(download_path, folder)
 	torr_info = rd_api.torrent_info_files(torr_info)
@@ -1809,21 +1865,40 @@ class Sources(object):
 			# Keep alive for gui display and threading
 			log('Entering Keep Alive', 'info')
 
+			log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 			while self.progress < 100:
 				self.runtime = time.time() - start_time
+
+				time.sleep(1)
+				log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+
 				self._update_progress()
+
+				time.sleep(1)
+
 				self.timeout_progress = int(100 - float(1 - (self.runtime / float(self.timeout))) * 100)
 				self.progress = int(100 - (	len(self.sources_information['statistics']['remainingProviders']) / float(len(self.torrent_providers)) * 100) )
 
+				log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+				time.sleep(1)
+				
 				if self._prem_terminate() is True or (	len(self.sources_information['statistics']['remainingProviders']) == 0 and self.runtime > 5):
 					# Give some time for scrapers to initiate
+
+					log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+					time.sleep(1)
+
 					break
 				if self.canceled or self.runtime >= self.timeout:
+					log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 					tools.PRE_TERM_BLOCK = True
 					self.PRE_TERM_BLOCK = True
+
+					time.sleep(1)
+
 					break
 
-				time.sleep(0.20)
+				time.sleep(1)
 
 			log('Exited Keep Alive', 'info')
 			return self._finalise_results()
@@ -2074,6 +2149,8 @@ class Sources(object):
 
 			return
 
+		except:
+			pass
 		finally:
 			self.sources_information['statistics']['remainingProviders'].remove(provider_name)
 
@@ -2107,7 +2184,7 @@ class Sources(object):
 
 
 	def _update_progress(self):
-
+		log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		def _get_quality_count_dict(source_list):
 			_4k = 0
 			_1080p = 0

@@ -10,10 +10,12 @@ import sys
 
 import hashlib
 try:
-	import tools
+	import tools, distance
 except:
-	from a4kscrapers_wrapper import tools
+	from a4kscrapers_wrapper import tools, distance
 import time
+
+
 
 from requests import Session
 
@@ -24,6 +26,12 @@ current_directory = str(getframeinfo(currentframe()).filename.replace(os.path.ba
 sys.path.append(current_directory)
 sys.path.append(current_directory.replace('a4kscrapers_wrapper',''))
 
+try:
+	import daetutil, babelfish, rebulk, guessit
+	from guessit import api
+except:
+	from a4kscrapers_wrapper import dateutil, babelfish, rebulk, guessit
+	from a4kscrapers_wrapper.guessit import api
 
 USER_AGENTS = [
 	"Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.86 Safari/537.36",
@@ -446,7 +454,9 @@ def parts_check(simple_info, release_title=None):
 			part_match_release.append(parts_numbers2[idx])
 	return part_number_title, part_number_release, part_match_title, part_match_release
 
-
+def get_guess(release_title, options=None):
+	guess = api.guessit(release_title, options)
+	return guess
 
 def run_show_filters(simple_info, pack_title=None, release_title=None, guess=False):
 
@@ -501,14 +511,9 @@ def run_show_filters(simple_info, pack_title=None, release_title=None, guess=Fal
 
 		if not ': True' in str(result_dict):
 
-			try:
-				import daetutil, babelfish, rebulk, guessit
-				from guessit import api
-			except:
-				from a4kscrapers_wrapper import dateutil, babelfish, rebulk, guessit
-				from a4kscrapers_wrapper.guessit import api
-			
-			guess = api.guessit(release_title)
+
+			guess = get_guess(release_title)
+			#guess = api.guessit(release_title)
 			guess_season = guess.get('season', -1)
 			guess_episode = []
 			guess_title = guess.get('title')
@@ -527,7 +532,15 @@ def run_show_filters(simple_info, pack_title=None, release_title=None, guess=Fal
 				for i in guess_episode:
 					if i == int(simple_info['episode_number']):
 						result_dict['get_filter_single_episode_fn'] = True
-	
+		if ': True' in str(result_dict):
+			guess = get_guess(release_title)
+			guess_title = guess.get('title')
+			show_title = simple_info['show_title']
+			distance_apart = distance.jaro_similarity(show_title,guess_title)
+			if distance_apart < 0.925:
+				for i in result_dict:
+						if result_dict[i] == True:
+							result_dict[i] = False
 		#if len(part_number_title)>0 and len(part_number_release)>0:
 		##	print(result_dict)
 		#	for idx, i in enumerate(part_number_title):
@@ -1437,12 +1450,12 @@ def match_episodes_season_pack1(meta, sorted_torr_info):
 		return results
 	else:
 		#sys.path.append(current_directory)
-		try:
-			import daetutil, babelfish, rebulk, guessit
-			from guessit import api
-		except:
-			from a4kscrapers_wrapper import dateutil, babelfish, rebulk, guessit
-			from a4kscrapers_wrapper.guessit import api
+		#try:
+		#	import daetutil, babelfish, rebulk, guessit
+		#	from guessit import api
+		#except:
+		#	from a4kscrapers_wrapper import dateutil, babelfish, rebulk, guessit
+		#	from a4kscrapers_wrapper.guessit import api
 
 		last_episode_tmdb = int(meta['tmdb_seasons']['episodes'][-1]['episode'])
 		last_episode_tvmaze = int(meta['tvmaze_seasons']['episodes'][-1]['episode'])
@@ -1451,7 +1464,8 @@ def match_episodes_season_pack1(meta, sorted_torr_info):
 		folders = unique([item['pack_path'].replace(os.path.basename(item['pack_path']),'') for item in sorted_torr_info])
 		season_path = None
 		for i in folders:
-			guess = api.guessit(i)
+			#guess = api.guessit(i)
+			guess = get_guess(i)
 			if guess.get('season') == int(season):
 				season_path = i
 				break
@@ -1481,7 +1495,8 @@ def match_episodes_season_pack1(meta, sorted_torr_info):
 			if season_path:
 				if not season_path in str(i['pack_path']):
 					continue
-			guess = api.guessit(pack_path, options)
+			#guess = api.guessit(pack_path, options)
+			guess = get_guess(pack_path, options)
 			guessit_list.append([guess, idx, []])
 			guess_season = guess.get('season')
 			guess_episode = []
@@ -1592,12 +1607,12 @@ def match_episodes_season_pack(meta, sorted_torr_info):
 		return results
 	else:
 		#sys.path.append(current_directory)
-		try:
-			import daetutil, babelfish, rebulk, guessit
-			from guessit import api
-		except:
-			from a4kscrapers_wrapper import dateutil, babelfish, rebulk, guessit
-			from a4kscrapers_wrapper.guessit import api
+		#try:
+		#	import daetutil, babelfish, rebulk, guessit
+		#	from guessit import api
+		#except:
+		#	from a4kscrapers_wrapper import dateutil, babelfish, rebulk, guessit
+		#	from a4kscrapers_wrapper.guessit import api
 
 		last_episode_tmdb = int(meta['tmdb_seasons']['episodes'][-1]['episode'])
 		last_episode_tvmaze = int(meta['tvmaze_seasons']['episodes'][-1]['episode'])
@@ -1606,7 +1621,8 @@ def match_episodes_season_pack(meta, sorted_torr_info):
 		folders = unique([item['pack_path'].replace(os.path.basename(item['pack_path']),'') for item in sorted_torr_info])
 		season_path = None
 		for i in folders:
-			guess = api.guessit(i)
+			#guess = api.guessit(i)
+			guess = get_guess(i)
 			if guess.get('season') == int(season):
 				season_path = i
 				break
@@ -1630,7 +1646,8 @@ def match_episodes_season_pack(meta, sorted_torr_info):
 			if season_path:
 				if not season_path in str(i['pack_path']):
 					continue
-			guess = api.guessit(pack_path, options)
+			#guess = api.guessit(pack_path, options)
+			guess = get_guess(pack_path, options)
 			guessit_list.append([guess, idx, []])
 			guess_season = guess.get('season')
 			guess_episode = []
@@ -1679,7 +1696,7 @@ def match_episodes_season_pack(meta, sorted_torr_info):
 					episode_title = re.sub("[\x00-\x2F\x3A-\x40\x5B-\x60\x7B-\x7F]+", " ", episode_title.lower())
 				else:
 					continue
-				if ep_title == episode_title or str(ep_title) in str(episode_title) or str(episode_title) in str(ep_title):
+				if ep_title == episode_title or str(ep_title) in str(episode_title) or str(episode_title) in str(ep_title) or distance.jaro_similarity(ep_title, episode_title) > 0.925:
 					for y in i[-1]:
 						try:
 							if not sorted_torr_info[idx]['pack_path'] in matched_episodes[int(x['episode'])]:
@@ -1726,7 +1743,7 @@ def match_episodes_season_pack(meta, sorted_torr_info):
 					guess_episode = guess.get('episode') 
 					simple_info = tools._build_simple_show_info(meta[meta_source]['episodes'][int(i)-1])
 					part_number_title, part_number_release, part_match_title, part_match_release = parts_check(simple_info, pack_path)
-					if ep_title == episode_title or str(ep_title) in str(episode_title) or str(episode_title) in str(ep_title):
+					if ep_title == episode_title or str(ep_title) in str(episode_title) or str(episode_title) in str(ep_title) or distance.jaro_similarity(ep_title, episode_title) > 0.925:
 						if guess_episode == i and guess_season == int(meta[meta_source]['episodes'][int(i)-1]['season']):
 							match = True
 						elif part_number_title == part_number_release:

@@ -585,6 +585,8 @@ def extract_zip(zip_file, dest_dir):
 	files = os.listdir(source)
 	for file in files:
 		file_name = os.path.join(source, file)
+		if os.path.exists(destination):
+			delete_file(destination)
 		shutil.move(file_name, destination)
 	delete_file(source)
 
