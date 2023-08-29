@@ -13,7 +13,6 @@ except:
 	from a4kscrapers_wrapper import tools
 #from resources.lib.modules.globals import g
 
-
 class SubtitleService:
 	"""
 	Connects to available subtitle services and retrieves available subtitles for media
@@ -52,7 +51,6 @@ class SubtitleService:
 		except IndexError:
 			tools.log("No subtitles available from A4kSubtitles", "error")
 			return None
-
 
 class A4kSubtitlesAdapter:
 	"""

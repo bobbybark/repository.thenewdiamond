@@ -1303,6 +1303,34 @@ class SourceSorter:
 
 		return current_filters.difference({"HDR", "DV"})
 
+	def filter_sources2(self, source_list):
+		#print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+		# Iterate sources, yielding only those that are not filtered
+		for source in source_list:
+			# Quality filter
+			if source['quality'] not in self.resolution_set:
+				continue
+			# Info Filter
+			if self.filter_set & source['info']:
+				continue
+			# DV filter
+			if self.disable_dv and "DV" in source['info'] and "HYBRID" not in source['info']:
+				continue
+			# HDR Filter
+			if self.disable_hdr and "HDR" in source['info'] and "HYBRID" not in source['info']:
+				continue
+			# Hybrid Filter
+			if self.disable_dv and self.disable_hdr and "HYBRID" in source['info']:
+				continue
+			# File size limits filter
+			#if self.enable_size_limit and not (
+			#		self.size_limit >= float(source.get("size", 0)) >= self.size_minimum
+			#):
+			#	continue
+
+			# If not filtered, yield source
+			yield source
+
 	def filter_sources(self, source_list):
 		#print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		# Iterate sources, yielding only those that are not filtered
@@ -1342,7 +1370,7 @@ class SourceSorter:
 		 """
 
 		filtered_sources = list(self.filter_sources(sources_list))
-		filtered_sources = list(sources_list)
+		#filtered_sources = list(sources_list)
 		if (len(filtered_sources) == 0 and len(sources_list) > 0):
 			#response = None
 			#if not g.get_bool_runtime_setting('tempSilent'):

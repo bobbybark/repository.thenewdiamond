@@ -11,8 +11,8 @@ try:
 	fanart_api_key = g.get_setting("fanart.apikey")
 except:
 	try:
-		import tools
-	except: from a4kscrapers_wrapper import tools
+		import tools, distance
+	except: from a4kscrapers_wrapper import tools, distance
 	ADDON_USERDATA_PATH = tools.ADDON_USERDATA_PATH
 	tmdb_API_key = tools.tmdb_API_key
 	fanart_api_key = tools.fanart_api_key
@@ -178,7 +178,7 @@ def blank_meta():
 	return meta
 
 def get_movie_meta(tmdb=None, movie_name=None, year=None, imdb=None, interactive=False):
-
+	movie = None
 	def tmdb_meta(tmdb):
 
 		if tmdb:
@@ -369,6 +369,11 @@ def get_episode_meta_special(season, episode,tmdb=None, show_name=None, year=Non
 
 				for x in show['tmdb_seasons']['episodes']:
 					if str(x['name']) in str(i.get('name')):
+						tmdb_season = x['season']
+						tmdb_episode = x['episode']
+						special_flag = True
+						break
+					elif distance.jaro_similarity(str(x['name']),str(i.get('name'))) > 0.85:
 						tmdb_season = x['season']
 						tmdb_episode = x['episode']
 						special_flag = True

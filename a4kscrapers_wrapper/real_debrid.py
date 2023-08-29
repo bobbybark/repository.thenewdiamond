@@ -438,6 +438,16 @@ class RealDebrid:
 		post_data = {"files": file_id}
 		return self.post_url(url, post_data)
 
+	def test_download_link(self,download_link):
+		import requests
+		headers=requests.head(download_link).headers
+		UNRESTRICT_FILE_ID = download_link.split('/')[4]
+		if not str('attachment') in headers.get('Content-Disposition',''):
+			delete_download(UNRESTRICT_FILE_ID)
+			return None
+		else:
+			return download_link
+
 	def resolve_hoster(self, link):
 		import requests
 		url = "unrestrict/link"
@@ -452,7 +462,7 @@ class RealDebrid:
 				return None
 			return response["download"]
 		except KeyError:
-			raise tools.UnexpectedResponse(response)
+			return None
 
 	def delete_download(self, id):
 		url = "downloads/delete/{}".format(id)
