@@ -10,6 +10,10 @@ from resources.autocomplete import AutoCompletion_plugin
 from urllib.parse import quote, urlencode, quote_plus, unquote, unquote_plus
 import time
 
+from a4kscrapers_wrapper.tools import log
+from inspect import currentframe, getframeinfo
+#log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+
 def start_info_actions(infos, params):
 	addonID = addon_ID()
 	addonID_short = addon_ID_short()
@@ -26,6 +30,26 @@ def start_info_actions(infos, params):
 
 		if info == 'getplayingfile':
 			xbmc.log(str(xbmc.Player().getPlayingFile())+'===>OPENINFO', level=xbmc.LOGINFO)
+
+		if info == 'authRealDebrid':
+			from a4kscrapers_wrapper import real_debrid
+			rd_api = real_debrid.RealDebrid()
+			rd_api.auth_kodi()
+			Utils.hide_busy()
+
+		if info == 'a4kProviders':
+			from a4kscrapers_wrapper import getSources
+			getSources.setup_providers('https://bit.ly/a4kScrapers')
+			#try: getSources.setup_providers('https://bit.ly/a4kScrapers')
+			#except Exception: 
+			#	if 'shutil.Error:' in str(Exception):
+			#		tools.log('Error', 'Already Exists',str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+			Utils.hide_busy()
+
+		if info == 'a4kProviders_manage':
+			from a4kscrapers_wrapper import getSources
+			getSources.enable_disable_providers_kodi()
+			Utils.hide_busy()
 
 		if info == 'url_encode_test':
 			meta_filters = "{'filters' : {'sort': 'desc', 'sort_string': 'revenue', 'with_genres': ['action','comedy'], 'without_genres': ['horror','reality','documentary'], 'with_original_language': 'en', 'vote_count.gte': '10', 'vote_count.lte': '10 000 000', 'lower_year': '1990', 'upper_year': '1999' } }"
@@ -272,7 +296,8 @@ def start_info_actions(infos, params):
 			return
 
 		elif info == 'play_test_call_pop_stack':
-			wm.pop_stack()
+			log('wm.pop_stack()',str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+			return wm.pop_stack()
 
 		elif info == 'play_test_pop_stack_new':
 			reopen_play_fail = xbmcaddon.Addon(addon_ID()).getSetting('reopen_play_fail')
@@ -367,7 +392,8 @@ def start_info_actions(infos, params):
 					plugin_finished = 0
 					plugin_name = 'not.a.plugin'
 					if pop_flag == True:
-						xbmc.log('pop_the_stack!!!_return'+'__play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+						#xbmc.log('pop_the_stack!!!_return'+'__play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+						log('wm.pop_stack()',str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 						return wm.pop_stack()
 						pop_flag = False
 					reset_flag = False
@@ -381,6 +407,7 @@ def start_info_actions(infos, params):
 			tmdbhelper_flag = False
 			reopen_play_fail = xbmcaddon.Addon(addon_ID()).getSetting('reopen_play_fail')
 			xbmcgui.Window(10000).setProperty('diamond_info_started', 'True')
+			xbmc.sleep(3000)
 			if reopen_play_fail == 'false':
 				return
 			xbmc.log(str('start...')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
@@ -396,6 +423,7 @@ def start_info_actions(infos, params):
 					home_count = home_count + 1
 					if home_count > 10:
 						xbmc.log(str('\n\n\n\nwm.pop_stack()......')+'1play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+						log('wm.pop_stack()',str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 						#xbmc.executebuiltin('RunPlugin(plugin://%s/?info=play_test_call_pop_stack)' % addon_ID())
 						return wm.pop_stack()
 				if (window_id['result']['currentwindow']['label'].lower() in ['busydialognocancel'] or window_id['result']['currentwindow']['id'] in [10160]) and window_id2 == window_id:
@@ -404,6 +432,7 @@ def start_info_actions(infos, params):
 						xbmc.executebuiltin('Dialog.Close(all,true)')
 						xbmc.log(str('\n\n\n\nm.pop_stack()......')+'2play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
 						#xbmc.executebuiltin('RunPlugin(plugin://%s/?info=play_test_call_pop_stack)' % addon_ID())
+						log('wm.pop_stack()',str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 						return wm.pop_stack()
 				if xbmc.Player().isPlaying() or xbmc.getCondVisibility('Window.IsActive(12005)'):
 					xbmc.log(str('\n\n\n\nPlayback_Success.......')+'play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
@@ -432,6 +461,7 @@ def start_info_actions(infos, params):
 						error_flag = get_log_error_flag(mode='seren')
 						if error_flag == False:
 							xbmc.log(str('\n\n\n\nwm.pop_stack()......')+'3play_test_pop_stack===>OPENINFO', level=xbmc.LOGINFO)
+							log('wm.pop_stack()',str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 							#xbmc.executebuiltin('RunPlugin(plugin://%s/?info=play_test_call_pop_stack)' % addon_ID())
 							return wm.pop_stack()
 						elif error_flag == True:
@@ -442,8 +472,25 @@ def start_info_actions(infos, params):
 
 
 		elif info == 'test_route':
+			xbmc.log(str('test_route')+'===>OPEN_INFO', level=xbmc.LOGINFO)
+
+			from a4kscrapers_wrapper import getSources, real_debrid, tools, source_tools, get_meta
+			from a4kscrapers_wrapper.getSources import Sources
+			rd_api = real_debrid.RealDebrid()
+			meta = get_meta.get_episode_meta(season=1,episode=1,show_name='Deep Space Nine')
+			#meta = get_meta.get_movie_meta(movie_name='Point Break',year=1991)
+			info = meta
+			result = getSources.get_subtitles(meta['tmdb_seasons']['episodes'][0], '')
+			#result = getSources.get_subtitles(info, '')
+
+			xbmc.log(str(result)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			xbmc.log(str('test_route')+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			return
+		
 			import json
 			xbmc.log(str('test_route')+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			xbmc.log(str(xbmc.getSupportedMedia("video"))+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			return
 			Utils.hide_busy()
 			from resources.lib.library import trakt_unwatched_tv_shows
 			from resources.lib.library import trakt_watched_tv_shows
@@ -529,20 +576,38 @@ def start_info_actions(infos, params):
 			player_path = str(Path(str(tmdb_settings_path()).replace('settings.xml','players')))
 			from resources.lib.library import main_file_path
 			rd_player_path_in = xbmcvfs.translatePath(main_file_path() + 'direct.diamond_player.json')
+			rd_player_path_in2 = xbmcvfs.translatePath(main_file_path() + 'direct.diamond_player_torr_scrape.json')
 			rd_bluray_player_path_in = xbmcvfs.translatePath(main_file_path() + 'direct.diamond_player_bluray.json')
 			rd_bluray_player2_path_in = xbmcvfs.translatePath(main_file_path() + 'direct.diamond_player_bluray2.json')
 			
 			rd_player_path_out = xbmcvfs.translatePath(player_path + '/direct.diamond_player.json')
+			rd_player_path_out2 = xbmcvfs.translatePath(player_path + '/direct.diamond_player_torr_scrape.json')
 			rd_bluray_player_path_out = xbmcvfs.translatePath(player_path + '/direct.diamond_player_bluray.json')
 			rd_bluray_player2_path_out = xbmcvfs.translatePath(player_path + '/direct.diamond_player_bluray2.json')
 			import shutil
 			if not xbmcvfs.exists(rd_player_path_out) and RD_player == 'true':
 				shutil.copyfile(rd_player_path_in, rd_player_path_out)
 				xbmc.log(str({'rd_player_path_in': rd_player_path_in, 'rd_player_path_out': rd_player_path_out})+'===>OPENINFO', level=xbmc.LOGINFO)
+			if xbmcvfs.exists(rd_player_path_out) and RD_player == 'true':
+				shutil.copyfile(rd_player_path_in, rd_player_path_out)
+				xbmc.log(str({'rd_player_path_in': rd_player_path_in, 'rd_player_path_out': rd_player_path_out})+'===>OPENINFO', level=xbmc.LOGINFO)
+			if not xbmcvfs.exists(rd_player_path_out2) and RD_player == 'true':
+				shutil.copyfile(rd_player_path_in2, rd_player_path_out2)
+				xbmc.log(str({'rd_player_path_in': rd_player_path_in2, 'rd_player_path_out': rd_player_path_out2})+'===>OPENINFO', level=xbmc.LOGINFO)
+			if xbmcvfs.exists(rd_player_path_out2) and RD_player == 'true':
+				shutil.copyfile(rd_player_path_in2, rd_player_path_out2)
+				xbmc.log(str({'rd_player_path_in': rd_player_path_in2, 'rd_player_path_out': rd_player_path_out2})+'===>OPENINFO', level=xbmc.LOGINFO)
+
 			if not xbmcvfs.exists(rd_bluray_player_path_out) and RD_bluray_player == 'true':
 				shutil.copyfile(rd_bluray_player_path_in, rd_bluray_player_path_out)
 				xbmc.log(str({'rd_bluray_player_path_in': rd_bluray_player_path_in, 'rd_bluray_player_path_out': rd_bluray_player_path_out})+'===>OPENINFO', level=xbmc.LOGINFO)
+			if xbmcvfs.exists(rd_bluray_player_path_out) and RD_bluray_player == 'true':
+				shutil.copyfile(rd_bluray_player_path_in, rd_bluray_player_path_out)
+				xbmc.log(str({'rd_bluray_player_path_in': rd_bluray_player_path_in, 'rd_bluray_player_path_out': rd_bluray_player_path_out})+'===>OPENINFO', level=xbmc.LOGINFO)
 			if not xbmcvfs.exists(rd_bluray_player2_path_out) and RD_bluray_player2 == 'true':
+				shutil.copyfile(rd_bluray_player2_path_in, rd_bluray_player2_path_out)
+				xbmc.log(str({'rd_bluray_player2_path_in': rd_bluray_player2_path_in, 'rd_bluray_player2_path_out': rd_bluray_player2_path_out})+'player_path===>OPENINFO', level=xbmc.LOGINFO)
+			if xbmcvfs.exists(rd_bluray_player2_path_out) and RD_bluray_player2 == 'true':
 				shutil.copyfile(rd_bluray_player2_path_in, rd_bluray_player2_path_out)
 				xbmc.log(str({'rd_bluray_player2_path_in': rd_bluray_player2_path_in, 'rd_bluray_player2_path_out': rd_bluray_player2_path_out})+'player_path===>OPENINFO', level=xbmc.LOGINFO)
 			Utils.hide_busy()
@@ -964,6 +1029,23 @@ def start_info_actions(infos, params):
 			show_episode = params.get('show_episode')
 			deete = prescrape_seren(tmdb=tmdb, season=show_season, episode=show_episode)
 
+		elif info == 'a4kwrapper_player':
+		#kodi-send --action="RunScript(script.extendedinfo,info=diamond_rd_player,type=tv,show_title=Star Trek: Enterprise,show_season=4,show_episode=20,tmdb=314)"
+		#kodi-send --action="RunScript(script.extendedinfo,info=diamond_rd_player,type=movie,movie_year=,movie_title=Elf,tmdb=)"
+			if params.get('type') == 'tv':
+				from a4kwrapper_player import next_ep_play
+				show_title = params.get('show_title')
+				show_season = params.get('show_season')
+				show_episode = params.get('show_episode')
+				tmdb = params.get('tmdb')
+				next_ep_play(show_title, show_season, show_episode, tmdb)
+			elif params.get('type') == 'movie':
+				from a4kwrapper_player import next_ep_play_movie
+				movie_year = params.get('movie_year')
+				movie_title = params.get('movie_title')
+				tmdb = params.get('tmdb')
+				next_ep_play_movie(movie_year, movie_title, tmdb)
+
 		elif info == 'diamond_rd_player':
 		#kodi-send --action="RunScript(script.extendedinfo,info=diamond_rd_player,type=tv,show_title=Star Trek: Enterprise,show_season=4,show_episode=20,tmdb=314)"
 		#kodi-send --action="RunScript(script.extendedinfo,info=diamond_rd_player,type=movie,movie_year=,movie_title=Elf,tmdb=)"
@@ -1118,6 +1200,7 @@ def auto_clean_cache(days=None):
 		xbmcvfs.mkdir(path)
 	os.chdir(path) #changing path to current path(same as cd command)
 
+	directories = ['temp','TheMovieDB','data','TVMaze','Trakt','YouTube','IMDB','images','FanartTV','TasteDive','Google','rss','show_filters']
 	#we are taking current folder, directory and files 
 	#separetly using os.walk function
 	for root,directories,files in os.walk(path,topdown=False): 
@@ -1127,10 +1210,13 @@ def auto_clean_cache(days=None):
 			filetime = datetime.datetime.fromtimestamp(t) - today
 			#checking if file is more than 7 days old 
 			#or not if yes then remove them
-			if filetime.days <= days and 'Taste' not in str(root):
+			if filetime.days <= days: # and 'Taste' not in str(root):
 				#print(os.path.join(root, name), filetime.days)
-				xbmc.log(str(os.path.join(root, name))+'===>DELETE', level=xbmc.LOGINFO)
-				os.remove(os.path.join(root, name))
+				for i in directories:
+					target = str(os.path.join(root, name))
+					if str(i) in target:
+						xbmc.log(str(target)+'===>DELETE', level=xbmc.LOGINFO)
+						os.remove(target)
 
 def auto_library():
 	Utils.hide_busy()
@@ -1177,23 +1263,32 @@ def auto_library():
 	if library_tv_sync:
 		xbmc.log(str('UpdateLibrary_TV')+'===>OPEN_INFO', level=xbmc.LOGFATAL)
 		xbmc.executebuiltin('UpdateLibrary(video, {})'.format(basedir_tv_path()))
-	if library_tv_sync or library_movies_sync:
-		import time
-		time_since_up = time.monotonic()
-		realizer_test = xbmc.getCondVisibility('System.HasAddon(plugin.video.realizer)')
-		if not xbmc.Player().isPlaying() and realizer_test:
-			try:
-				if time_since_up > 600:
-					#print('NOW')
-					hours_since_up = int((time_since_up)/60/60)
-					xbmc.log(str(hours_since_up)+str('=multiple of 8 hours=')+ str(hours_since_up % 8 == 0)+'=hours_since_up===>OPEN_INFO', level=xbmc.LOGINFO)
-					if hours_since_up >=1:
-						xbmc.executebuiltin('RunPlugin(plugin://plugin.video.realizer/?action=rss_update)')
-			except:
-				if time_since_up > 600:
-					#print('NOW')
-					hours_since_up = int((time_since_up)/60/60)
-					xbmc.log(str(hours_since_up)+str('=multiple of 8 hours=')+ str(hours_since_up % 8 == 0)+'=hours_since_up===>OPEN_INFO', level=xbmc.LOGINFO)
-					if hours_since_up >=1:
-						xbmc.executebuiltin('RunPlugin(plugin://plugin.video.realizer/?action=rss_update)')
+	return
+	rss_1_enabled = xbmcaddon.Addon(addon_ID()).getSetting('rss.1')
+	rss_2_enabled = xbmcaddon.Addon(addon_ID()).getSetting('rss.2')
+	rss_3_enabled = xbmcaddon.Addon(addon_ID()).getSetting('rss.3')
+	rss_4_enabled = xbmcaddon.Addon(addon_ID()).getSetting('rss.4')
+	if rss_1_enabled == 'true' or rss_2_enabled == 'true' or rss_3_enabled == 'true'  or rss_4_enabled == 'true':
+	#if library_tv_sync or library_movies_sync:
+		from a4kscrapers_wrapper import get_meta
+		log(str('get_meta.get_rss_cache()'))
+		get_meta.get_rss_cache()
+		#import time
+		#time_since_up = time.monotonic()
+		#realizer_test = xbmc.getCondVisibility('System.HasAddon(plugin.video.realizer)')
+		#if not xbmc.Player().isPlaying() and realizer_test:
+		#	try:
+		#		if time_since_up > 600:
+		#			#print('NOW')
+		#			hours_since_up = int((time_since_up)/60/60)
+		#			xbmc.log(str(hours_since_up)+str('=multiple of 8 hours=')+ str(hours_since_up % 8 == 0)+'=hours_since_up===>OPEN_INFO', level=xbmc.LOGINFO)
+		#			if hours_since_up >=1:
+		#				xbmc.executebuiltin('RunPlugin(plugin://plugin.video.realizer/?action=rss_update)')
+		#	except:
+		#		if time_since_up > 600:
+		#			#print('NOW')
+		#			hours_since_up = int((time_since_up)/60/60)
+		#			xbmc.log(str(hours_since_up)+str('=multiple of 8 hours=')+ str(hours_since_up % 8 == 0)+'=hours_since_up===>OPEN_INFO', level=xbmc.LOGINFO)
+		#			if hours_since_up >=1:
+		#				xbmc.executebuiltin('RunPlugin(plugin://plugin.video.realizer/?action=rss_update)')
 		#xbmc.executebuiltin('RunPlugin(plugin://plugin.video.realizer/?action=rss_update)')

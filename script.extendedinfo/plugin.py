@@ -1,6 +1,8 @@
-import sys
+import sys, os
 import xbmcgui, xbmcplugin
 import requests,json,xbmcaddon,xbmcvfs
+os.environ['first_run'] = str('True')
+
 from resources.lib import process
 from resources.lib import Utils
 from resources.lib.library import addon_ID

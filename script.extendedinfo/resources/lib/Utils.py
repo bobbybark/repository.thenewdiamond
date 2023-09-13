@@ -12,6 +12,10 @@ from resources.lib.library import basedir_movies_path
 try: from infotagger.listitem import ListItemInfoTag
 except: pass
 
+from a4kscrapers_wrapper import tools
+from inspect import currentframe, getframeinfo
+#log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+
 ADDON_PATH = xbmcvfs.translatePath('special://home/addons/'+str(addon_ID()))
 ADDON_DATA_PATH = xbmcvfs.translatePath('special://profile/addon_data/'+str(addon_ID()))
 IMAGES_DATA_PATH = xbmcvfs.translatePath('special://profile/addon_data/'+str(addon_ID())+'/images')
@@ -29,6 +33,9 @@ def show_busy():
 	#window_id = xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"GUI.GetProperties","params":{"properties":["currentwindow", "currentcontrol"]},"id":1}')
 	#window_id = json.loads(window_id)
 	#if not window_id['result']['currentwindow']['id'] == 10025 and not window_id['result']['currentwindow']['id'] > 13000:
+	if str(os.environ.get('first_run', 'False')) == 'True':
+		os.environ['first_run'] = str('False')
+		return
 	if 'widget=true' in str(sys.argv) or 'autocomplete' in str(sys.argv) or xbmc.getCondVisibility('Window.IsActive(12000)'):
 		return
 	elif xbmc.Player().isPlaying():
@@ -230,17 +237,17 @@ def get_JSON_response(url='', cache_days=7.0, folder=False, headers=False):
 	hashed_url = hashlib.md5(url).hexdigest()
 	cache_path = translate_path(ADDON_DATA_PATH, folder) if folder else translate_path(ADDON_DATA_PATH)
 	cache_seconds = int(cache_days * 86400.0)
-	if not cache_days:
-		xbmcgui.Window(10000).clearProperty(hashed_url)
-		xbmcgui.Window(10000).clearProperty('%s_timestamp' % hashed_url)
-	prop_time = xbmcgui.Window(10000).getProperty('%s_timestamp' % hashed_url)
-	if prop_time and now - float(prop_time) < cache_seconds:
-		try:
-			prop = json.loads(xbmcgui.Window(10000).getProperty(hashed_url))
-			if prop:
-				return prop
-		except Exception as e:
-			pass
+	#if not cache_days:
+	#	xbmcgui.Window(10000).clearProperty(hashed_url)
+	#	xbmcgui.Window(10000).clearProperty('%s_timestamp' % hashed_url)
+	#prop_time = xbmcgui.Window(10000).getProperty('%s_timestamp' % hashed_url)
+	#if prop_time and now - float(prop_time) < cache_seconds:
+	#	try:
+	#		prop = json.loads(xbmcgui.Window(10000).getProperty(hashed_url))
+	#		if prop:
+	#			return prop
+	#	except Exception as e:
+	#		pass
 	path = os.path.join(cache_path, '%s.txt' % hashed_url)
 	if xbmcvfs.exists(path) and ((now - os.path.getmtime(path)) < cache_seconds):
 		results = read_from_file(path)
@@ -255,8 +262,8 @@ def get_JSON_response(url='', cache_days=7.0, folder=False, headers=False):
 			results = read_from_file(path) if xbmcvfs.exists(path) else []
 	if not results:
 		return None
-	xbmcgui.Window(10000).setProperty('%s_timestamp' % hashed_url, str(now))
-	xbmcgui.Window(10000).setProperty(hashed_url, json.dumps(results))
+	#xbmcgui.Window(10000).setProperty('%s_timestamp' % hashed_url, str(now))
+	#xbmcgui.Window(10000).setProperty(hashed_url, json.dumps(results))
 	return results
 
 class GetFileThread(threading.Thread):
@@ -421,6 +428,8 @@ def set_window_props(name, data, prefix='', debug=False):
 def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=None):
 	from resources.lib.TheMovieDB import extended_season_info
 	from pathlib import Path
+	tools.log('create_listitems',str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+
 	addon = xbmcaddon.Addon()
 	addon_path = addon.getAddonInfo('path')
 	addonID = addon.getAddonInfo('id')
@@ -430,7 +439,8 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 	#xbmc.log(str('create_listitems')+'===>OPENINFO', level=xbmc.LOGINFO)
 	INT_INFOLABELS = ['year', 'episode', 'season', 'tracknumber', 'playcount', 'overlay']
 	FLOAT_INFOLABELS = ['rating']
-	STRING_INFOLABELS = ['mediatype', 'genre', 'director', 'mpaa', 'plot', 'plotoutline', 'title', 'originaltitle', 'sorttitle', 'duration', 'studio', 'tagline', 'writer', 'tvshowtitle', 'premiered', 'status', 'code', 'aired', 'credits', 'lastplayed', 'album', 'votes', 'trailer', 'dateadded', 'IMDBNumber']
+	#STRING_INFOLABELS = ['mediatype', 'genre', 'director', 'mpaa', 'plot', 'plotoutline', 'title', 'originaltitle', 'sorttitle', 'duration', 'studio', 'tagline', 'writer', 'tvshowtitle', 'premiered', 'status', 'code', 'aired', 'credits', 'lastplayed', 'album', 'votes', 'trailer', 'dateadded', 'IMDBNumber']
+	STRING_INFOLABELS = ['mediatype', 'genre', 'director', 'mpaa', 'plot', 'plotoutline', 'title', 'originaltitle', 'sorttitle', 'duration', 'studio', 'tagline', 'writer', 'tvshowtitle', 'premiered', 'status', 'code', 'aired', 'credits', 'lastplayed', 'album', 'votes', 'trailer', 'dateadded']
 	if not data:
 		return []
 	itemlist = []
@@ -553,7 +563,6 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 			except:
 				pass
 
-				
 		if mediatype == 'episode' and trakt_tv:
 			try:
 				sql_result = tv_cur.execute("select * from trakt where tmdb_id =" + str(int(show_id))).fetchall()
@@ -591,6 +600,9 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 				listitem.setLabel(value)
 			elif key.lower() in ['label2']:
 				listitem.setLabel2(value)
+			elif key.lower() in ['status']:
+				#set_key = value + '(' + str(result['TotalSeasons']) + ')'
+				listitem.setLabel2(value)
 			elif key.lower() in ['title']:
 				listitem.setLabel(value)
 				#listitem.setInfo('video', {key.lower(): value})
@@ -610,13 +622,13 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 			elif key.lower() in ['clearlogo','logo']:
 				listitem.setArt({'clearlogo': value})
 
-			elif key.lower() in ['imdbnumber','IMDBNumber']:
-				#listitem.setInfo('video', {'IMDBNumber': str(value)})
-				try: 
-					info_tag = ListItemInfoTag(listitem, 'video')
-					info_tag.set_info({'IMDBNumber': str(value)})
-				except: 
-					listitem.setInfo('video', {'IMDBNumber': str(value)})
+			#elif key.lower() in ['imdbnumber','IMDBNumber']:
+			#	#listitem.setInfo('video', {'IMDBNumber': str(value)})
+			#	try: 
+			#		info_tag = ListItemInfoTag(listitem, 'video')
+			#		info_tag.set_info({'IMDBNumber': str(value)})
+			#	except: 
+			#		listitem.setInfo('video', {'IMDBNumber': str(value)})
 			elif key.lower() in ['dbid']:
 				listitem.setProperty('DBID', str(value))
 				#listitem.setInfo('video', {'DBID': str(value)})

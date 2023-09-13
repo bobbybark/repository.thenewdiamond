@@ -6,6 +6,9 @@ from resources.lib.WindowManager import wm
 from resources.lib.OnClickHandler import OnClickHandler
 from resources.lib.library import addon_ID_short
 
+from a4kscrapers_wrapper.tools import log
+from inspect import currentframe, getframeinfo
+
 ch = OnClickHandler()
 
 class DialogBaseInfo(object):
@@ -187,6 +190,7 @@ class DialogBaseInfo(object):
 		else:
 			#self.close()
 			self.close()
+			log('wm.pop_stack()',str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 			wm.pop_stack()
 
 	@ch.action('previousmenu', '*')

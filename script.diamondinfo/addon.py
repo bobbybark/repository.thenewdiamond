@@ -1,8 +1,10 @@
-import sys
+import sys, os
 import xbmcgui, xbmcplugin
 from resources.lib import process
 from resources.lib.library import addon_ID
 from resources.lib.library import addon_ID_short
+
+os.environ['first_run'] = str('True')
 
 class Main:
 	def __init__(self):

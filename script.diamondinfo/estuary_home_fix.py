@@ -49,3 +49,32 @@ if change_flag == True:
 	file1.writelines(out_xml)
 	file1.close()
 	print(out_xml)
+
+
+osmc_home = '/usr/share/kodi/addons/skin.estuary/xml/VideoOSD.xml'
+home_xml = osmc_home 
+file1 = open(home_xml, 'r')
+Lines = file1.readlines()
+out_xml = ''
+item_flag = False
+old_item = '''<defaultcontrol always="true">602</defaultcontrol>'''
+new_item = '''
+	<defaultcontrol always="true">70048</defaultcontrol>
+'''
+
+item_count = 0
+change_flag = False
+for line in Lines:
+	if item_flag == False and old_item in str(line):
+		out_xml = out_xml + new_item 
+		item_flag = True
+		change_flag = True
+	else:
+		out_xml = out_xml + line
+
+
+if change_flag == True:
+	file1 = open(home_xml, 'w')
+	file1.writelines(out_xml)
+	file1.close()
+	print(out_xml)

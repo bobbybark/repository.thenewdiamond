@@ -2126,9 +2126,9 @@ def refresh_recently_added():
             thumb_path = Path(i[2].replace('.strm','-thumb.jpg'))
             response = requests.get('http://api.tvmaze.com/lookup/shows?thetvdb='+str(tvdb_id)).json()
             show_id = response['id']
-            response = requests.get('http://api.tvmaze.com/shows/'+str(show_id)+'/episodes').json()
+            response = requests.get('http://api.tvmaze.com/shows/'+str(show_id)+'/episodes?specials=1').json()
             for x in response:
-                if x['season'] == int(season) and x['number'] == int(episode):
+                if x.get('season',-1) == int(season) and x.get('number',-1) == int(episode):
                     episode_id =  x['id']
             try:
                 response = requests.get('http://api.tvmaze.com/episodes/'+str(episode_id)).json()

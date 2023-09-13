@@ -6,6 +6,10 @@ from resources.lib.library import addon_ID_short
 import json
 from resources.lib.WindowManager import wm
 
+from a4kscrapers_wrapper.tools import log
+from inspect import currentframe, getframeinfo
+#log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+
 class VideoPlayer(xbmc.Player):
 
 	def wait_for_video_end(self):
@@ -48,7 +52,8 @@ class VideoPlayer(xbmc.Player):
 		#xbmc.executebuiltin('RunPlugin(%s)' % url)
 		xbmc.executebuiltin('RunScript(%s,info=play_test_pop_stack)' % addon_ID())
 		super(VideoPlayer, self).play(item=url, listitem=listitem, windowed=False, startpos=-1)
-		xbmc.log(str('play')+'_________________________play===>OPENINFO', level=xbmc.LOGINFO)
+		#xbmc.log(str('play')+'_________________________play===>OPENINFO', level=xbmc.LOGINFO)
+		log(str(str('play')+'_________________________play'))
 		return
 
 		for i in range(600):
@@ -67,6 +72,7 @@ class VideoPlayer(xbmc.Player):
 						del window
 						return
 					self.container_position(container=container,position=position)
+					log('wm.pop_stack()',str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 					return wm.pop_stack()
 			xbmc.sleep(50)
 
@@ -95,8 +101,10 @@ class VideoPlayer(xbmc.Player):
 		xbmc.executebuiltin('Dialog.Close(all,true)')
 		#Utils.get_kodi_json(method='Player.Open', params='{"item": %s}' % item)
 		xbmc.executebuiltin('RunScript(%s,info=play_test_pop_stack)' % addon_ID())
+		xbmc.sleep(2000)
 		xbmc.executebuiltin('RunPlugin(%s)' % url)
-		xbmc.log(str('play_from_button')+'_________________________play_from_button===>OPENINFO', level=xbmc.LOGINFO)
+		#xbmc.log(str('play_from_button')+'_________________________play_from_button===>OPENINFO', level=xbmc.LOGINFO)
+		log(str(str('play_from_button')+'_________________________play_from_button'))
 		return
 
 		for i in range(800):
@@ -109,9 +117,10 @@ class VideoPlayer(xbmc.Player):
 					del window
 					if xbmcgui.Window(10000).getProperty('bluray') == 'true':
 						xbmc.sleep(500)
-					xbmc.log(str('wait_for_video_end')+'append_window_stack_table===>OPENINFO', level=xbmc.LOGINFO)
+					#xbmc.log(str('wait_for_video_end')+'append_window_stack_table===>OPENINFO', level=xbmc.LOGINFO)
 					self.wait_for_video_end()
-					xbmc.log(str('wait_for_video_end')+'append_window_stack_table===>OPENINFO', level=xbmc.LOGINFO)
+					#xbmc.log(str('wait_for_video_end')+'append_window_stack_table===>OPENINFO', level=xbmc.LOGINFO)
+					log('wm.pop_stack()',str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 					return wm.pop_stack()
 			if xbmcgui.Window(10000).getProperty('bluray') == 'true':
 				xbmc.sleep(350)

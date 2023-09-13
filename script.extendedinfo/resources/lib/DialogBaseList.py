@@ -8,6 +8,7 @@ from resources.lib.library import addon_ID_short
 import os
 import sqlite3
 from urllib.parse import urlencode, quote_plus, unquote, unquote_plus
+from a4kscrapers_wrapper.tools import log
 
 ch = OnClickHandler()
 
@@ -32,12 +33,11 @@ class DialogBaseList(object):
 		self.total_pages = 1
 		self.total_items = 0
 		self.position = 0
-		self.window_stack_len2 = 0
+		#self.window_stack_len2 = 0
 		self.page_token = ''
 		self.next_page_token = ''
 		self.prev_page_token = ''
 
-		#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 
 	def onInit(self):
 		super(DialogBaseList, self).onInit()
@@ -50,7 +50,6 @@ class DialogBaseList(object):
 
 		self.update_ui()
 		xbmc.sleep(100)
-		#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 
 		if self.total_items > 0 and self.position == 0 and xbmcgui.Window(10000).getProperty(str(addon_ID_short())+'_running') == 'True':
 			self.setFocusId(500)
@@ -87,9 +86,9 @@ class DialogBaseList(object):
 			Utils.hide_busy()
 			return
 		onback = self.getProperty('%i_onback' % self.control_id)
-		if self.window_stack_len2 > 0:
+		if wm.window_stack_len > 0:
 			onback = None
-			self.window_stack_len2 = self.window_stack_len2 - 1
+			#self.window_stack_len2 = self.window_stack_len2 - 1
 			xbmcgui.Window(10000).setProperty('diamond_info_started','True')
 			self.close()
 			self.pop_window_stack_table()
@@ -98,6 +97,7 @@ class DialogBaseList(object):
 			xbmc.executebuiltin(onback)
 		else:
 			self.close()
+			log('wm.pop_stack()',str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 			wm.pop_stack()
 
 	@ch.action('previousmenu', '*')
@@ -133,6 +133,9 @@ class DialogBaseList(object):
 		elif control_id == 700:
 			self.go_to_prev_page()
 		if self.page != old_page:
+			#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
+			if wm.page == self.page:
+				return
 			self.update()
 
 	def onClick(self, control_id):
@@ -145,7 +148,7 @@ class DialogBaseList(object):
 			function = 'open_youtube_list'
 		else:
 			function = 'open_video_list'
-		self.curr_window = {'function': function, 'params': {'listitems': self.listitems2, 'filters': self.filters, 'mode': self.mode, 'list_id': self.list_id, 'filter_label': self.filter_label, 'media_type': self.media_type, 'search_str': self.search_str, 'page': self.page, 'total_pages': self.total_pages, 'total_items': self.total_items, 'type': self.type, 'filter_url': self.filter_url, 'order': self.order, 'filter': self.filter, 'next_page_token': self.next_page_token, 'prev_page_token': self.prev_page_token }}
+		self.curr_window = {'function': function, 'params': {'listitems': self.listitems2, 'filters': self.filters, 'mode': self.mode, 'list_id': self.list_id, 'filter_label': self.filter_label, 'media_type': self.media_type, 'search_str': self.search_str, 'page': self.page, 'total_pages': self.total_pages, 'total_items': self.total_items, 'type': self.type, 'filter_url': self.filter_url, 'order': self.order, 'filter': self.filter , 'sort': self.sort, 'sort_label': self.sort_label, 'prev_page_token': self.prev_page_token, 'next_page_token': self.next_page_token, 'page_token': self.page_token}}
 		wm.update_windows(curr_window=self.curr_window, prev_window=self.prev_window)
 		wm.page_position = None
 		ch.serve(control_id, self)
@@ -185,7 +188,7 @@ class DialogBaseList(object):
 			#self.append_window_stack_table('curr_window')
 			self.prev_window = self.curr_window 
 			#self.curr_window = {'function': 'open_youtube_list', 'params': {'search_str': result, 'filters': self.filters, 'filter_label': self.filter_label, 'media_type': self.media_type}}
-			self.curr_window = {'function': 'open_youtube_list', 'params': {'listitems': self.listitems2, 'filters': self.filters, 'mode': self.mode, 'list_id': self.list_id, 'filter_label': self.filter_label, 'media_type': self.media_type, 'search_str': result, 'page': self.page, 'total_pages': self.total_pages, 'total_items': self.total_items, 'type': self.type, 'filter_url': self.filter_url, 'order': self.order, 'filter': self.filter, 'prev_page_token': self.prev_page_token, 'next_page_token': self.next_page_token, 'page_token': self.page_token }}
+			self.curr_window = {'function': 'open_youtube_list', 'params': {'listitems': self.listitems2, 'filters': self.filters, 'mode': self.mode, 'list_id': self.list_id, 'filter_label': self.filter_label, 'media_type': self.media_type, 'search_str': result, 'page': self.page, 'total_pages': self.total_pages, 'total_items': self.total_items, 'type': self.type, 'filter_url': self.filter_url, 'order': self.order, 'filter': self.filter, 'sort': self.sort, 'sort_label': self.sort_label, 'prev_page_token': self.prev_page_token, 'next_page_token': self.next_page_token, 'page_token': self.page_token}}
 			if wm.pop_video_list == False:
 				wm.update_windows(curr_window=self.curr_window, prev_window=self.prev_window)
 			else:
@@ -205,14 +208,17 @@ class DialogBaseList(object):
 		Utils.hide_busy()
 
 	def search(self, label):
+		#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 		if not label:
 			return None
 		self.search_str = label
 		self.mode = 'search'
 		self.filters = []
 		self.page = 1
-		self.update_content()
-		self.update_ui()
+		#self.update_content()
+		#self.update_ui()
+		wm.page = -1
+		self.update()
 
 	def set_filter_url(self):
 		filter_list = []
@@ -234,12 +240,13 @@ class DialogBaseList(object):
 		self.filter_label = '  -  '.join(filter_list)
 
 	def update_content(self, force_update=False):
-		data = self.fetch_data(force=force_update)
 		#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
+		data = self.fetch_data(force=force_update)
+
 		if not data:
 			#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 			return None
-		#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
+
 		self.listitems = data.get('listitems', [])
 		self.listitems2 = self.listitems
 		self.total_pages = data.get('results_per_page', '')
@@ -253,12 +260,18 @@ class DialogBaseList(object):
 			self.listitems = Utils.create_listitems(self.listitems,preload_images=0, enable_clearlogo=False, info=None)
 
 	def update_ui(self):
-
 		#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
+
 		try: self.position = int(xbmc.getInfoLabel('Container(500).CurrentItem'))-1
 		except: self.position = 0
 		if self.position > 1 or wm.page_position == -1:
-			return
+			if wm.page == -1:
+				self.position = 0
+				wm.page_position = 0
+			if self.position > 1 or wm.page_position == -1:
+				#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
+				return
+
 		if not self.listitems and self.getFocusId() == 500:
 			self.setFocusId(6000)
 		self.getControl(500).reset()
@@ -306,7 +319,7 @@ class DialogBaseList(object):
 			function = 'open_youtube_list'
 		else:
 			function = 'open_video_list'
-		self.curr_window = {'function': function, 'params': {'listitems': self.listitems2, 'filters': self.filters, 'mode': self.mode, 'list_id': self.list_id, 'filter_label': self.filter_label, 'media_type': self.media_type, 'search_str': self.search_str, 'page': self.page, 'total_pages': self.total_pages, 'total_items': self.total_items, 'type': self.type, 'filter_url': self.filter_url, 'order': self.order, 'filter': self.filter, 'next_page_token': self.next_page_token, 'prev_page_token': self.prev_page_token }}
+		self.curr_window = {'function': function, 'params': {'listitems': self.listitems2, 'filters': self.filters, 'mode': self.mode, 'list_id': self.list_id, 'filter_label': self.filter_label, 'media_type': self.media_type, 'search_str': self.search_str, 'page': self.page, 'total_pages': self.total_pages, 'total_items': self.total_items, 'type': self.type, 'filter_url': self.filter_url, 'order': self.order, 'filter': self.filter, 'sort': self.sort, 'sort_label': self.sort_label, 'total_items': self.total_items, 'total_pages': self.total_pages, 'prev_page_token': self.prev_page_token, 'next_page_token': self.next_page_token, 'page_token': self.page_token}}
 		#if wm.pop_video_list == False:
 		#	wm.update_windows(curr_window=self.curr_window, prev_window=self.prev_window)
 		#else:
@@ -316,10 +329,12 @@ class DialogBaseList(object):
 		#xbmc.log(str(self.curr_window['params']['type'])+'BASE_LIST_update_ui===>OPENINFO', level=xbmc.LOGINFO)
 
 	def pop_window_stack_table(self):
-		xbmc.log(str('BASE_LIST')+'pop_window_stack_table_BASE_LIST===>OPENINFO', level=xbmc.LOGINFO)
+		#xbmc.log(str('BASE_LIST')+'pop_window_stack_table_BASE_LIST===>OPENINFO', level=xbmc.LOGINFO)
+		xbmc.log('BASE_LIST_pop_window_stack_table\n' +str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)), level=xbmc.LOGINFO)
 		if xbmc.Player().isPlayingVideo()==1 or xbmc.getCondVisibility('Window.IsActive(12005)'):
 			return
 		wm.page_position = None
+		wm.page = None
 		con = self.window_stack_connection()
 		cur = con.cursor()
 
@@ -356,13 +371,19 @@ class DialogBaseList(object):
 		#select * from window_stack 
 		#"""
 		#sql_result = cur.execute(sql_result).fetchall()
-		self.window_stack_len2 = self.window_stack_len2 - 1
+		#self.window_stack_len2 = self.window_stack_len2 - 1
+		wm.window_stack_length()
 
 		cur.close()
 		con.close()
 		#print(window_number, window['function'], window['params'])
 		self.focus_id = self.curr_window['params']['focus_id']
 		self.position = self.curr_window['params']['position']
+		self.total_items = self.curr_window['params']['total_items']
+		self.total_pages = self.curr_window['params']['total_pages']
+		##self.next_page_token = self.curr_window['params']['next_page_token']
+		##self.prev_page_token = self.curr_window['params']['prev_page_token']
+
 		xbmcgui.Window(10000).setProperty('focus_id', str(self.focus_id))
 		xbmcgui.Window(10000).setProperty('position', str(self.position))
 		xbmcgui.Window(10000).setProperty('pop_stack_focus_id', str(self.focus_id))
@@ -395,7 +416,7 @@ class DialogBaseList(object):
 			xbmcgui.Window(10000).setProperty('position', str(self.position))
 			xbmcgui.Window(10000).setProperty('pop_stack_focus_id', str(self.focus_id))
 			xbmcgui.Window(10000).setProperty('pop_stack_position', str(self.position))
-
+			wm.page = -1
 			wm.open_video_list(listitems=window['params']['listitems'],filters=window['params']['filters'],mode=window['params']['mode'],list_id=window['params']['list_id'],filter_label=window['params']['filter_label'],media_type=window['params']['media_type'],search_str=window['params']['search_str'])
 		elif window['function'] == 'open_youtube_list':
 
@@ -453,7 +474,8 @@ class DialogBaseList(object):
 		con.commit()
 		cur.close()
 		con.close()
-		self.window_stack_len2 = self.window_stack_len2 + 1
+		#self.window_stack_len2 = self.window_stack_len2 + 1
+		wm.window_stack_length()
 		#try:
 		#	self.last_control = xbmc.getInfoLabel('System.CurrentControlId').decode('utf-8')
 		#except:
@@ -462,7 +484,7 @@ class DialogBaseList(object):
 		#	#xbmc.executebuiltin('Dialog.Close(all)')
 		#	xbmc.executebuiltin('Dialog.Close(all,true)')
 
-		#xbmc.log(str('BASE_LIST')+'append_window_stack_table_BASE_LIST===>OPENINFO', level=xbmc.LOGINFO)
+		xbmc.log(str('BASE_LIST')+'append_window_stack_table_BASE_LIST===>OPENINFO', level=xbmc.LOGINFO)
 		#xbmc.log(str(mode)+'BASE_mode_append_window_stack_table_BASE_LIST===>OPENINFO', level=xbmc.LOGINFO)
 		return
 
@@ -473,19 +495,27 @@ class DialogBaseList(object):
 		self.prev_window = self.curr_window
 		if self.page == 1 and wm.prev_page_num != self.page:
 			self.append_window_stack_table('curr_window')
+			#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 		else:
+			if wm.page == -1:
+				self.append_window_stack_table('curr_window')
+				#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 			if wm.prev_page_flag == False:
 				wm.prev_page_num = 0
+				#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 			if wm.prev_page_num != 0 and wm.prev_page_flag == True:
 				wm.prev_page_flag = False
+				#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 			if wm.pop_video_list == False:
 				wm.update_windows(curr_window=self.curr_window, prev_window=self.prev_window)
+				#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 			else:
 				wm.pop_video_list = False
+				#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 
 		self.update_content(force_update=force_update)
 		self.update_ui()
-		self.curr_window = {'function': 'open_video_list', 'params': {'listitems': self.listitems2, 'filters': self.filters, 'mode': self.mode, 'list_id': self.list_id, 'filter_label': self.filter_label, 'media_type': self.media_type, 'search_str': self.search_str, 'page': self.page, 'total_pages': self.total_pages, 'total_items': self.total_items ,'type': self.type, 'filter_url': self.filter_url, 'order': self.order, 'filter': self.filter}}
+		self.curr_window = {'function': 'open_video_list', 'params': {'listitems': self.listitems2, 'filters': self.filters, 'mode': self.mode, 'list_id': self.list_id, 'filter_label': self.filter_label, 'media_type': self.media_type, 'search_str': self.search_str, 'page': self.page, 'type': self.type, 'filter_url': self.filter_url, 'order': self.order, 'filter': self.filter, 'sort': self.sort, 'sort_label': self.sort_label,'total_items': self.total_items, 'total_pages': self.total_pages, 'prev_page_token': self.prev_page_token, 'next_page_token': self.next_page_token, 'page_token': self.page_token}}
 
 
 	def get_column(self):
