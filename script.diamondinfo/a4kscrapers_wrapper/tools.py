@@ -176,6 +176,7 @@ def set_setting(setting_name, setting_value):
 				except: line_split_5 = '</setting>\n'
 				setting_line = str(line_split_1) + str(line_split_2) + str(line_split_3) + str(line_split_4) + str(line_split_5)
 				setting_line = setting_line.replace('default="true" />','default="true">')
+				setting_line = setting_line.replace(' />','>')
 				new_setting_file = new_setting_file + setting_line
 				if setting_line != line:
 					update = True
