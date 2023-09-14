@@ -6,7 +6,9 @@
 #
 from __future__ import unicode_literals
 from collections import namedtuple
-from pkg_resources import resource_stream  # @UnresolvedImport
+
+try: from pkg_resources import resource_stream  # @UnresolvedImport
+except: from a4kscrapers_wrapper.pkg_resources import resource_stream
 from . import basestr
 
 #: Script code to script name mapping

@@ -27,10 +27,10 @@ sys.path.append(current_directory)
 sys.path.append(current_directory.replace('a4kscrapers_wrapper',''))
 
 try:
-	import daetutil, babelfish, rebulk, guessit
+	import dateutil, babelfish, rebulk, guessit
 	from guessit import api
 except:
-	from a4kscrapers_wrapper import dateutil, babelfish, rebulk, guessit
+	from a4kscrapers_wrapper import dateutil, babelfish, rebulk, guessit, pkg_resources
 	from a4kscrapers_wrapper.guessit import api
 
 USER_AGENTS = [

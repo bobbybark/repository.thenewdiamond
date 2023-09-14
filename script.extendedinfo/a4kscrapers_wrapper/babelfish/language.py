@@ -7,7 +7,10 @@
 from __future__ import unicode_literals
 from collections import namedtuple
 from functools import partial
-from pkg_resources import resource_stream  # @UnresolvedImport
+
+try: from pkg_resources import resource_stream  # @UnresolvedImport
+except: from a4kscrapers_wrapper.pkg_resources import resource_stream
+
 from .converters import ConverterManager
 from .country import Country
 from .exceptions import LanguageConvertError

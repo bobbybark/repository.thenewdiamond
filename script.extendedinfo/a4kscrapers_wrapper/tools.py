@@ -61,6 +61,7 @@ try:
 
 except:
 	ADDON_USERDATA_PATH = os.path.join(folder, 'user_data')
+	ADDON_USERDATA_PATH_1 = ADDON_USERDATA_PATH
 	if not os.path.exists(ADDON_USERDATA_PATH):
 		ADDON_USERDATA_PATH = folder.replace('.kodi/addons', '.kodi/userdata/addon_data').replace('.kodi\\addons', '.kodi\\userdata\\addon_data').replace('a4kscrapers_wrapper','')
 	elif not os.path.exists(ADDON_USERDATA_PATH) or not 'user' in str(ADDON_USERDATA_PATH):
@@ -72,6 +73,14 @@ except:
 	OPENSUB_USERNAME = 'username'
 	OPENSUB_PASSWORD = 'password'
 	PID_FILE = os.path.join(ADDON_USERDATA_PATH, 'pid')
+	diamond = False
+
+if not os.path.exists(SETTING_XML):
+	ADDON_USERDATA_PATH = ADDON_USERDATA_PATH_1
+	A4KPROVIDERS_PATH = os.path.join(ADDON_USERDATA_PATH, 'providers')
+	SETTING_XML = os.path.join(ADDON_USERDATA_PATH, 'settings.xml')
+	PID_FILE = os.path.join(ADDON_USERDATA_PATH, 'pid')
+	PROVIDERS_JSON = os.path.join(ADDON_USERDATA_PATH, 'provider.json')
 	diamond = False
 
 sort_method_names = {
@@ -179,6 +188,10 @@ def set_setting(setting_name, setting_value):
 def get_setting(setting_name, var_type = 'string'):
 	return_var = None
 	setting_name = setting_name + '"'
+	if diamond == False:
+		if not os.path.exists(SETTING_XML):
+			setup_userdata()
+
 	try:
 		with open(SETTING_XML) as f:
 			lines = f.readlines()
