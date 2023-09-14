@@ -1674,9 +1674,14 @@ def match_episodes_season_pack(meta, sorted_torr_info):
 						end_index = idx
 					elif end_index and idx > end_index:
 						end_index = idx
+		
+		if start_index == end_index and start_index == -1:
+			if len(guess_episode) == 1:
+				start_index = 0
+				end_index = 0
 
 		#tools.log(end_index, start_index)
-		if len(meta['tvmaze_seasons']['episodes']) == (1+(end_index-start_index)):
+		if len(meta['tvmaze_seasons']['episodes']) == (1+(end_index-start_index)) or (start_index == end_index and end_index == 0):
 			meta_source = 'tvmaze_seasons'
 		elif len(meta['tmdb_seasons']['episodes']) == (1+(end_index-start_index)):
 			meta_source = 'tmdb_seasons'

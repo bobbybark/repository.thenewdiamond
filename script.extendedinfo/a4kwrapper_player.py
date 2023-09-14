@@ -336,7 +336,8 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True):
 		try: runtime = int(info['runtime'])
 		except: runtime = 0
 
-		runtime_list = [tmdb_response[1].get('runtime',0),extended_tvshow_info_response[0].get('duration','0').split(' -')[0], info1.get('runtime',0), info.get('runtime',0)]
+		try: runtime_list = [tmdb_response[1].get('runtime',0),extended_tvshow_info_response[0].get('duration','0').split(' -')[0], info1.get('runtime',0), info.get('runtime',0)]
+		except: runtime_list = [tmdb_response[1].get('runtime',0),extended_tvshow_info_response[0].get('duration','0').split(' -')[0], info.get('runtime',0)]
 		runtime_list = [i for i in   [int(x or 0) for x in runtime_list]   if i != 0]
 		runtime = min(runtime_list)
 		#if runtime2 < runtime and runtime2 != 0:
@@ -418,11 +419,14 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True):
 				#x4 THUMB SIZE
 				#._V1_UY504_CR0,0,896,504_AL_.jpg
 		if rating == '' or str(rating) == '0.0' or rating == None:
-			rating = info1['vote_average']
+			try: rating = info1['vote_average']
+			except: rating = ''
 		if episode_thumb == '' or episode_thumb == None:
-			episode_thumb = info1['still_path']
+			try: episode_thumb = info1['still_path']
+			except: episode_thumb = ''
 		if air_date == '' or air_date == None:
-			air_date = info1['air_date']
+			try: air_date = info1['air_date']
+			except: air_date = ''
 		return meta_info, show_title, episode_thumb, air_date, resume_progress_seconds, runtime, rating, genre, plot, episode_id, year, episode_name, tv_maze_rating, alternate_titles, imdb_id, tvdb_id, tmdb_id, show_title_clean, show_title, info, tmdb_response, extended_tvshow_info_response
 
 	##SCRAPE CLOUD
