@@ -464,6 +464,9 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 
 	for (count, result) in enumerate(data):
 		listitem = xbmcgui.ListItem('%s' % str(count))
+		#listitem = xbmcgui.ListItem('%s' % str(count), offscreen=True)
+		listitem.setProperty("dateadded", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+		listitem.setProperty("nocache", "true")
 		try: tmdb_id = result['id']
 		except: tmdb_id = 0
 		try: media_type = result['media_type']

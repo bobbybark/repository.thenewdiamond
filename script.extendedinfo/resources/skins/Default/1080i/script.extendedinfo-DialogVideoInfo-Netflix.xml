@@ -1203,7 +1203,7 @@
 							<height>84</height>
 							<left>118</left>
 							<texture diffuse="thumbs/movieposter_mask.png" colordiffuse="FF999999">icons/TopRightOverlayWatched.png</texture>
-							<visible>Integer.IsGreater(ListItem.Property(PlayCount),0) + [String.IsEqual(ListItem.DBTYPE,movie)|String.IsEqual(ListItem.DBTYPE,tvshow)]</visible>
+							<visible>!Integer.IsGreater(ListItem.Property(UnWatchedEpisodes),0) + Integer.IsGreater(ListItem.Property(PlayCount),0) + [String.IsEqual(ListItem.DBTYPE,movie)|String.IsEqual(ListItem.DBTYPE,tvshow)]</visible>
 						</control>
 					</control>
 
@@ -1275,7 +1275,7 @@
 							<height>84</height>
 							<left>128</left>
 							<texture diffuse="thumbs/movieposter_mask.png" colordiffuse="FF999999">icons/TopRightOverlayWatched.png</texture>
-							<visible>Integer.IsGreater(ListItem.Property(PlayCount),0) + [String.IsEqual(ListItem.DBTYPE,movie)|String.IsEqual(ListItem.DBTYPE,tvshow)]</visible>
+							<visible>!Integer.IsGreater(ListItem.Property(UnWatchedEpisodes),0) + Integer.IsGreater(ListItem.Property(PlayCount),0) + [String.IsEqual(ListItem.DBTYPE,movie)|String.IsEqual(ListItem.DBTYPE,tvshow)]</visible>
 						</control>
 					</control>
 
