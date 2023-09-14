@@ -17,11 +17,11 @@
 		<setting label="Settings button => TMDBHelper Context Menu/Addon Settings Menu?" type="lsep"/>
 		<setting label="Info Dialog Settings Button" type="select" id="settings_user_config" values="TMDBHelper Context Menu|Settings Selection Menu" default="Settings Selection Menu"/>
 		<setting label="Trakt/Kodi Scrobbling with Scene filename parsing" type="lsep"/>
-		<setting label="Enable Trakt/Kodi Scrobbling with PTN" type="bool" id="trakt_scrobble" default="false"/>
+		<setting label="Enable Trakt/Kodi Scrobbling with PTN" type="bool" id="trakt_scrobble" default="true"/>
 		<setting label="Reopen Last UI Screen After Playback Ends" type="bool" id="reopen_window_bool" default="false"/>
-		<setting label="Trakt Watched History indicators on items" type="bool" id="trakt_watched_stats" default="false"/>
+		<setting label="Trakt Watched History indicators on items" type="bool" id="trakt_watched_stats" default="true"/>
 		<setting label="Create/Refresh Trakt Watched Data" type="action" action="RunScript(script.extendedinfo,info=setup_trakt_watched)"/>
-		<setting label="Use Context Menus in UI?" type="bool" id="context_menu" default="false"/>
+		<setting label="Use Context Menus in UI?" type="bool" id="context_menu" default="true"/>
 		<setting label="Use Window Stack?" type="bool" id="window_stack_enable" default="true"/>
 		<setting label="Enable reopen window on playack fail within 90s" type="bool" id="reopen_play_fail" default="true"/>
 		<setting label="Maintenance" type="lsep"/>
@@ -33,7 +33,7 @@
 	</category>
     <category label="Trakt Collection Library Options">
 		<setting label="TMDBHelper Trakt Authentication" type="action" action="RunScript(plugin.video.themoviedb.helper,authenticate_trakt)"/>
-		<setting label="Trakt/Kodi Collection mode" type="select" values="Trakt and Kodi|Trakt Only" id="trakt_kodi_mode" default="Trakt and Kodi"/>
+		<setting label="Trakt/Kodi Collection mode" type="select" values="Trakt and Kodi|Trakt Only" id="trakt_kodi_mode" default="Trakt Only"/>
         <setting label="Auto Add Trakt Calendar items to collection" type="bool" id="trakt_calendar_auto_sync" default="false"/>
         <setting label="Auto Sync Trakt Collection to library" type="bool" id="library_auto_sync" default="false"/>
 		<setting label="Library Sync Period (hours - default = 8)" type="number" id="library_sync_hours" default="8"/>
@@ -46,12 +46,12 @@
 		<setting label="Library Auto Sync" type="action" action="RunScript(script.extendedinfo,info=auto_library)"/>
 	</category>
 	<category label="Trakt/IMDB Custom Userlists JSON Location">
-		<setting label="Info Screens Recommendations Mode" type="select" values="TMDB Only|IMDB Only|TMDB then IMDB|IMDB then TMDB|IMDB + TMDB Sorted by Popularity" id="imdb_recommendations" default="TMDB Only"/>
+		<setting label="Info Screens Recommendations Mode" type="select" values="TMDB Only|IMDB Only|TMDB then IMDB|IMDB then TMDB|IMDB + TMDB Sorted by Popularity" id="imdb_recommendations" default="IMDB + TMDB Sorted by Popularity"/>
 		<setting label="Auto Load Plugin Route ENABLE" type="bool" id="auto_plugin_route_enable" default="false"/>
 		<setting label="Auto Load Plugin Route (use plugin://...)" id="auto_plugin_route" type="text" default="script.extendedinfo,info=trakt_watched,trakt_type=tv"/>
         <setting label="Enable IMDB Plugin Screen Items" type="bool" id="imdb_plugin_list" default="true"/>
         <setting label="Enable Trakt Plugin Screen Items" type="bool" id="trakt_plugin_list" default="true"/>
-        <setting label="Enable User Lists Plugin Screen Items" type="bool" id="userlists_plugin_list" default="false"/>
+        <setting label="Enable User Lists Plugin Screen Items" type="bool" id="userlists_plugin_list" default="true"/>
 		<setting label="Custom File/URL to the Trakt/IMDB JSON see addon folder/zip for examples" type="lsep"/>
 		<setting label="Enable Custom Trakt JSON List" type="bool" id="custom_trakt_json" default="True"/>
 		<setting label="Default=https://henryjfry.github.io/repository.thenewdiamond/trakt_list.json" type="lsep"/>
@@ -60,7 +60,7 @@
 		<setting label="Default=https://henryjfry.github.io/repository.thenewdiamond/imdb_list.json" type="lsep"/>
 		<setting label="IMDB JSON User File/URL" id="imdb_json" type="text" default="https://bit.ly/2WABGMg"/>
 		<setting label="IMDB Userlists UR ID" id="imdb_ur_id" type="text" default=""/>
-        <setting label="Trakt Userlists Enable" type="bool" id="trakt_userlist" default="false"/>
+        <setting label="Trakt Userlists Enable" type="bool" id="trakt_userlist" default="true"/>
 		<setting label="Trakt User Slug" id="trakt_slug" type="text" default="" visible="false"/>
 		<setting label="Trakt User Name" id="trakt_user_name" type="text" default="" visible="false"/>
 	</category>

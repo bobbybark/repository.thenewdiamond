@@ -49,6 +49,7 @@ try:
 	from resources.lib import Utils
 	from resources.lib.library import addon_ID
 	ADDON_USERDATA_PATH = Utils.ADDON_DATA_PATH
+	ADDON_USERDATA_PATH_1 = ADDON_USERDATA_PATH
 	ADDON_NAME = addon_ID()
 	A4KPROVIDERS_PATH = os.path.join(ADDON_USERDATA_PATH, 'providers')
 	SETTING_XML = os.path.join(ADDON_USERDATA_PATH, 'settings.xml')
