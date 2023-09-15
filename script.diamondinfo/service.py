@@ -920,9 +920,11 @@ class PlayerMonitor(xbmc.Player):
 		sub_audio_json  = json.loads(json_result)
 		json_result = xbmc.executeJSONRPC('{"jsonrpc": "2.0","id": "1","method": "Player.GetProperties","params": {"playerid": 1,"properties": ["currentaudiostream", "currentsubtitle", "currentvideostream"]}}')
 		curr_sub_audio_json  = json.loads(json_result)
-		currentaudiostream_index = curr_sub_audio_json['result']['currentaudiostream']['index']
-		currentsubtitle_index = curr_sub_audio_json['result']['currentsubtitle']['index']
-		currentsubtitle_forced = curr_sub_audio_json['result']['currentsubtitle']['isforced']
+		
+		#currentaudiostream_index = curr_sub_audio_json['result']['currentaudiostream']['index']
+		#currentsubtitle_index = curr_sub_audio_json['result']['currentsubtitle']['index']
+		#currentsubtitle_forced = curr_sub_audio_json['result']['currentsubtitle']['isforced']
+		
 		lang_toggle = False
 		#tools.log('languages',languages, 'audio_languages', audio_languages, 'subtitle_languages', subtitle_languages,   'current_sub_language2',current_sub_language2,'current_audio_language',current_audio_language,'sub_audio_json',sub_audio_json,'curr_sub_audio_json',curr_sub_audio_json)
 		if languages[0] == 'English':
