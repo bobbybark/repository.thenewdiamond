@@ -45,6 +45,7 @@ current_directory = str(getframeinfo(currentframe()).filename.replace(os.path.ba
 sys.path.append(current_directory)
 
 sys.path.append(os.path.join(current_directory,'_vendor'))
+from a4kscrapers_wrapper.pkg_resources._vendor import packaging as packaging
 
 try:
     import _imp

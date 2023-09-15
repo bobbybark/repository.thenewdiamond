@@ -47,7 +47,7 @@ class WindowManager(object):
 		self.custom_filter = None
 		try: self.window_stack_len = self.window_stack_len
 		except: self.window_stack_len = 0
-		self.reopen_window_var = None
+		#self.reopen_window_var = None
 		self.focus_id = None
 		self.position = None
 		osAndroid = xbmc.getCondVisibility('system.platform.android')

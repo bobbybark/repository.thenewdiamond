@@ -615,9 +615,12 @@ class PlayerMonitor(xbmc.Player):
 				if self.getProperty('diamond_info_started') == 'True':
 					xbmc.sleep(1000)
 					log('wm.pop_stack()', str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
-					log(wm.reopen_window_var,'wm.reopen_window_var')
-					if wm.reopen_window_var == 'Started':
+					reopen_window_var = self.getProperty('reopen_window_var')
+					log(reopen_window_var,'reopen_window_var')
+					if reopen_window_var == 'Started':
 						wm.pop_stack()
+						self.clearProperty('reopen_window_var')
+						reopen_window_var = ''
 					self.player_meta['diamond_info_started'] = False
 					self.setProperty('diamond_info_started',self.player_meta['diamond_info_started'])
 					return
@@ -705,7 +708,8 @@ class PlayerMonitor(xbmc.Player):
 	def onPlayBackStarted(self):
 		Utils.hide_busy()
 		log(str('onPlayBackStarted'))
-		wm.reopen_window_var = 'Started'
+		#wm.reopen_window_var = 'Started'
+		self.setProperty('reopen_window_var','Started')
 
 		self.player_meta['diamond_info_started'] = None
 

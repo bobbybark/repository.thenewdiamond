@@ -18,11 +18,11 @@
 		<setting label="Info Dialog Settings Button" type="select" id="settings_user_config" values="TMDBHelper Context Menu|Settings Selection Menu" default="Settings Selection Menu"/>
 		<setting label="Trakt/Kodi Scrobbling with Scene filename parsing" type="lsep"/>
 		<setting label="Enable Trakt/Kodi Scrobbling with PTN" type="bool" id="trakt_scrobble" default="true"/>
-		<setting label="Reopen Last UI Screen After Playback Ends" type="bool" id="reopen_window_bool" default="false"/>
+		<setting label="Reopen Last UI Screen After Playback Ends" type="bool" id="reopen_window_bool" default="false" visible="false" />
 		<setting label="Trakt Watched History indicators on items" type="bool" id="trakt_watched_stats" default="true"/>
 		<setting label="Create/Refresh Trakt Watched Data" type="action" action="RunScript(script.extendedinfo,info=setup_trakt_watched)"/>
 		<setting label="Use Context Menus in UI?" type="bool" id="context_menu" default="true"/>
-		<setting label="Use Window Stack?" type="bool" id="window_stack_enable" default="true"/>
+		<setting label="Use Window Stack?" type="bool" id="window_stack_enable" default="true" visible="false"/>
 		<setting label="Enable reopen window on playack fail within 90s" type="bool" id="reopen_play_fail" default="true"/>
 		<setting label="Maintenance" type="lsep"/>
 		<setting label="Clear cache..." type="action" action="RunScript(script.extendedinfo,info=deletecache)"/>
