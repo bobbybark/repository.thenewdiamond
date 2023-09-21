@@ -841,7 +841,7 @@ def extended_movie_info(movie_id=None, dbid=None, cache_time=14):
 	for idx, i in enumerate(response['recommendations']['results']):
 		if int(i.get('vote_count',0)) < 250:
 			pop_list.append(idx)
-	for i in pop_list:
+	for i in reversed(pop_list):
 		response['recommendations']['results'].pop(i)
 
 	listitems = {

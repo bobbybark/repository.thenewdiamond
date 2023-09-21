@@ -47,6 +47,14 @@ program_choices = {
 	'get current filters/limits/sorting 			"main.py -curr_settings"': 12
 }
 
+def downloader_daemon()
+	from a4kscrapers_wrapper import daemon
+	magnet_list = tools.get_setting('magnet_list')
+	download_path = tools.get_setting('download_path')
+	with daemon.DaemonContext():
+		getSources.run_downloader(magnet_list, download_path)
+
+
 def main():
 	#program_choices = tools.program_choices
 	try: result = tools.selectFromDict(program_choices, 'CHOOSE')
@@ -92,4 +100,7 @@ def main():
 
 if __name__ == "__main__":
 	print(sys.argv)
-	main()
+	if 'downloader' in str(sys.argv):
+		downloader_daemon()
+	else:
+		main()

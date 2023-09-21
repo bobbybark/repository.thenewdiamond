@@ -750,15 +750,18 @@ def cloud_get_ep_season(rd_api, meta, torr_id, torr_info):
 				pass
 	#log(tvmaze_adjusted_eps, simple_info)
 	original_ep_no = int(simple_info['episode_number'])
+	tvmaze_adjusted_eps_index = 0
 	for i in result_dict['episode_numbers']:
+		if int(i) in tvmaze_adjusted_eps:
+			tvmaze_adjusted_eps_index = tvmaze_adjusted_eps.index(int(i))
 		if not int(i) in tvmaze_adjusted_eps:
-			tvmaze_adjusted_eps.append(int(i))
+			#tvmaze_adjusted_eps.append(int(i))
+			tvmaze_adjusted_eps.insert(tvmaze_adjusted_eps_index+1,int(i))
 	try: simple_info['episode_number'] = str(tvmaze_adjusted_eps[ int(simple_info['episode_number'])-1 ])
 	except: pass
 
 	#log(simple_info['episode_number'])
 	#log(tvmaze_adjusted_eps)
-
 	#mode = 'tmdb'
 	#result_dict2 = source_tools.match_episodes_season_pack(meta, sorted_torr_info)
 	#log(result_dict2)
@@ -1770,21 +1773,21 @@ getSources.get_providers_dict()
 
 	providers_dict_original = {'hosters': [], 
 	'torrent': [
-	('providers.a4kScrapers.en.torrent', 'bitlord', 'a4kScrapers'), 
-	('providers.a4kScrapers.en.torrent', 'bitsearch', 'a4kScrapers'), 
-	('providers.a4kScrapers.en.torrent', 'btdig', 'a4kScrapers'), 
-	('providers.a4kScrapers.en.torrent', 'cached', 'a4kScrapers'), 
-	('providers.a4kScrapers.en.torrent', 'glo', 'a4kScrapers'), 
-	('providers.a4kScrapers.en.torrent', 'kickass', 'a4kScrapers'), 
-	('providers.a4kScrapers.en.torrent', 'lime', 'a4kScrapers'), 
-	('providers.a4kScrapers.en.torrent', 'magnetdl', 'a4kScrapers'), 
-	('providers.a4kScrapers.en.torrent', 'piratebay', 'a4kScrapers'), 
-	#('providers.a4kScrapers.en.torrent', 'rutor', 'a4kScrapers'), 
-	('providers.a4kScrapers.en.torrent', 'showrss', 'a4kScrapers'), 
-	('providers.a4kScrapers.en.torrent', 'torrentdownload', 'a4kScrapers'), 
-	('providers.a4kScrapers.en.torrent', 'torrentio', 'a4kScrapers'), 
-	('providers.a4kScrapers.en.torrent', 'torrentz2', 'a4kScrapers'), 
-	('providers.a4kScrapers.en.torrent', 'yts', 'a4kScrapers')
+	('providers2.a4kScrapers.en.torrent', 'bitlord', 'a4kScrapers'), 
+	('providers2.a4kScrapers.en.torrent', 'bitsearch', 'a4kScrapers'), 
+	('providers2.a4kScrapers.en.torrent', 'btdig', 'a4kScrapers'), 
+	('providers2.a4kScrapers.en.torrent', 'cached', 'a4kScrapers'), 
+	('providers2.a4kScrapers.en.torrent', 'glo', 'a4kScrapers'), 
+	('providers2.a4kScrapers.en.torrent', 'kickass', 'a4kScrapers'), 
+	('providers2.a4kScrapers.en.torrent', 'lime', 'a4kScrapers'), 
+	('providers2.a4kScrapers.en.torrent', 'magnetdl', 'a4kScrapers'), 
+	('providers2.a4kScrapers.en.torrent', 'piratebay', 'a4kScrapers'), 
+	#('providers2.a4kScrapers.en.torrent', 'rutor', 'a4kScrapers'), 
+	('providers2.a4kScrapers.en.torrent', 'showrss', 'a4kScrapers'), 
+	('providers2.a4kScrapers.en.torrent', 'torrentdownload', 'a4kScrapers'), 
+	('providers2.a4kScrapers.en.torrent', 'torrentio', 'a4kScrapers'), 
+	('providers2.a4kScrapers.en.torrent', 'torrentz2', 'a4kScrapers'), 
+	('providers2.a4kScrapers.en.torrent', 'yts', 'a4kScrapers')
 	], 
 	'adaptive': []}
 
@@ -1792,12 +1795,12 @@ getSources.get_providers_dict()
 		for name in files:
 			#log(os.path.join(root, name))
 			if '.py' == name[-3:] and '__init__.py' != name:
-				file = str(os.path.join(root, name).split('providers')[1])
+				file = str(os.path.join(root, name).split('providers2')[1])
 				if '/' in str(file):
 					splits = str(file).split('/')
 				else:
 					splits = str(file).split('\\')
-				providers_dict[splits[3]].append(tuple([str('providers.%s.%s.%s') % (splits[1],splits[2],splits[3]), splits[4].replace('.py',''), splits[1], True]))
+				providers_dict[splits[3]].append(tuple([str('providers2.%s.%s.%s') % (splits[1],splits[2],splits[3]), splits[4].replace('.py',''), splits[1], True]))
 	#log(providers_dict)
 	return providers_dict
 
@@ -1806,14 +1809,24 @@ def setup_providers(provider_url):
 import getSources
 getSources.setup_providers('https://bit.ly/a4kScrapers')
 """
+	if os.path.exists(tools.A4KPROVIDERS_PATH_original):
+		shutil.rmtree(tools.A4KPROVIDERS_PATH_original)
+	if os.path.exists(tools.A4KPROVIDERS_PATH):
+		shutil.rmtree(tools.A4KPROVIDERS_PATH)
+	if os.path.exists(tools.PROVIDERS_JSON):
+		os.remove(tools.PROVIDERS_JSON)
 	provider_url = 'https://bit.ly/a4kScrapers'
 	temp_zip = tools.temp_file()
 	tools.download_file(provider_url, temp_zip)
 	dest_dir = tools.ADDON_USERDATA_PATH
 	tools.extract_zip(temp_zip, dest_dir)
 	tools.delete_file(temp_zip)
+	shutil.move(tools.A4KPROVIDERS_PATH_original, tools.A4KPROVIDERS_PATH)
+	tools.findReplace(tools.A4KPROVIDERS_PATH, "'providers.", "'providers2.", "*.py")
+	tools.findReplace(tools.A4KPROVIDERS_PATH, "from providers.a4kScrapers", "from providers2.a4kScrapers", "*.py")
 	providers_dict = get_providers_dict()
 	tools.write_all_text(tools.PROVIDERS_JSON,str(providers_dict))
+
 
 def get_providers():
 	providers_dict = eval(tools.read_all_text(tools.PROVIDERS_JSON))
@@ -2163,7 +2176,7 @@ class Sources(object):
 				if hasattr(provider, 'cancel_operations') and callable(provider.cancel_operations):
 					provider.cancel_operations()
 			if (any([True for i in inspect.stack() if "providerModules" in i[1]]) or
-				any([True for i in inspect.stack() if "providers" in i[1]])):
+				any([True for i in inspect.stack() if "providers2" in i[1]])):
 				raise tools.PreemptiveCancellation('Pre-emptive termination has stopped this request111')
 			return self._finalise_results()
 
@@ -2174,9 +2187,9 @@ class Sources(object):
 			try:
 				if tools.ADDON_USERDATA_PATH not in sys.path:
 					sys.path.append(tools.ADDON_USERDATA_PATH)
-					providers = importlib.import_module("providers")
+					providers2 = importlib.import_module("providers2")
 				else:
-					providers = reload_module(importlib.import_module("providers"))
+					providers2 = reload_module(importlib.import_module("providers2"))
 			except ValueError:
 				log('No providers installed', 'warning')
 			log('EXIT')
@@ -2306,29 +2319,29 @@ class Sources(object):
 		try:
 			if tools.ADDON_USERDATA_PATH not in sys.path:
 				sys.path.append(tools.ADDON_USERDATA_PATH)
-				providers = importlib.import_module("providers")
+				providers2 = importlib.import_module("providers2")
 			else:
-				providers = reload_module(importlib.import_module("providers"))
+				providers2 = reload_module(importlib.import_module("providers2"))
 		except ValueError:
 			log('No providers installed', 'warning')
 			return
 
 		#providers_dict = {'hosters': [], 
-		#'torrent': [('providers.a4kScrapers.en.torrent', 'bitlord', 'a4kScrapers'), 
-		#('providers.a4kScrapers.en.torrent', 'bitsearch', 'a4kScrapers'), 
-		#('providers.a4kScrapers.en.torrent', 'btdig', 'a4kScrapers'), 
-		#('providers.a4kScrapers.en.torrent', 'cached', 'a4kScrapers'), 
-		#('providers.a4kScrapers.en.torrent', 'glo', 'a4kScrapers'), 
-		#('providers.a4kScrapers.en.torrent', 'kickass', 'a4kScrapers'), 
-		#('providers.a4kScrapers.en.torrent', 'lime', 'a4kScrapers'), 
-		#('providers.a4kScrapers.en.torrent', 'magnetdl', 'a4kScrapers'), 
-		#('providers.a4kScrapers.en.torrent', 'piratebay', 'a4kScrapers'), 
-		##('providers.a4kScrapers.en.torrent', 'rutor', 'a4kScrapers'), 
-		#('providers.a4kScrapers.en.torrent', 'showrss', 'a4kScrapers'), 
-		#('providers.a4kScrapers.en.torrent', 'torrentdownload', 'a4kScrapers'), 
-		#('providers.a4kScrapers.en.torrent', 'torrentio', 'a4kScrapers'), 
-		#('providers.a4kScrapers.en.torrent', 'torrentz2', 'a4kScrapers'), 
-		#('providers.a4kScrapers.en.torrent', 'yts', 'a4kScrapers')], 
+		#'torrent': [('providers2.a4kScrapers.en.torrent', 'bitlord', 'a4kScrapers'), 
+		#('providers2.a4kScrapers.en.torrent', 'bitsearch', 'a4kScrapers'), 
+		#('providers2.a4kScrapers.en.torrent', 'btdig', 'a4kScrapers'), 
+		#('providers2.a4kScrapers.en.torrent', 'cached', 'a4kScrapers'), 
+		#('providers2.a4kScrapers.en.torrent', 'glo', 'a4kScrapers'), 
+		#('providers2.a4kScrapers.en.torrent', 'kickass', 'a4kScrapers'), 
+		#('providers2.a4kScrapers.en.torrent', 'lime', 'a4kScrapers'), 
+		#('providers2.a4kScrapers.en.torrent', 'magnetdl', 'a4kScrapers'), 
+		#('providers2.a4kScrapers.en.torrent', 'piratebay', 'a4kScrapers'), 
+		##('providers2.a4kScrapers.en.torrent', 'rutor', 'a4kScrapers'), 
+		#('providers2.a4kScrapers.en.torrent', 'showrss', 'a4kScrapers'), 
+		#('providers2.a4kScrapers.en.torrent', 'torrentdownload', 'a4kScrapers'), 
+		#('providers2.a4kScrapers.en.torrent', 'torrentio', 'a4kScrapers'), 
+		#('providers2.a4kScrapers.en.torrent', 'torrentz2', 'a4kScrapers'), 
+		#('providers2.a4kScrapers.en.torrent', 'yts', 'a4kScrapers')], 
 		#'adaptive': []}
 		#providers_dict = providers.get_relevant(self.language)
 		#log(providers_dict)

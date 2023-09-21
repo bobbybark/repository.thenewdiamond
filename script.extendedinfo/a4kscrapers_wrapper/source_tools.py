@@ -406,14 +406,14 @@ def multi_parts_check(simple_info, release_title=None):
 	for i in multi_dict:
 		idx = i
 		for x in multi_dict[i]:
-			print(x)
+			#print(x)
 			if str(x).lower() in simple_info['episode_title'].lower():
 				part_number_title.append(str(idx)+'+'+str(int(idx)+1))
 	part_number_release = []
 	for i in multi_dict:
 		idx = i
 		for x in multi_dict[i]:
-			print(x)
+			#print(x)
 			if str(x).lower() in release_title.lower():
 				part_number_release.append(str(idx)+'+'+str(int(idx)+1))
 	return part_number_title, part_number_release
@@ -511,7 +511,6 @@ def run_show_filters(simple_info, pack_title=None, release_title=None, guess=Fal
 
 		if not ': True' in str(result_dict):
 
-
 			guess = get_guess(release_title)
 			#guess = api.guessit(release_title)
 			guess_season = guess.get('season', -1)
@@ -541,6 +540,15 @@ def run_show_filters(simple_info, pack_title=None, release_title=None, guess=Fal
 				for i in result_dict:
 						if result_dict[i] == True:
 							result_dict[i] = False
+			guess_episode_title = guess.get('episode_title', '')
+			show_episode_title = simple_info['episode_title']
+			if guess_episode_title != '':
+				distance_apart = distance.jaro_similarity(show_episode_title,guess_episode_title)
+				if distance_apart < 0.925:
+					for i in result_dict:
+							if result_dict[i] == True:
+								result_dict[i] = False
+
 		#if len(part_number_title)>0 and len(part_number_release)>0:
 		##	print(result_dict)
 		#	for idx, i in enumerate(part_number_title):

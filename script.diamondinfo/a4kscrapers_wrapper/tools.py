@@ -51,7 +51,8 @@ try:
 	ADDON_USERDATA_PATH = Utils.ADDON_DATA_PATH
 	ADDON_USERDATA_PATH_1 = ADDON_USERDATA_PATH
 	ADDON_NAME = addon_ID()
-	A4KPROVIDERS_PATH = os.path.join(ADDON_USERDATA_PATH, 'providers')
+	A4KPROVIDERS_PATH = os.path.join(ADDON_USERDATA_PATH, 'providers2')
+	A4KPROVIDERS_PATH_original = os.path.join(ADDON_USERDATA_PATH, 'providers')
 	SETTING_XML = os.path.join(ADDON_USERDATA_PATH, 'settings.xml')
 	PROVIDERS_JSON = os.path.join(ADDON_USERDATA_PATH, 'provider.json')
 	OPENSUB_USERNAME = 'username'
@@ -68,7 +69,8 @@ except:
 	elif not os.path.exists(ADDON_USERDATA_PATH) or not 'user' in str(ADDON_USERDATA_PATH):
 		ADDON_USERDATA_PATH = os.path.join(folder, 'user_data')
 	ADDON_NAME = 'plugin.video.a4kWrapper'
-	A4KPROVIDERS_PATH = os.path.join(ADDON_USERDATA_PATH, 'providers')
+	A4KPROVIDERS_PATH = os.path.join(ADDON_USERDATA_PATH, 'providers2')
+	A4KPROVIDERS_PATH_original = os.path.join(ADDON_USERDATA_PATH, 'providers')
 	SETTING_XML = os.path.join(ADDON_USERDATA_PATH, 'settings.xml')
 	PROVIDERS_JSON = os.path.join(ADDON_USERDATA_PATH, 'provider.json')
 	OPENSUB_USERNAME = 'username'
@@ -78,7 +80,8 @@ except:
 
 if not os.path.exists(SETTING_XML):
 	ADDON_USERDATA_PATH = ADDON_USERDATA_PATH_1
-	A4KPROVIDERS_PATH = os.path.join(ADDON_USERDATA_PATH, 'providers')
+	A4KPROVIDERS_PATH = os.path.join(ADDON_USERDATA_PATH, 'providers2')
+	A4KPROVIDERS_PATH_original = os.path.join(ADDON_USERDATA_PATH, 'providers')
 	SETTING_XML = os.path.join(ADDON_USERDATA_PATH, 'settings.xml')
 	PID_FILE = os.path.join(ADDON_USERDATA_PATH, 'pid')
 	PROVIDERS_JSON = os.path.join(ADDON_USERDATA_PATH, 'provider.json')
@@ -151,6 +154,18 @@ class global_var:
 	
 	def __init__(self):
 		self.VIDEO_META = None
+
+
+def findReplace(directory, find, replace, filePattern):
+	import os, fnmatch
+	for path, dirs, files in os.walk(os.path.abspath(directory)):
+		for filename in fnmatch.filter(files, filePattern):
+			filepath = os.path.join(path, filename)
+			with open(filepath) as f:
+				s = f.read()
+			s = s.replace(find, replace)
+			with open(filepath, "w") as f:
+				f.write(s)
 
 def setup_userdata():
 	import shutil

@@ -18,7 +18,8 @@ import requests
 try:
 	from functools import cached_property  # Supported from py3.8
 except ImportError:
-	from resources.lib.third_party.cached_property import cached_property
+	try: from resources.lib.third_party.cached_property import cached_property
+	except: from cached_property import cached_property
 
 from inspect import currentframe, getframeinfo
 #tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))

@@ -512,26 +512,37 @@ class PlayerMonitor(xbmc.Player):
 		if (self.player_meta['percentage'] > 90 and self.getProperty('Next_EP.ResolvedUrl') == 'true') or self.player_meta['percentage'] == 0:
 			log(str('Next_EP.ResolvedUrl==TRUE')+'===>OPENINFO')
 			if self.trakt_watched  == True:
+				#log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO')
 				return
-			else:
-				log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO')
+			#else:
+			#	log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO')
+		if self.trakt_watched:
+			#log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO')
+			return self.trakt_watched
 		if self.player_meta['percentage'] > 5 and self.player_meta['percentage'] < 80:
 			self.player_meta['percentage'] = self.player_meta['percentage'] -1
+			#log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO')
 		if self.player_meta['percentage'] >= 80:
 			action = 'stop'
 			self.trakt_watched  = True
+			#log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO')
 		if trakt_meta.get('tmdb_id') == None and self.trakt_scrobble != 'false':
 			if trakt_meta.get('episode') != None and trakt_meta.get('movie_title') == None:
 				response = self.trakt_scrobble_tv(title=trakt_meta.get('tv_title'), season=trakt_meta.get('season'), episode=trakt_meta.get('episode'), percent=self.player_meta['percentage'],action=action)
+				#log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO')
 			if trakt_meta.get('movie_title') != None:
 				response = self.trakt_scrobble_title(movie_title=trakt_meta.get('movie_title'), movie_year=trakt_meta.get('movie_year'), percent=self.player_meta['percentage'], action=action)
+				#log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO')
 		if trakt_meta.get('tmdb_id') != None and self.trakt_scrobble != 'false':
 			if trakt_meta.get('episode') != None and trakt_meta.get('movie_title') == None:
 				response = self.trakt_scrobble_tv(title='tmdb_id='+str(trakt_meta.get('trakt_tmdb_id')), season=trakt_meta.get('season'), episode=trakt_meta.get('episode'), percent=self.player_meta['percentage'],action=action)
+				#log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO')
 			elif trakt_meta.get('episode') != None and trakt_meta.get('movie_title') != None:
 				response = self.trakt_scrobble_title(movie_title=trakt_meta.get('movie_title'), movie_year=trakt_meta.get('movie_year'), percent=self.player_meta['percentage'], action=action)
+				#log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO')
 			else:
 				response = self.trakt_scrobble_tmdb(tmdb_id=trakt_meta.get('trakt_tmdb_id'),percent=self.player_meta['percentage'],action=action)
+				#log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO')
 		return self.trakt_watched 
 		#log(str(response)+'trakt_scrobble===>OPENINFO')
 
@@ -1426,6 +1437,11 @@ class CronJobMonitor(Thread):
 				if rss_1_enabled == 'true' or rss_2_enabled == 'true' or rss_3_enabled == 'true'  or rss_4_enabled == 'true':
 					log(str('get_meta.get_rss_cache()'))
 					get_meta.get_rss_cache()
+				if trakt_calendar_auto_sync == 'true' or trakt_calendar_auto_sync == True:
+					log(str('library.trakt_unwatched_tv_shows()'))
+					unwatched_thread = Thread(target=library.trakt_unwatched_tv_shows)
+					unwatched_thread.setDaemon(True)
+					unwatched_thread.start()
 				library_update_period = int(xbmcaddon.Addon(library.addon_ID()).getSetting('library_sync_hours'))
 				self.next_time = self.curr_time + library_update_period*60*60
 

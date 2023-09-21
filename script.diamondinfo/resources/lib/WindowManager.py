@@ -112,7 +112,7 @@ class WindowManager(object):
 			self.window_stack_len = 0
 		cur.close()
 		con.close()
-		return
+		return len(sql_result)
 
 	def update_windows(self, curr_window, prev_window):
 		self.curr_window = curr_window
@@ -341,7 +341,7 @@ class WindowManager(object):
 				xbmcgui.Window(10000).setProperty('diamond_info_time', str(int(time.time())+15))
 			return
 		xbmcgui.Window(10000).setProperty(str(addon_ID_short())+'_running', 'True')
-		self.window_stack_length()
+		self.window_stack_len = self.window_stack_length()
 		#xbmc.log(str(self.window_stack_len)+'self.window_stack_lenWindowManager===>OPENINFO', level=xbmc.LOGINFO)
 		if (self.window_stack or self.window_stack_len > 0) and Utils.window_stack_enable == 'true':
 			#self.active_dialog = self.window_stack.pop()
