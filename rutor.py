@@ -1,5 +1,23 @@
 # -*- coding: utf-8 -*-
 
+"""
+urls.json
+
+      "rutor": {
+          "search": "/search/0/0/000/0/%s",
+          "cat_movie": "movies",
+          "cat_episode": "tv",
+          "domains": [
+              { "base": "http://rutor.is" }
+          ]
+      },
+
+
+providers.json
+
+('providers2.a4kScrapers.en.torrent', 'rutor', 'a4kScrapers', True)
+"""
+
 import inspect
 
 from inspect import currentframe, getframeinfo
