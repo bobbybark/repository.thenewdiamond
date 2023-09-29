@@ -473,6 +473,7 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 		except: media_type = 0
 		try: mediatype = result['mediatype']
 		except: mediatype = 0
+		
 
 		#if enable_clearlogo and not 'info=library' in str(sys.argv) and not 'script=False' in str(sys.argv):
 		if enable_clearlogo:
@@ -486,6 +487,13 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 				from resources.lib.TheMovieDB import get_imdb_id_from_movie_id
 				imdb_id = get_imdb_id_from_movie_id(tmdb_id)
 				result['IMDBNumber'] = imdb_id
+		if mediatype == 'movie':
+			listitem.setProperty("tmdb_id", str(result['id']))
+		elif mediatype == 'tvshow':
+			listitem.setProperty("tmdb_id", str(result['id']))
+		elif mediatype == 'episode':
+			#xbmc.log(str(result)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			listitem.setProperty("tmdb_id", str(show_id))
 
 		if mediatype == 'movie' and tmdb_id != 0 and trakt_movies:
 			try: 
@@ -619,9 +627,13 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 			elif key.lower() in ['thumb']:
 				#listitem.setThumbnailImage(value)
 				listitem.setArt({key.lower(): value})
+				if mediatype == 'episode':
+					listitem.setProperty('Fanart_small', value)
 			elif key.lower() in ['icon']:
 				listitem.setIconImage(value)
 				listitem.setArt({key.lower(): value})
+				if mediatype == 'episode':
+					listitem.setArt({'thumb': value})
 			elif key.lower() in ['clearlogo','logo']:
 				listitem.setArt({'clearlogo': value})
 
@@ -645,6 +657,7 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 				listitem.setPath(path=value)
 			elif key.lower() in ['poster', 'banner', 'fanart', 'clearart', 'clearlogo', 'landscape', 'discart', 'characterart', 'tvshow.fanart', 'tvshow.poster', 'tvshow.banner', 'tvshow.clearart', 'tvshow.characterart']:
 				listitem.setArt({key.lower(): value})
+
 			elif key.lower() in INT_INFOLABELS:
 				try:
 					#listitem.setInfo('video', {key.lower(): int(value)})

@@ -47,7 +47,7 @@ program_choices = {
 	'get current filters/limits/sorting 			"main.py -curr_settings"': 12
 }
 
-def downloader_daemon()
+def downloader_daemon():
 	from a4kscrapers_wrapper import daemon
 	magnet_list = tools.get_setting('magnet_list')
 	download_path = tools.get_setting('download_path')

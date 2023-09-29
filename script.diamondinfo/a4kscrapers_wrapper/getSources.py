@@ -533,15 +533,27 @@ def run_tv_search():
 		torr_id = response['id']
 		response = rd_api.torrent_select_all(torr_id)
 		torr_info = rd_api.torrent_info(torr_id)
+		torr_info = rd_api.torrent_info_files(torr_info)
 		tools.log(torr_info)
 		#sorted_torr_info = sorted(torr_info['files_links'], key=lambda x: x['pack_path'])
-		for i in torr_info['links']:
-			unrestrict_link = i
+		for i in torr_info['files_links']:
+			unrestrict_link = i['unrestrict_link']
 			result = input('Unrestrict %s:  ' % i['pack_path'])
 			if result and result.strip() != '':
-				download_link = rd_api.resolve_hoster(unrestrict_link)
-				download_id = rd_api.UNRESTRICT_FILE_ID
-				log(download_link, download_id)
+				if unrestrict_link == '':
+					response2 = rd_api.add_magnet(torrent['magnet'])
+					torr_id2 = response2['id']
+					response2 = rd_api.torrent_select(torr_id2, i['pack_file_id'])
+					torr_info2 = rd_api.torrent_info(torr_id2)
+					unrestrict_link = torr_info2['links'][0]
+					tools.log(torr_info2)
+					download_link = rd_api.resolve_hoster(unrestrict_link)
+					download_id = rd_api.UNRESTRICT_FILE_ID
+					log(download_link, download_id)
+				else:
+					download_link = rd_api.resolve_hoster(unrestrict_link)
+					download_id = rd_api.UNRESTRICT_FILE_ID
+					log(download_link, download_id)
 	elif result == 9:#'(Uncached) Add to RD (individual files) ': 9
 		tools.log(torrent)
 		response = rd_api.add_magnet(torrent['magnet'])
@@ -613,6 +625,7 @@ def run_movie_search():
 				torrent_choices_test.append(i)
 	for i in torrent_choices_test:
 		torrent_choices.pop(i)
+	sources_list = tools.SourceSorter(item_information).sort_sources(sources_list)
 	torrent = choose_torrent(sources_list)
 	
 	if torrent == None:
@@ -750,13 +763,10 @@ def cloud_get_ep_season(rd_api, meta, torr_id, torr_info):
 				pass
 	#log(tvmaze_adjusted_eps, simple_info)
 	original_ep_no = int(simple_info['episode_number'])
-	tvmaze_adjusted_eps_index = 0
 	for i in result_dict['episode_numbers']:
-		if int(i) in tvmaze_adjusted_eps:
-			tvmaze_adjusted_eps_index = tvmaze_adjusted_eps.index(int(i))
 		if not int(i) in tvmaze_adjusted_eps:
-			#tvmaze_adjusted_eps.append(int(i))
-			tvmaze_adjusted_eps.insert(tvmaze_adjusted_eps_index+1,int(i))
+			tvmaze_adjusted_eps.append(int(i))
+	tvmaze_adjusted_eps = sorted(tvmaze_adjusted_eps)
 	try: simple_info['episode_number'] = str(tvmaze_adjusted_eps[ int(simple_info['episode_number'])-1 ])
 	except: pass
 
@@ -1822,6 +1832,31 @@ getSources.setup_providers('https://bit.ly/a4kScrapers')
 	tools.extract_zip(temp_zip, dest_dir)
 	tools.delete_file(temp_zip)
 	shutil.move(tools.A4KPROVIDERS_PATH_original, tools.A4KPROVIDERS_PATH)
+	
+	from inspect import currentframe, getframeinfo
+	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+
+	folder = str(os.path.split(str(getframeinfo(currentframe()).filename))[0])
+	current_directory = folder.replace('a4kscrapers_wrapper','')
+	urls_json_path = os.path.join(tools.ADDON_USERDATA_PATH, 'providerModules','a4kScrapers', 'urls.json')
+
+	rutor_path = os.path.join(current_directory, 'rutor.py')
+	new_rutor_path = os.path.join(tools.A4KPROVIDERS_PATH, 'a4kScrapers', 'en', 'torrent', 'rutor.py')
+
+	mirrorbay_path = os.path.join(current_directory, 'mirrorbay.py')
+	new_mirrorbay_path = os.path.join(tools.A4KPROVIDERS_PATH, 'a4kScrapers', 'en', 'torrent', 'mirrorbay.py')
+
+	shutil.copy(rutor_path, new_rutor_path)
+	rutor_urls_dict = { "search": "/search/0/0/000/0/%s", "cat_movie": "movies", "cat_episode": "tv", "domains": [ { "base": "http://rutor.is" } ] }
+	mirrorbay_urls_dict = {"search": "/get-data-for/%s", "cat_movie": "207,202,201", "cat_episode": "208,205", "domains": [{"base": "https://mirrorbay.org"}]}
+	
+	with open(urls_json_path,'r+') as file:
+		file_data = json.load(file)
+		file_data['trackers']["rutor"] = rutor_urls_dict
+		file_data['trackers']["mirrorbay"] = mirrorbay_urls_dict
+		file.seek(0)
+		json.dump(file_data, file, indent = 4)
+
 	tools.findReplace(tools.A4KPROVIDERS_PATH, "'providers.", "'providers2.", "*.py")
 	tools.findReplace(tools.A4KPROVIDERS_PATH, "from providers.a4kScrapers", "from providers2.a4kScrapers", "*.py")
 	providers_dict = get_providers_dict()
@@ -2470,7 +2505,9 @@ class Sources(object):
 			return
 
 		except:
+			log(provider_name)
 			log('EXCEPTION',str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+			#raise tools.PreemptiveCancellation('Pre-emptive termination has stopped this request111')
 			pass
 		finally:
 			self.sources_information['statistics']['remainingProviders'].remove(provider_name)

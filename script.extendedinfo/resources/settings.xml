@@ -558,6 +558,7 @@
 		<!---setting id="rss.timeout" type="slider" label="Rss Auto Update Time (in hours)" default="24" range="1,24" option="int" /--->
 		
 		<setting type="lsep" label="Address 1" />
+		<setting id="rss_rarbg" type="bool" label="Enable TheRarbg latest 2160p" default="false" />
 		<setting id="rss.1" type="bool" label="Enable Rss" default="false" />
 		<setting id="rss.link.1" type="text" label="Rss Address" default="" visible="eq(-1,true)" />
 		<!---setting id="rss.link.1.offset" type="slider" label="Max Number of Days to check from today (offset)" default="3" range="0,14" option="int" visible="eq(-2,true)" /--->

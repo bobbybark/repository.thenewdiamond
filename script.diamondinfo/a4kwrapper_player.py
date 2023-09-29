@@ -152,7 +152,7 @@ def get_next_ep_details(show_title, season_num, ep_num, tmdb):
 	if curr_ep_flag == True:
 		next_ep_episode = 1
 		next_ep_season = int(i['season']) + 1
-		if next_ep_season > (i['season_count']):
+		if next_ep_season > (meta['tvmaze_total_seasons']):
 			print_log(str('ENDED')+'===>PHIL')
 			return None
 		meta = get_meta.get_episode_meta(season=next_ep_season,episode=next_ep_episode,show_name=show_title, tmdb=tmdb, interactive=False)

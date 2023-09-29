@@ -535,16 +535,32 @@ def run_show_filters(simple_info, pack_title=None, release_title=None, guess=Fal
 			guess = get_guess(release_title)
 			guess_title = guess.get('title')
 			show_title = simple_info['show_title']
-			distance_apart = distance.jaro_similarity(show_title,guess_title)
+			distance_apart = distance.jaro_similarity(show_title.lower(),guess_title.lower())
+			#tools.log(guess, distance_apart)
 			if distance_apart < 0.925:
 				for i in result_dict:
 						if result_dict[i] == True:
 							result_dict[i] = False
 			guess_episode_title = guess.get('episode_title', '')
 			show_episode_title = simple_info['episode_title']
+			guess_season = guess.get('season', -1)
+			guess_episode = []
+			if guess.get('episode', None) == None:
+				return result_dict
+			if not 'int' in  str(type(guess.get('episode'))):
+				for x in guess.get('episode'):
+					guess_episode.append(x)
+			else:
+				guess_episode.append(guess.get('episode'))
 			if guess_episode_title != '':
-				distance_apart = distance.jaro_similarity(show_episode_title,guess_episode_title)
+				distance_apart = distance.jaro_similarity(show_episode_title.lower(),guess_episode_title.lower())
+				#tools.log(guess, distance_apart)
 				if distance_apart < 0.925:
+					if guess_season == int(simple_info['season_number']):
+						for i in guess_episode:
+							if i == int(simple_info['episode_number']):
+								result_dict['get_filter_single_episode_fn'] = True
+								return result_dict
 					for i in result_dict:
 							if result_dict[i] == True:
 								result_dict[i] = False
@@ -576,7 +592,7 @@ def run_show_filters(simple_info, pack_title=None, release_title=None, guess=Fal
 		result_dict['get_filter_show_pack_fn'] = filter_fn(simple_info['clean_pack'])
 
 	result_dict['episode_number'] = simple_info['episode_number']
-
+	
 	return result_dict
 
 def filter_check_episode_title_match(simple_info, release_title):

@@ -50,6 +50,7 @@ class VideoPlayer(xbmc.Player):
 		xbmc.executebuiltin('Dialog.Close(all,true)')
 		##Utils.get_kodi_json(method='Player.Open', params='{"item": %s}' % item)
 		#xbmc.executebuiltin('RunPlugin(%s)' % url)
+		xbmcgui.Window(10000).clearProperty('reopen_window_var')
 		xbmc.executebuiltin('RunScript(%s,info=play_test_pop_stack)' % addon_ID())
 		super(VideoPlayer, self).play(item=url, listitem=listitem, windowed=False, startpos=-1)
 		#xbmc.log(str('play')+'_________________________play===>OPENINFO', level=xbmc.LOGINFO)

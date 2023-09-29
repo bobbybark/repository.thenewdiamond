@@ -31,6 +31,7 @@ from resources.lib.library import trakt_popular_shows
 from resources.lib.library import trakt_lists
 from resources.lib.library import trakt_watched_tv_shows_progress
 
+
 from inspect import currentframe, getframeinfo
 #xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 ch = OnClickHandler()
@@ -315,9 +316,13 @@ def get_tmdb_window(window_type):
 			return info
 
 		def onClick(self, control_id):
-			super(DialogVideoList, self).onClick(control_id)
-			self.control_id2 = control_id
-			ch.serve(control_id, self)
+			xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
+			if self.search_str == 'Trakt Episodes/Movies in progress' and xbmc.getInfoLabel('listitem.DBTYPE') == 'episode':
+				wm.open_tvshow_info(prev_window=self, tmdb_id=self.listitem.getProperty('tmdb_id'), dbid=self.listitem.getProperty('dbid'))
+			else:
+				super(DialogVideoList, self).onClick(control_id)
+				self.control_id2 = control_id
+				ch.serve(control_id, self)
 
 		def onAction(self, action):
 			super(DialogVideoList, self).onAction(action)
@@ -486,6 +491,8 @@ def get_tmdb_window(window_type):
 				self_type = 'movie'
 			elif xbmc.getInfoLabel('listitem.DBTYPE') in ['tv', 'tvshow', 'season', 'episode']:
 				self_type = 'tv'
+				if self.search_str == 'Trakt Episodes/Movies in progress':
+					self_type = 'movie'
 			if self_type == 'tv':
 				imdb_id = Utils.fetch(TheMovieDB.get_tvshow_ids(item_id), 'imdb_id')
 				tvdb_id = Utils.fetch(TheMovieDB.get_tvshow_ids(item_id), 'tvdb_id')
@@ -513,6 +520,8 @@ def get_tmdb_window(window_type):
 			listitems += ['Search item']
 			listitems += ['Trailer']
 			listitems += ['TMDBHelper Context']
+			if self.search_str == 'Trakt Episodes/Movies in progress':
+				listitems += ['Trakt remove playback entry']
 			listitems += ['TasteDive Similar Items']
 			if xbmcaddon.Addon(addon_ID()).getSetting('RD_bluray_player') == 'true' or xbmcaddon.Addon(addon_ID()).getSetting('RD_bluray_player2')  == 'true':
 				listitems += ['Eject/Load DVD']
@@ -550,7 +559,15 @@ def get_tmdb_window(window_type):
 				xbmc.executebuiltin('Dialog.Close(all,true)')
 				PLAYER.play_from_button(last_played_tmdb_helper, listitem=None, window=self, dbid=0)
 			if selection_text == 'Play first episode' or selection_text == 'Play':
-				if self.listitem.getProperty('TVShowTitle'):
+				if self.search_str == 'Trakt Episodes/Movies in progress' and xbmc.getInfoLabel('listitem.DBTYPE') == 'episode':
+					item_id = self.listitem.getProperty('tmdb_id')
+					episode = str(xbmc.getInfoLabel('listitem.Episode'))
+					season = str(xbmc.getInfoLabel('listitem.Season'))
+					url = 'plugin://plugin.video.themoviedb.helper?info=play&amp;type=episode&amp;tmdb_id=%s&amp;season=%s&amp;episode=%s' % (item_id, season, episode)
+					xbmc.executebuiltin('Dialog.Close(busydialog)')
+					xbmc.executebuiltin('Dialog.Close(all,true)')
+					PLAYER.play_from_button(url, listitem=None, window=self, dbid=0)
+				elif self.listitem.getProperty('TVShowTitle'):
 					url = 'plugin://plugin.video.themoviedb.helper?info=play&amp;type=episode&amp;tmdb_id=%s&amp;season=1&amp;episode=1' % item_id
 					xbmc.executebuiltin('Dialog.Close(busydialog)')
 					xbmc.executebuiltin('Dialog.Close(all,true)')
@@ -567,6 +584,33 @@ def get_tmdb_window(window_type):
 						url = 'plugin://plugin.video.themoviedb.helper?info=play&amp;type=movie&amp;tmdb_id=%s' % item_id
 						xbmc.executebuiltin('Dialog.Close(all,true)')
 						PLAYER.play_from_button(url, listitem=None, window=self, dbid=0)
+			if selection_text == 'Trakt remove playback entry':
+				from resources.lib.library import trak_auth
+				from resources.lib.TheMovieDB import get_trakt_playback
+				DBTYPE = xbmc.getInfoLabel('listitem.DBTYPE')
+				#xbmc.log(str(self.search_str)+'query_get_tastedive_data_scrape===>OPENINFO', level=xbmc.LOGINFO)
+				if DBTYPE == 'episode':
+					response = get_trakt_playback('tv')
+					item_id = self.listitem.getProperty('tmdb_id')
+					episode = str(xbmc.getInfoLabel('listitem.Episode'))
+					season = str(xbmc.getInfoLabel('listitem.Season'))
+				else:
+					response = get_trakt_playback('movie')
+					item_id = self.listitem.getProperty('id')
+				for i in response:
+					if DBTYPE == 'episode':
+						if str(i['show']['ids']['tmdb']) == str(item_id):
+							if str(i['episode']['number']) == str(episode) and str(i['episode']['season']) == str(season):
+								play_id = i['id']
+					else:
+						if str(i['movie']['ids']['tmdb']) == str(item_id):
+							play_id = i['id']
+				url = 'https://api.trakt.tv/sync/playback/' + str(play_id)
+				response = requests.delete(url, headers=trak_auth())
+				try: xbmc.log(str(response.json)+'Trakt remove playback entry===>OPENINFO', level=xbmc.LOGINFO)
+				except: xbmc.log(str(response)+'Trakt remove playback entry===>OPENINFO', level=xbmc.LOGINFO)
+				self.fetch_data()
+				self.update()
 
 			if selection_text == 'Remove from library' or selection_text == 'Add to library':
 				if self.listitem.getProperty('TVShowTitle'):
@@ -1039,6 +1083,7 @@ def get_tmdb_window(window_type):
 
 			listitems = []
 			listitems = ['Trakt Watched Shows']
+			listitems += ['Trakt Episodes/Movies in progress']
 			listitems += ['TasteDive - Last Watched TV']
 			listitems += ['Trakt Shows Progress']
 			listitems += ['Trakt Unwatched Shows']
@@ -1115,6 +1160,10 @@ def get_tmdb_window(window_type):
 			elif listitems[selection] == 'Trakt Shows Progress':
 				self.search_str = trakt_watched_tv_shows_progress()
 				self.type = 'tv'
+			elif listitems[selection] == 'Trakt Episodes/Movies in progress':
+				self.search_str = 'Trakt Episodes/Movies in progress'
+				self.type = 'movie'
+
 			elif listitems[selection] == 'TasteDive - Last Watched Movies':
 				from resources.lib import TheMovieDB
 				response = TheMovieDB.get_trakt(trakt_type='movie',info='trakt_watched',limit=100)
@@ -1702,6 +1751,51 @@ def get_tmdb_window(window_type):
 				fetch_data_dict_file.close()
 				#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 				return info
+
+			elif self.search_str == 'Trakt Episodes/Movies in progress':
+				from resources.lib.TheMovieDB import get_trakt_playback
+				from resources.lib.TheMovieDB import extended_episode_info
+				from resources.lib.TheMovieDB import extended_movie_info
+				response = get_trakt_playback('tv')
+				listitems1 = []
+				#xbmc.log(str(response)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+				for i in response:
+					ep = extended_episode_info(i['show']['ids']['tmdb'], i['episode']['season'], i['episode']['number'])
+					ep[0]['tmdb_id'] = ep[1]['tvshow_id']
+					listitems1.append(ep[0])
+					#xbmc.log(str(ep[0])+'===>OPEN_INFO', level=xbmc.LOGINFO)
+				response = get_trakt_playback('movie')
+				#xbmc.log(str(response)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+				for i in response:
+					mov = extended_movie_info(i['movie']['ids']['tmdb'])
+					listitems1.append(mov[0])
+
+				x = 0
+				page = int(self.page)
+				listitems = []
+				for i in listitems1:
+					if x + 1 <= page * 20 and x + 1 > (page - 1) *  20:
+						listitems.append(i)
+						x = x + 1
+					else:
+						x = x + 1
+
+				#response['total_pages'] = y 
+				total_pages = int(x/20) + (1 if x % 20 > 0 else 0)
+				total_results = x
+				#xbmc.log(str(listitems)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+				info = {
+					'listitems': listitems,
+					'results_per_page': total_pages,
+					'total_results': total_results
+					}
+				self.mode = 'trakt'
+				self.type = 'movie'
+				fetch_data_dict = self.update_fetch_data_dict(info, fetch_data_dict)
+				fetch_data_dict_file.write(str(fetch_data_dict))
+				fetch_data_dict_file.close()
+				return info
+
 
 			elif self.mode == 'trakt':
 				#fetch_data_dict_file = write_fetch_data_dict_file()

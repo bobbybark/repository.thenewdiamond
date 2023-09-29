@@ -473,6 +473,31 @@ def start_info_actions(infos, params):
 
 		elif info == 'test_route':
 			xbmc.log(str('test_route')+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			#Utils.hide_busy()
+			#url = 'https://api.trakt.tv/sync/playback/type?start_at=2023-09-26T00%3A00%3A00.000Z&end_at=2023-07-01T23%3A59%3A59.000Z'
+			from resources.lib.TheMovieDB import get_trakt_playback
+			from resources.lib.TheMovieDB import extended_episode_info
+			from resources.lib.TheMovieDB import single_movie_info
+			response = get_trakt_playback('tv')
+			listitems = []
+			#xbmc.log(str(response)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			for i in response:
+				ep = extended_episode_info(i['show']['ids']['tmdb'], i['episode']['season'], i['episode']['number'])
+				listitems.append(ep[0])
+				#xbmc.log(str(ep[0])+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			response = get_trakt_playback('movie')
+			#xbmc.log(str(response)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			for i in response:
+				mov = single_movie_info(i['movie']['ids']['tmdb'])
+				listitems.append(mov)
+				#xbmc.log(str(mov)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			#from resources.lib.library import trakt_watched_tv_shows
+			#response = trakt_watched_tv_shows()
+			#xbmc.log(str(response)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			listitems = Utils.create_listitems(listitems,preload_images=0, enable_clearlogo=False, info=None)
+			xbmc.log(str(listitems[0].getArt('thumb'))+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			Utils.hide_busy()
+			return
 
 			from a4kscrapers_wrapper import getSources, real_debrid, tools, source_tools, get_meta
 			from a4kscrapers_wrapper.getSources import Sources

@@ -835,6 +835,7 @@ class PlayerMonitor(xbmc.Player):
 		tools.log(json_result)
 
 		PTN_info = get_guess(json_object['result']['Player.Filename'])
+
 		self.player_meta['VideoPlayer.Title'] = json_object['result']['VideoPlayer.Title']
 		if json_object['result']['VideoPlayer.TVShowTitle'] != '':
 			self.player_meta['tv_title'] = json_object['result']['VideoPlayer.TVShowTitle']
@@ -849,6 +850,13 @@ class PlayerMonitor(xbmc.Player):
 			self.player_meta['movie_title'] = json_object['result']['VideoPlayer.MovieTitle']
 			self.player_meta['title'] = json_object['result']['VideoPlayer.MovieTitle']
 			self.type = 'movie'
+		elif PTN_info['type'] == 'episode':
+			self.player_meta['tv_title'] = PTN_info.get('title','')
+			self.player_meta['tv_season'] = PTN_info.get('season','')
+			try: self.player_meta['tv_episode'] = PTN_info['episode'][0]
+			except: self.player_meta['tv_episode'] = PTN_info.get('episode','')
+			self.player_meta['title'] = PTN_info.get('episode_title','')
+			self.type = 'episode'
 		elif json_object['result']['VideoPlayer.Title'] != '' and json_object['result']['VideoPlayer.Season'] == '':
 			self.player_meta['VideoPlayer.Year'] = str(json_object['result']['VideoPlayer.Year'])
 			self.player_meta['movie_year'] = str(json_object['result']['VideoPlayer.Year'])
@@ -885,6 +893,7 @@ class PlayerMonitor(xbmc.Player):
 		if 'tt' in str(self.player_meta['imdb_id']) and self.type == 'episode':
 			self.player_meta['tmdb_id'] = TheMovieDB.get_show_tmdb_id(imdb_id=self.player_meta['imdb_id'])
 			self.player_meta['trakt_tmdb_id'] = self.player_meta['tmdb_id']
+
 
 		if self.type == 'episode' and (self.player_meta['tmdb_id'] == None or str(self.player_meta['tmdb_id']) == ''):
 			regex2 = re.compile('(19|20)[0-9][0-9]')
@@ -1358,11 +1367,6 @@ class PlayerMonitor(xbmc.Player):
 				return
 
 			if player.isPlaying()==1 and self.player_meta['percentage'] > 90 and prescrape == 'Done' and self.player_meta['diamond_player'] == True:
-				while not self.player_meta['resume_position'] > (self.player_meta['resume_duration'] - 35) and self.player_meta['resume_position'] < self.player_meta['resume_duration']:
-					xbmc.sleep(250)
-					self.update_play_test(self.playing_file)
-					if self.play_test == False:
-						return
 				try: 
 					next_ep_url = next_ep_play_details.get('PTN_download')
 				except:
@@ -1371,6 +1375,14 @@ class PlayerMonitor(xbmc.Player):
 				thumb = next_ep_details.get('next_ep_thumb2','')
 				if thumb == '':
 					thumb = next_ep_play_details.get('next_ep_thumbnail')
+				threads = []
+				image_requests = []
+				if thumb not in image_requests and thumb:
+					image_thread = Utils.GetFileThread(thumb)
+					threads += [image_thread]
+					image_thread.start()
+					image_requests.append(thumb)
+
 				rating = next_ep_details.get('next_ep_rating')
 				if rating == '' or rating == 0:
 					rating = next_ep_play_details.get('rating')
@@ -1379,6 +1391,11 @@ class PlayerMonitor(xbmc.Player):
 				episode = next_ep_play_details.get('PTN_episode')
 				year = next_ep_play_details.get('year')
 				kodi_url = 'RunScript(%s,info=display_dialog,next_ep_url=%s,title=%s,thumb=%s,rating=%s,show=%s,season=%s,episode=%s,year=%s)' % (str(addon_ID()), str(next_ep_url), quote_plus(title), str(thumb), str(rating), str(show), str(season), str(episode), str(year))
+				while not self.player_meta['resume_position'] > (self.player_meta['resume_duration'] - 35) and self.player_meta['resume_position'] < self.player_meta['resume_duration']:
+					xbmc.sleep(250)
+					self.update_play_test(self.playing_file)
+					if self.play_test == False:
+						return
 				log(str(kodi_url)+'kodi_url===>OPENINFO')
 				xbmc.executebuiltin(kodi_url)
 				self.playing_file = None

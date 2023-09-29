@@ -443,8 +443,20 @@ class RealDebrid:
 
 
 	def torrent_select_all(self, torrent_id):
+		torr_info = self.torrent_info(torrent_id)
+		#tools.log(torr_info)
+		file_string = ''
+		for i in torr_info['files']:
+			res = [ele for ele in self.common_video_extensions() if(ele in os.path.splitext(i['path'])[1])]
+			if res and ('Sample' in i['path'] or 'sample.' in i['path']) == False:
+				if file_string == '':
+					file_string = file_string + str(i['id'])
+				else:
+					file_string = file_string + ',' + str(i['id'])
+
 		file_id='all'
-		response = self.torrent_select(torrent_id,file_id)
+		#response = self.torrent_select(torrent_id,file_id)
+		response = self.torrent_select(torrent_id,file_string)
 		return response
 
 	def torrent_select(self, torrent_id, file_id):

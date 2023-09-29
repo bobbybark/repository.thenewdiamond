@@ -101,7 +101,9 @@ def get_rss_cache(rss_feed=None, cache_days=30, folder='rss'):
 	import feedparser
 	import real_debrid
 	import xbmcaddon
+	import rapbg_2160
 	from resources.lib.library import addon_ID
+	rss_rarbg_enabled = xbmcaddon.Addon(addon_ID()).getSetting('rss_rarbg')
 	rss_1_enabled = xbmcaddon.Addon(addon_ID()).getSetting('rss.1')
 	rss_2_enabled = xbmcaddon.Addon(addon_ID()).getSetting('rss.2')
 	rss_3_enabled = xbmcaddon.Addon(addon_ID()).getSetting('rss.3')
@@ -144,7 +146,7 @@ def get_rss_cache(rss_feed=None, cache_days=30, folder='rss'):
 			else:
 				response = rd_api.add_magnet(magnet)
 				torr_id = response['id']
-				response = rd_api.torrent_select(torr_id,'all')
+				response = rd_api.torrent_select_all(torr_id)
 				torr_info = rd_api.torrent_info(torr_id)
 				try:
 					#magnet = json.loads(response)
@@ -158,6 +160,8 @@ def get_rss_cache(rss_feed=None, cache_days=30, folder='rss'):
 					torr_info = read_all_text(path) if os.path.exists(path) else []
 				if not torr_info:
 					continue
+	if rss_rarbg_enabled == 'true':
+		rapbg_2160.rarbg_4k_magnets()
 
 def get_response_cache(url='', cache_days=7.0, folder=False, headers=False):
 	now = time.time()
@@ -484,8 +488,8 @@ def get_episode_meta_special(season, episode,tmdb=None, show_name=None, year=Non
 			show['tvmaze_seasons'] = season_dict
 			show['tvmaze_seasons_episode_tot'] = season_episodes
 			show['tvmaze_absolute_number'] = absolute_tvmaze
-			show['tvmaze_tot_episode_count'] = tot_episode_count
-			show['tvmaze_total_seasons'] = total_seasons
+			show['tvmaze_tot_episode_count'] = max(tot_episode_count,show['tot_episode_count'])
+			show['tvmaze_total_seasons'] = max(total_seasons, show['total_seasons'])
 
 
 		#import pprint
@@ -717,8 +721,8 @@ def get_episode_meta(season, episode,tmdb=None, show_name=None, year=None, inter
 			show['tvmaze_seasons'] = season_dict
 			show['tvmaze_seasons_episode_tot'] = season_episodes
 			show['tvmaze_absolute_number'] = absolute_tvmaze
-			show['tvmaze_tot_episode_count'] = tot_episode_count
-			show['tvmaze_total_seasons'] = total_seasons
+			show['tvmaze_tot_episode_count'] = max(tot_episode_count,show['tot_episode_count'])
+			show['tvmaze_total_seasons'] = max(total_seasons, show['total_seasons'])
 
 		#import pprint
 		#from pprint import pprint
