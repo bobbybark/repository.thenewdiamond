@@ -3,7 +3,7 @@
 import inspect
 
 from inspect import currentframe, getframeinfo
-print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+#print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 
 """
         "mirrorbay": {
@@ -23,15 +23,15 @@ from providerModules.a4kScrapers import core
 
 class sources(core.DefaultSources):
 	def __init__(self, *args, **kwargs):
-		print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+		#print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		super(sources, self).__init__(__name__, *args, single_query=True, **kwargs)
 
 	def _get_scraper(self, title):
-		print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+		#print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		return super(sources, self)._get_scraper(title)
 
 	def _search_request(self, url, query):
-		print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+		#print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 
 		request_url = url.base + (url.search % core.quote_plus(query))
 		response = self._request.get(request_url)
@@ -48,7 +48,7 @@ class sources(core.DefaultSources):
 
 
 	def _soup_filter(self, response):
-		print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+		#print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		#response_list = core.beautifulSoup(response).find_all(class_='gai')
 		#print(response.text)
 		response_list = response.text.split('list-item item-type')
@@ -63,10 +63,10 @@ class sources(core.DefaultSources):
 				result.size = test.split('item-size">')[1].split('</')[0]
 				result.size = core.normalize(result.size)
 				result.seeds = 1
-				print('hash', result.hash)
-				print('title', result.title)
-				print('size', result.size)
-				print('seeds', result.seeds)
+				#print('hash', result.hash)
+				#print('title', result.title)
+				#print('size', result.size)
+				#print('seeds', result.seeds)
 			results.append(result)
 
 		return results
@@ -74,12 +74,12 @@ class sources(core.DefaultSources):
 
 
 	def movie(self, title, year, imdb=None, **kwargs):
-		#print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+		##print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		self._imdb = imdb
 		return super(sources, self).movie(title, year, imdb, auto_query=True)
 
 	def episode(self, simple_info, all_info, **kwargs):
-		#print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+		##print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		self._imdb = all_info.get('info', {}).get('tvshow.imdb_id', None)
 		self._single_query = False
 		simple_info['is_airing'] = False

@@ -467,7 +467,12 @@ class RealDebrid:
 	def test_download_link(self,download_link):
 		if not download_link:
 			return None
-		headers=requests.head(download_link).headers
+		try: 
+			headers=requests.head(download_link).headers
+		except AttributeError:
+			self.UNRESTRICT_FILE_ID = download_link.split('/')[4]
+			delete_download(self.UNRESTRICT_FILE_ID)
+			return None
 		self.UNRESTRICT_FILE_ID = download_link.split('/')[4]
 		if not str('attachment') in headers.get('Content-Disposition',''):
 			delete_download(self.UNRESTRICT_FILE_ID)
@@ -483,7 +488,11 @@ class RealDebrid:
 		try:
 			self.UNRESTRICT_FILE = response["download"]
 			self.UNRESTRICT_FILE_ID = response["id"]
-			headers=requests.head(self.UNRESTRICT_FILE).headers
+			try: 
+				headers=requests.head(self.UNRESTRICT_FILE).headers
+			except AttributeError:
+				delete_download(self.UNRESTRICT_FILE_ID)
+				return None
 			if not str('attachment') in headers.get('Content-Disposition',''):
 				delete_download(self.UNRESTRICT_FILE_ID)
 				return None

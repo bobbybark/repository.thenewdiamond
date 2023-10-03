@@ -7,6 +7,9 @@ from resources.lib.library import addon_ID
 from resources.lib.library import addon_ID_short
 from resources.lib.library import fanart_api_key
 
+from inspect import currentframe, getframeinfo
+#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
+
 ext_key = xbmcaddon.Addon().getSetting('tmdb_api')
 
 if len(ext_key) == 32:
@@ -474,6 +477,13 @@ def get_tastedive_data_scrape(url='', query='', year='', limit=20, media_type=No
 
 	if xbmcvfs.exists(path) and ((now - os.path.getmtime(path)) < cache_seconds):
 		results = Utils.read_from_file(path)
+		results_id = []
+		results_out = []
+		for i in results:
+			if not i['item_id'] in results_id:
+				results_id.append(i['item_id'])
+				results_out.append(i)
+		results = results_out
 	else:
 
 		if item_id:
@@ -501,6 +511,7 @@ def get_tastedive_data_scrape(url='', query='', year='', limit=20, media_type=No
 		imdb_response = get_imdb_recommendations(imdb_id=response['imdb_id'], return_items=True)
 		#xbmc.log(str(imdb_response)+'query_get_tastedive_data_scrape===>OPENINFO', level=xbmc.LOGINFO)
 		results = []
+		results_id = []
 		for i in response['similar']['results']:
 			#xbmc.log(str(i)+'query_get_tastedive_data_scrape===>OPENINFO', level=xbmc.LOGINFO)
 			try: votes = i['Votes']
@@ -514,7 +525,9 @@ def get_tastedive_data_scrape(url='', query='', year='', limit=20, media_type=No
 					except: 
 						try: year = int(i['Premiered'][0:4])
 						except: year = int(i['release_date'][0:4])
-				results.append({'name': title, 'year': year, 'media_type':  i['media_type'], 'item_id': i['id']})
+				if not i['id'] in results_id:
+					results.append({'name': title, 'year': year, 'media_type':  i['media_type'], 'item_id': i['id']})
+					results_id.append(i['id'])
 		for i in imdb_response:
 			#xbmc.log(str(i)+'query_get_tastedive_data_scrape===>OPENINFO', level=xbmc.LOGINFO)
 			try: title = i['title']
@@ -529,8 +542,10 @@ def get_tastedive_data_scrape(url='', query='', year='', limit=20, media_type=No
 				try: votes = i['Votes']
 				except: votes = i['vote_count']
 				if votes >= 100:
-					results.append({'name': title, 'year': year, 'media_type':  i['media_type'], 'item_id': i['id']})
-
+					#results.append({'name': title, 'year': year, 'media_type':  i['media_type'], 'item_id': i['id']})
+					if not i['id'] in results_id:
+						results.append({'name': title, 'year': year, 'media_type':  i['media_type'], 'item_id': i['id']})
+						results_id.append(i['id'])
 
 		try:
 			Utils.save_to_file(results, hashed_url, cache_path)
@@ -541,6 +556,8 @@ def get_tastedive_data_scrape(url='', query='', year='', limit=20, media_type=No
 
 	if not results:
 		return []
+
+	#xbmcgui.Window(10000).setProperty('%s_timestamp' % hashed_url, str(now))
 	#xbmcgui.Window(10000).setProperty('%s_timestamp' % hashed_url, str(now))
 	#xbmcgui.Window(10000).setProperty(hashed_url, json.dumps(results))
 

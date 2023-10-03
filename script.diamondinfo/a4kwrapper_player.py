@@ -336,8 +336,18 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True):
 		try: runtime = int(info['runtime'])
 		except: runtime = 0
 
-		try: runtime_list = [tmdb_response[1].get('runtime',0),extended_tvshow_info_response[0].get('duration','0').split(' -')[0], info1.get('runtime',0), info.get('runtime',0)]
-		except: runtime_list = [tmdb_response[1].get('runtime',0),extended_tvshow_info_response[0].get('duration','0').split(' -')[0], info.get('runtime',0)]
+		runtime_list = []
+		try: runtime_list.append(tmdb_response[1].get('runtime',0))
+		except: pass
+		try: runtime_list.append(extended_tvshow_info_response[0].get('duration','0').split(' -')[0])
+		except: pass
+		try: runtime_list.append(info1.get('runtime',0))
+		except: pass
+		try: runtime_list.append(info.get('runtime',0))
+		except: pass
+		
+		#try: runtime_list = [tmdb_response[1].get('runtime',0),extended_tvshow_info_response[0].get('duration','0').split(' -')[0], info1.get('runtime',0), info.get('runtime',0)]
+		#except: runtime_list = [tmdb_response[1].get('runtime',0),extended_tvshow_info_response[0].get('duration','0').split(' -')[0], info.get('runtime',0)]
 		runtime_list = [i for i in   [int(x or 0) for x in runtime_list]   if i != 0]
 		runtime = min(runtime_list)
 		#if runtime2 < runtime and runtime2 != 0:

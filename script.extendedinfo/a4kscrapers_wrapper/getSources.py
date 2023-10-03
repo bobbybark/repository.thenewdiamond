@@ -1847,6 +1847,7 @@ getSources.setup_providers('https://bit.ly/a4kScrapers')
 	new_mirrorbay_path = os.path.join(tools.A4KPROVIDERS_PATH, 'a4kScrapers', 'en', 'torrent', 'mirrorbay.py')
 
 	shutil.copy(rutor_path, new_rutor_path)
+	shutil.copy(mirrorbay_path, new_mirrorbay_path)
 	rutor_urls_dict = { "search": "/search/0/0/000/0/%s", "cat_movie": "movies", "cat_episode": "tv", "domains": [ { "base": "http://rutor.is" } ] }
 	mirrorbay_urls_dict = {"search": "/get-data-for/%s", "cat_movie": "207,202,201", "cat_episode": "208,205", "domains": [{"base": "https://mirrorbay.org"}]}
 	

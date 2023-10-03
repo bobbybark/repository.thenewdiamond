@@ -98,8 +98,11 @@ def rarbg_4k_magnets():
 			except: test = str(response)
 			if '{files} is missing' in test:
 				rd_api.delete_torrent(torr_id)
-			if response.status_code > 200 and  response.status_code < 300:
-				tools.log(i['title2'], 'ADDED_RARBG')
+			try:
+				if response.status_code > 200 and  response.status_code < 300:
+					tools.log(i['title2'], 'ADDED_RARBG')
+			except:
+				continue
 			if not torr_info:
 				continue
 
