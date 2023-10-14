@@ -473,8 +473,29 @@ def start_info_actions(infos, params):
 
 		elif info == 'test_route':
 			xbmc.log(str('test_route')+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			#Utils.hide_busy()
+			Utils.hide_busy()
+			from resources.lib.library import get_trakt_data
+			from resources.lib.TheMovieDB import extended_episode_info
+			from datetime import datetime, timedelta
 			#url = 'https://api.trakt.tv/sync/playback/type?start_at=2023-09-26T00%3A00%3A00.000Z&end_at=2023-07-01T23%3A59%3A59.000Z'
+			past_date = datetime.now() - timedelta(days=12)
+			tomorrow = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
+			today = (datetime.now()).strftime('%Y-%m-%d')
+			url = 'https://api.trakt.tv/calendars/my/shows/%s/14' % str(past_date.strftime('%Y-%m-%d'))
+			response = get_trakt_data(url=url, cache_days=0.0001, folder='Trakt')
+			listitems = []
+			for i in reversed(response):
+				ep = extended_episode_info(i['show']['ids']['tmdb'], i['episode']['season'], i['episode']['number'])
+				if ep[0]['release_date'] == tomorrow:
+					ep[0]['title'] = ep[0]['title'] + '**'
+				if ep[0]['release_date'] == today:
+					ep[0]['title'] = ep[0]['title'] + '*'
+				listitems.append(ep[0])
+			xbmc.log(str(listitems)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			for i in listitems:
+				xbmc.log(str(i['title'])+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			return
+			
 			from resources.lib.TheMovieDB import get_trakt_playback
 			from resources.lib.TheMovieDB import extended_episode_info
 			from resources.lib.TheMovieDB import single_movie_info

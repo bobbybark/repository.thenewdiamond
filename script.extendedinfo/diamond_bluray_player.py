@@ -17,7 +17,9 @@ from resources.lib.TheMovieDB import get_trakt_playback
 from resources.lib.library import db_connection
 
 from resources.lib.Utils import get_JSON_response
-from resources.lib.TheMovieDB import get_fanart_data
+
+from a4kscrapers_wrapper import get_meta
+
 from resources.lib.TheMovieDB import get_tmdb_data
 
 from resources.lib.library import get_processor_info
@@ -186,127 +188,17 @@ def bluray_menu(menu=None):
 	#print(json_object['result'])
 
 
-def get_fanart_results(tvdb_id, media_type=None):
-	hdclearart, seasonposter, seasonthumb, seasonbanner, tvthumb, tvbanner, showbackground, clearlogo, characterart, tvposter, clearart, hdtvlogo = '', '', '', '', '', '', '', '', '', '', '', '';
+def get_fanart_results(tvdb_id, media_type=None, show_season = None):
+	#from a4kscrapers_wrapper import get_meta
+	#get_fanart_results(tvdb_id, media_type=None, show_season = None)
 
 	if 'tv_tvdb' == media_type:
-		try: 
-			#response = requests.get('http://webservice.fanart.tv/v3/tv/'+str(tvdb_id)+'?api_key='+str(fanart_api)).json()
-			response = get_fanart_data(tmdb_id=tvdb_id,media_type='tv_tvdb')
-			#print_log(str(response)+'===>OPENINFO')
-		except: 
-			response = None
-	else:
-		#response = requests.get('http://webservice.fanart.tv/v3/movies/'+str(tmdb_id)+'?api_key='+str(fanart_api)).json()
-		response = get_fanart_data(tmdb_id=tvdb_id,media_type='movie')
-	
-	if 'tv_tvdb' == media_type:
-		for i in response:
-			#print_log(i)
-			for j in response[i]:
-				try: 
-					lang = j['lang']
-					if j['lang'] == 'en' or (i == 'showbackground' and j['lang'] == ''):
-						if i == 'hdclearart':
-							hdclearart = j['url']
-							break
-						if i == 'seasonposter':
-							for k in response[i]:
-								if int(k['season']) == show_season and k['lang'] == 'en':
-									#print_log(k['season'])
-									seasonposter = k['url']
-							break
-						if i == 'seasonthumb':
-							for k in response[i]:
-								if int(k['season']) == show_season and k['lang'] == 'en':
-									#print_log(k['season'])
-									seasonthumb = k['url']
-							break
-						if i == 'seasonbanner':
-							for k in response[i]:
-								if int(k['season']) == show_season and k['lang'] == 'en':
-									#print_log(k['season'])
-									seasonbanner = k['url']
-							break
-						if i == 'tvthumb':
-							tvthumb = j['url']
-							break
-						if i == 'tvbanner':
-							tvbanner = j['url']
-							break
-						if i == 'showbackground':
-							showbackground = j['url']
-							break
-						if i == 'clearlogo':
-							clearlogo = j['url']
-							break
-						if i == 'characterart':
-							characterart = j['url']
-							break
-						if i == 'tvposter':
-							tvposter = j['url']
-							break
-						if i == 'clearart':
-							clearart = j['url']
-							break
-						if i == 'hdtvlogo':
-							hdtvlogo = j['url']
-							break
-				except:
-					pass
+		hdclearart, seasonposter, seasonthumb, seasonbanner, tvthumb, tvbanner, showbackground, clearlogo, characterart, tvposter, clearart, hdtvlogo = '', '', '', '', '', '', '', '', '', '', '', '';
+		hdclearart, seasonposter, seasonthumb, seasonbanner, tvthumb, tvbanner, showbackground, clearlogo, characterart, tvposter, clearart, hdtvlogo = get_meta.get_fanart_results(tvdb_id, media_type='tv_tvdb', show_season = show_season)
 		return hdclearart, seasonposter, seasonthumb, seasonbanner, tvthumb, tvbanner, showbackground, clearlogo, characterart, tvposter, clearart, hdtvlogo
 	else:
 		movielogo, hdmovielogo, movieposter, hdmovieclearart, movieart, moviedisc, moviebanner, moviethumb, moviebackground = '', '', '', '', '', '', '', '', ''
-		for i in response:
-			#print_log(i)
-			for j in response[i]:
-				try: 
-					lang = j['lang']
-					if j['lang'] == 'en' or (i == 'movielogo' and j['lang'] == ''):
-						if i == 'movielogo':
-							movielogo = j['url']
-							break
-					if j['lang'] == 'en' or (i == 'hdmovielogo' and j['lang'] == ''):
-						if i == 'hdmovielogo':
-							hdmovielogo = j['url']
-							break
-					if i == 'movieposter':
-						for k in response[i]:
-							if k['lang'] == 'en':
-								movieposter = k['url']
-								break
-					if i == 'hdmovieclearart':
-						for k in response[i]:
-							if k['lang'] == 'en':
-								hdmovieclearart = k['url']
-								break
-					if i == 'movieart':
-						for k in response[i]:
-							if k['lang'] == 'en':
-								movieart = k['url']
-								break
-					if i == 'moviedisc':
-						for k in response[i]:
-							if k['lang'] == 'en':
-								moviedisc = k['url']
-								break
-					if i == 'moviebanner':
-						for k in response[i]:
-							if k['lang'] == 'en':
-								moviebanner = k['url']
-								break
-					if i == 'moviethumb':
-						for k in response[i]:
-							if k['lang'] == 'en':
-								moviethumb = k['url']
-								break
-					if i == 'moviebackground':
-						for k in response[i]:
-							if k['lang'] == 'en' or k['lang'] == '':
-								moviebackground = k['url']
-								break
-				except:
-					pass
+		movielogo, hdmovielogo, movieposter, hdmovieclearart, movieart, moviedisc, moviebanner, moviethumb, moviebackground = get_meta.get_fanart_results(tvdb_id, media_type='movie', show_season = None)
 		return movielogo, hdmovielogo, movieposter, hdmovieclearart, movieart, moviedisc, moviebanner, moviethumb, moviebackground
 
 

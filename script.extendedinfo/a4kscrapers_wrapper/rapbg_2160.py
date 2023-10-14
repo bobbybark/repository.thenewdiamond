@@ -51,7 +51,8 @@ def rarbg_4k_magnets():
 			#print(sub_response)
 			magnet = sub_response.text.split('<button onclick=\"copy(\'')[1].split('\',\'#copy_magnet')[0]
 			title = i.split('style="font-weight:')[1].split('>')[1].split('</a')[0]
-			size = unicodedata.normalize('NFKD', i.split('"sizeCell">')[1].split('</td>')[0])
+			try: size = unicodedata.normalize('NFKD', i.split('"sizeCell">')[1].split('</td>')[0])
+			except: size = unicodedata.normalize('NFKD', i.split('"sizeCell"')[1].split('>')[1].split('</td')[0])
 			seeds = i.split('"color: green">')[1].split('</td>')[0]
 			leechers = i.split('"color: red">')[1].split('</td>')[0]
 			title2 = unquote(magnet.split('&amp;tr=')[0].split('&amp;dn=')[1])
@@ -123,7 +124,8 @@ def rarbg_4k_magnets():
 			#print(sub_response)
 			magnet = sub_response.text.split('<button onclick=\"copy(\'')[1].split('\',\'#copy_magnet')[0]
 			title = i.split('style="font-weight:')[1].split('>')[1].split('</a')[0]
-			size = unicodedata.normalize('NFKD', i.split('"sizeCell">')[1].split('</td>')[0])
+			try: size = unicodedata.normalize('NFKD', i.split('"sizeCell">')[1].split('</td>')[0])
+			except: size = unicodedata.normalize('NFKD', i.split('"sizeCell"')[1].split('>')[1].split('</td')[0])
 			seeds = i.split('"color: green">')[1].split('</td>')[0]
 			leechers = i.split('"color: red">')[1].split('</td>')[0]
 			title2 = unquote(magnet.split('&amp;tr=')[0].split('&amp;dn=')[1])

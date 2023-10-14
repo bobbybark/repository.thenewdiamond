@@ -437,7 +437,7 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 	#fanart_api = fanart_api_key()
 	#xbmc.log(str(enable_clearlogo)+'===>OPENINFO', level=xbmc.LOGINFO)
 	#xbmc.log(str('create_listitems')+'===>OPENINFO', level=xbmc.LOGINFO)
-	INT_INFOLABELS = ['year', 'episode', 'season', 'tracknumber', 'playcount', 'overlay']
+	INT_INFOLABELS = ['year', 'episode', 'season', 'tracknumber', 'playcount', 'overlay', 'percentplayed']
 	FLOAT_INFOLABELS = ['rating']
 	#STRING_INFOLABELS = ['mediatype', 'genre', 'director', 'mpaa', 'plot', 'plotoutline', 'title', 'originaltitle', 'sorttitle', 'duration', 'studio', 'tagline', 'writer', 'tvshowtitle', 'premiered', 'status', 'code', 'aired', 'credits', 'lastplayed', 'album', 'votes', 'trailer', 'dateadded', 'IMDBNumber']
 	STRING_INFOLABELS = ['mediatype', 'genre', 'director', 'mpaa', 'plot', 'plotoutline', 'title', 'originaltitle', 'sorttitle', 'duration', 'studio', 'tagline', 'writer', 'tvshowtitle', 'premiered', 'status', 'code', 'aired', 'credits', 'lastplayed', 'album', 'votes', 'trailer', 'dateadded']
@@ -512,8 +512,10 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 				sql_result = tv_cur.execute("select * from trakt where tmdb_id =" + str(result['id'])).fetchall()
 				#try: trakt_item = ast.literal_eval(sql_result[0][1].replace('\'\'','"'))
 				#except: trakt_item = ast.literal_eval(sql_result[0][1])
+				#try: trakt_item = eval(sql_result[0][1])
+				#except: trakt_item = eval(sql_result[0][1].replace("'overview': ''",'\'overview\': "').replace("'', 'first_aired':",'", \'first_aired\':').replace("'title': ''",'\'title\': "').replace("'', 'year':",'", \'year\':').replace('\'\'','"').replace(': ", ',': "", '))
 				try: trakt_item = eval(sql_result[0][1])
-				except: trakt_item = eval(sql_result[0][1].replace("'overview': ''",'\'overview\': "').replace("'', 'first_aired':",'", \'first_aired\':').replace("'title': ''",'\'title\': "').replace("'', 'year':",'", \'year\':').replace('\'\'','"').replace(': ", ',': "", '))
+				except: trakt_item = eval(sql_result[0][1].replace('“','').replace('”','').replace("': ''",'\': "').replace("'', '",'", \'').replace(": ',",": '',").replace("'overview': ''",'\'overview\': "').replace("'', 'first_aired':",'", \'first_aired\':').replace("'title': ''",'\'title\': "').replace("'', 'year':",'", \'year\':'))
 				aired_episodes = trakt_item['show']['aired_episodes']
 				trakt_tmdb_id = trakt_item['show']['ids']['tmdb']
 				last_watched = trakt_item['last_watched_at'].split('T')[0]
@@ -539,8 +541,11 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 			try:
 				sql_result = tv_cur.execute("select * from trakt where tmdb_id =" + str(int(show_id))).fetchall()
 				#trakt_item = ast.literal_eval(sql_result[0][1].replace('\'\'','"'))
+				#try: trakt_item = eval(sql_result[0][1])
+				#except: trakt_item = eval(sql_result[0][1].replace("'overview': ''",'\'overview\': "').replace("'', 'first_aired':",'", \'first_aired\':').replace("'title': ''",'\'title\': "').replace("'', 'year':",'", \'year\':'))
+
 				try: trakt_item = eval(sql_result[0][1])
-				except: trakt_item = eval(sql_result[0][1].replace("'overview': ''",'\'overview\': "').replace("'', 'first_aired':",'", \'first_aired\':').replace("'title': ''",'\'title\': "').replace("'', 'year':",'", \'year\':'))
+				except: trakt_item = eval(sql_result[0][1].replace('“','').replace('”','').replace("': ''",'\': "').replace("'', '",'", \'').replace(": ',",": '',").replace("'overview': ''",'\'overview\': "').replace("'', 'first_aired':",'", \'first_aired\':').replace("'title': ''",'\'title\': "').replace("'', 'year':",'", \'year\':'))
 
 				if int(result['season']) > 0:
 					data = extended_season_info(tvshow_id=int(show_id), season_number=int(result['season']))
@@ -576,10 +581,12 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 
 		if mediatype == 'episode' and trakt_tv:
 			try:
+				if show_id == 0 or (show_id != result.get('tmdb_id',0) and result.get('tmdb_id',0) != 0):
+					show_id = result['tmdb_id']
 				sql_result = tv_cur.execute("select * from trakt where tmdb_id =" + str(int(show_id))).fetchall()
 				#trakt_item = ast.literal_eval(sql_result[0][1].replace('\'\'','"'))
 				try: trakt_item = eval(sql_result[0][1])
-				except: trakt_item = eval(sql_result[0][1].replace("'overview': ''",'\'overview\': "').replace("'', 'first_aired':",'", \'first_aired\':').replace("'title': ''",'\'title\': "').replace("'', 'year':",'", \'year\':'))
+				except: trakt_item = eval(sql_result[0][1].replace('“','').replace('”','').replace("': ''",'\': "').replace("'', '",'", \'').replace(": ',",": '',").replace("'overview': ''",'\'overview\': "').replace("'', 'first_aired':",'", \'first_aired\':').replace("'title': ''",'\'title\': "').replace("'', 'year':",'", \'year\':'))
 				for j in trakt_item['seasons']:
 					if int(result['season']) == int(j['number']):
 						for k in j['episodes']:
@@ -660,6 +667,8 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 
 			elif key.lower() in INT_INFOLABELS:
 				try:
+					if key.lower() == 'percentplayed':
+						listitem.setProperty('StartPercent', str(value))
 					#listitem.setInfo('video', {key.lower(): int(value)})
 					try: 
 						info_tag = ListItemInfoTag(listitem, 'video')

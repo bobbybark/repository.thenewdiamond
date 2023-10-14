@@ -91,7 +91,8 @@ class DialogBaseList(object):
 			#self.window_stack_len2 = self.window_stack_len2 - 1
 			xbmcgui.Window(10000).setProperty('diamond_info_started','True')
 			self.close()
-			self.pop_window_stack_table()
+			try: self.pop_window_stack_table()
+			except KeyError: wm.pop_stack()
 			return
 		if onback:
 			xbmc.executebuiltin(onback)

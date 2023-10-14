@@ -846,6 +846,9 @@ def cloud_get_ep_season(rd_api, meta, torr_id, torr_info):
 						#log(download_link, download_id, pack_path, file_name)
 						new_meta = meta
 						break
+
+	#if not download_link:
+	#	rd_api.delete_torrent(torr_id)
 	return download_link, new_meta
 
 def pack_sort(sources_list, uncached, item_information):
@@ -1128,7 +1131,14 @@ def cloud_movie(rd_api, meta, torr_id, torr_info):
 	simple_info['imdb_id'] = meta['imdb_id']
 	#tools.log(sorted_torr_info)
 	pack_path = None
+	suppress_list = ['featurette','trailer','sample']
 	for i in sorted_torr_info:
+		suppress_flag = False
+		for x in suppress_list:
+			if x in i['pack_path'].lower():
+				suppress_flag = True
+		if suppress_flag == True:
+			continue
 		test1 = source_tools.filter_movie_title(torr_info['filename'], source_tools.clean_title(torr_info['filename']), meta['title'], simple_info)
 		test2 = source_tools.filter_movie_title(i['pack_path'], source_tools.clean_title( i['pack_path']), meta['title'], simple_info)
 		if test1 or test2:
@@ -1148,6 +1158,8 @@ def cloud_movie(rd_api, meta, torr_id, torr_info):
 	download_id = rd_api.UNRESTRICT_FILE_ID
 	download_link = rd_api.test_download_link(download_link)
 	#log(download_link, download_id)
+	if not download_link:
+		rd_api.delete_torrent(torr_id)
 	
 	return download_link, meta
 
@@ -1170,6 +1182,8 @@ def cloud_single_ep(rd_api, meta, torr_id, torr_info):
 		download_link = rd_api.resolve_hoster(unrestrict_link)
 		download_id = rd_api.UNRESTRICT_FILE_ID
 		download_link = rd_api.test_download_link(download_link)
+		if not download_link:
+			rd_api.delete_torrent(torr_id)
 	#log(download_link, download_id)
 
 	#info = get_subtitles(info, download_path)

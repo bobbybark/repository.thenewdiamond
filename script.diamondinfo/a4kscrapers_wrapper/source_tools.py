@@ -389,6 +389,21 @@ def filter_movie_title(org_release_title, release_title, movie_title, simple_inf
 			tools.log('movietvshow]: %s' % release_title, 'notice')
 		return False
 
+	if 'trailer' in release_title and 'trailer' not in title:
+		if os.getenv('A4KSCRAPERS_TEST_TOTAL') != '1':
+			tools.log('movietvshow]: %s' % release_title, 'notice')
+		return False
+
+	if 'featurette' in release_title and 'featurette' not in title:
+		if os.getenv('A4KSCRAPERS_TEST_TOTAL') != '1':
+			tools.log('movietvshow]: %s' % release_title, 'notice')
+		return False
+
+	if 'sample' in release_title and 'sample' not in title:
+		if os.getenv('A4KSCRAPERS_TEST_TOTAL') != '1':
+			tools.log('movietvshow]: %s' % release_title, 'notice')
+		return False
+
 	title_broken_1 = clean_title(movie_title, broken=1)
 	title_broken_2 = clean_title(movie_title, broken=2)
 

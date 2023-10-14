@@ -464,6 +464,10 @@ class RealDebrid:
 		post_data = {"files": file_id}
 		return self.post_url(url, post_data)
 
+	def delete_download(self, id):
+		url = "downloads/delete/{}".format(id)
+		self.delete_url(url)
+
 	def test_download_link(self,download_link):
 		if not download_link:
 			return None
@@ -471,11 +475,15 @@ class RealDebrid:
 			headers=requests.head(download_link).headers
 		except AttributeError:
 			self.UNRESTRICT_FILE_ID = download_link.split('/')[4]
-			delete_download(self.UNRESTRICT_FILE_ID)
+			self.delete_download(self.UNRESTRICT_FILE_ID)
+			return None
+		if download_link[-4:] == '.rar':
+			self.UNRESTRICT_FILE_ID = download_link.split('/')[4]
+			self.delete_download(self.UNRESTRICT_FILE_ID)
 			return None
 		self.UNRESTRICT_FILE_ID = download_link.split('/')[4]
 		if not str('attachment') in headers.get('Content-Disposition',''):
-			delete_download(self.UNRESTRICT_FILE_ID)
+			self.delete_download(self.UNRESTRICT_FILE_ID)
 			return None
 		else:
 			return download_link
@@ -491,18 +499,14 @@ class RealDebrid:
 			try: 
 				headers=requests.head(self.UNRESTRICT_FILE).headers
 			except AttributeError:
-				delete_download(self.UNRESTRICT_FILE_ID)
+				self.delete_download(self.UNRESTRICT_FILE_ID)
 				return None
 			if not str('attachment') in headers.get('Content-Disposition',''):
-				delete_download(self.UNRESTRICT_FILE_ID)
+				self.delete_download(self.UNRESTRICT_FILE_ID)
 				return None
 			return response["download"]
 		except KeyError:
 			return None
-
-	def delete_download(self, id):
-		url = "downloads/delete/{}".format(id)
-		self.delete_url(url)
 
 	def delete_torrent(self, id):
 		url = "torrents/delete/{}".format(id)
