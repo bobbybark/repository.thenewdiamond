@@ -436,6 +436,7 @@ class SubtitleService(object):
 
 		self.VIDEO_META['SUB_FILE'] = ''
 		self.VIDEO_META['SUB_FILE_FORCED'] = ''
+		tools.log(result)
 		if result:
 			if os.path.exists(result):
 				self.VIDEO_META['SUB_FILE'] = result

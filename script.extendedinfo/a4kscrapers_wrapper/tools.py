@@ -691,7 +691,7 @@ def _monkey_check(method):
 					log(args[1], exc)
 				#log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 				#raise PreemptiveCancellation('ConnectionResetError')
-				log('ConnectionResetError')
+				log(args[1],'ConnectionResetError')
 			else:
 				log(exc)
 
