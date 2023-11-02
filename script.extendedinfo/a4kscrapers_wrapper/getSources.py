@@ -1857,18 +1857,18 @@ getSources.setup_providers('https://bit.ly/a4kScrapers')
 	rutor_path = os.path.join(current_directory, 'rutor.py')
 	new_rutor_path = os.path.join(tools.A4KPROVIDERS_PATH, 'a4kScrapers', 'en', 'torrent', 'rutor.py')
 
-	mirrorbay_path = os.path.join(current_directory, 'mirrorbay.py')
-	new_mirrorbay_path = os.path.join(tools.A4KPROVIDERS_PATH, 'a4kScrapers', 'en', 'torrent', 'mirrorbay.py')
+	#mirrorbay_path = os.path.join(current_directory, 'mirrorbay.py')
+	#new_mirrorbay_path = os.path.join(tools.A4KPROVIDERS_PATH, 'a4kScrapers', 'en', 'torrent', 'mirrorbay.py')
 
 	shutil.copy(rutor_path, new_rutor_path)
-	shutil.copy(mirrorbay_path, new_mirrorbay_path)
+	#shutil.copy(mirrorbay_path, new_mirrorbay_path)
 	rutor_urls_dict = { "search": "/search/0/0/000/0/%s", "cat_movie": "movies", "cat_episode": "tv", "domains": [ { "base": "http://rutor.is" } ] }
-	mirrorbay_urls_dict = {"search": "/get-data-for/%s", "cat_movie": "207,202,201", "cat_episode": "208,205", "domains": [{"base": "https://mirrorbay.org"}]}
+	#mirrorbay_urls_dict = {"search": "/get-data-for/%s", "cat_movie": "207,202,201", "cat_episode": "208,205", "domains": [{"base": "https://mirrorbay.org"}]}
 	
 	with open(urls_json_path,'r+') as file:
 		file_data = json.load(file)
 		file_data['trackers']["rutor"] = rutor_urls_dict
-		file_data['trackers']["mirrorbay"] = mirrorbay_urls_dict
+		#file_data['trackers']["mirrorbay"] = mirrorbay_urls_dict
 		file.seek(0)
 		json.dump(file_data, file, indent = 4)
 
