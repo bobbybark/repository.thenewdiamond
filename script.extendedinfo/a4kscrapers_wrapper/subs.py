@@ -402,6 +402,7 @@ class SubtitleService(object):
 		normal_subs = []
 		foreign_parts_flag = False
 		result_foreign = None
+		sub_result = None
 		for i in result_store:
 			if 'foreign' in str(i).lower() or 'forced' in str(i).lower() or 'non english' in str(i).lower():
 				foreign_parts.append(i)
@@ -413,22 +414,23 @@ class SubtitleService(object):
 			if not os.path.exists(utils.temp_dir2):
 				os.mkdir(utils.temp_dir2)
 			for r in sources:
-				result = r.download(foreign_parts[0])
+				sub_result = r.download(foreign_parts[0])
 				break
-			#result_foreign = os.path.splitext(result)[0] + '.FOREIGN.PARTS' +os.path.splitext(result)[1]
-			result_foreign = os.path.splitext(result)[0] + '.FORCED' +os.path.splitext(result)[1]
+			#result_foreign = os.path.splitext(sub_result)[0] + '.FOREIGN.PARTS' +os.path.splitext(sub_result)[1]
+			result_foreign = os.path.splitext(sub_result)[0] + '.FORCED' +os.path.splitext(sub_result)[1]
 			result_foreign = os.path.basename(result_foreign)
 			result_foreign1 = os.path.join(utils.temp_dir2, result_foreign)
 			result_foreign2 = os.path.join(utils.temp_dir, result_foreign)
 
-			os.rename(result, result_foreign1)
+			os.rename(sub_result, result_foreign1)
 		for r in sources:
 			try: 
-				result = r.download(normal_subs[0])
+				sub_result = r.download(normal_subs[0])
 			except Exception as e: 
 				if 'zipfile.BadZipFile' in str(e):
 					pass
-			break
+			if sub_result:
+				break
 		if foreign_parts_flag:
 			os.rename(result_foreign1, result_foreign2)
 			result_foreign = result_foreign2
@@ -436,10 +438,10 @@ class SubtitleService(object):
 
 		self.VIDEO_META['SUB_FILE'] = ''
 		self.VIDEO_META['SUB_FILE_FORCED'] = ''
-		tools.log(result)
-		if result:
-			if os.path.exists(result):
-				self.VIDEO_META['SUB_FILE'] = result
+		tools.log(sub_result)
+		if sub_result:
+			if os.path.exists(sub_result):
+				self.VIDEO_META['SUB_FILE'] = sub_result
 			else:
 				self.VIDEO_META['SUB_FILE'] = ''
 		if result_foreign:
@@ -450,12 +452,12 @@ class SubtitleService(object):
 		#tools.VIDEO_META['SUB_FILE_FORCED'] = result_foreign
 		tools.VIDEO_META = self.VIDEO_META
 		#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
-		#tools.log('self.VIDEO_META',self.VIDEO_META,'result_foreign',result_foreign,'result',result)
-		tools.log('result_foreign',result_foreign,'result',result)#
+		#tools.log('self.VIDEO_META',self.VIDEO_META,'result_foreign',result_foreign,'result',sub_result)
+		tools.log('result_foreign',result_foreign,'result',sub_result)#
 		if os.path.exists(utils.temp_dir2):
 			shutil.rmtree(utils.temp_dir2, ignore_errors=True)
 		#tools.log('normal_subs[0]', normal_subs[0])
-		return result
+		return sub_result
 
 
 class A4kSubtitlesAdapter(object):

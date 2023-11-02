@@ -6,7 +6,7 @@ import time
 import glob
 import os
 
-import get_meta, tools, real_debrid
+import get_meta, tools, real_debrid, source_tools
 import urllib
 from urllib.parse import unquote
 
@@ -51,12 +51,22 @@ def rarbg_4k_magnets():
 			#print(sub_response)
 			magnet = sub_response.text.split('<button onclick=\"copy(\'')[1].split('\',\'#copy_magnet')[0]
 			title = i.split('style="font-weight:')[1].split('>')[1].split('</a')[0]
+			if '264' in title:
+				continue
 			try: size = unicodedata.normalize('NFKD', i.split('"sizeCell">')[1].split('</td>')[0])
 			except: size = unicodedata.normalize('NFKD', i.split('"sizeCell"')[1].split('>')[1].split('</td')[0])
 			seeds = i.split('"color: green">')[1].split('</td>')[0]
 			leechers = i.split('"color: red">')[1].split('</td>')[0]
 			title2 = unquote(magnet.split('&amp;tr=')[0].split('&amp;dn=')[1])
 			curr_dict = {'title2': title2, 'title': title, 'size': size, 'seeds': seeds, 'leechers': leechers, 'magnet': magnet, 'info': tools.get_info(title2), 'quality': tools.get_quality(title2)}
+
+			#source_list = []
+			#source_list.append({'filename': title, 'pack_size': size, 'size': size, 'info': tools.get_info(title2), 'quality': tools.get_quality(title2)})
+			#source_list.append({'filename': title, 'pack_size': size, 'size': size, 'info': tools.get_info(source_tools.clean_title(title2)), 'quality': tools.get_quality(source_tools.clean_title(title2))})
+			#new_source_list = list(tools.SourceSorter(info).filter_sources2(source_list))
+			#if len(new_source_list) == 0:
+			#	continue
+
 			magnets_results.append(curr_dict)
 
 
@@ -82,7 +92,8 @@ def rarbg_4k_magnets():
 			except: pass
 		else:
 			response = rd_api.add_magnet(magnet)
-			torr_id = response['id']
+			try: torr_id = response['id']
+			except: continue
 			response = rd_api.torrent_select_all(torr_id)
 			torr_info = rd_api.torrent_info(torr_id)
 			try:
@@ -124,12 +135,22 @@ def rarbg_4k_magnets():
 			#print(sub_response)
 			magnet = sub_response.text.split('<button onclick=\"copy(\'')[1].split('\',\'#copy_magnet')[0]
 			title = i.split('style="font-weight:')[1].split('>')[1].split('</a')[0]
+			if '264' in title:
+				continue
 			try: size = unicodedata.normalize('NFKD', i.split('"sizeCell">')[1].split('</td>')[0])
 			except: size = unicodedata.normalize('NFKD', i.split('"sizeCell"')[1].split('>')[1].split('</td')[0])
 			seeds = i.split('"color: green">')[1].split('</td>')[0]
 			leechers = i.split('"color: red">')[1].split('</td>')[0]
 			title2 = unquote(magnet.split('&amp;tr=')[0].split('&amp;dn=')[1])
 			curr_dict = {'title2': title2, 'title': title, 'size': size, 'seeds': seeds, 'leechers': leechers, 'magnet': magnet, 'info': tools.get_info(title2), 'quality': tools.get_quality(title2)}
+
+			#source_list = []
+			#source_list.append({'filename': title, 'pack_size': size, 'size': size, 'info': tools.get_info(title2), 'quality': tools.get_quality(title2)})
+			#source_list.append({'filename': title, 'pack_size': size, 'size': size, 'info': tools.get_info(source_tools.clean_title(title2)), 'quality': tools.get_quality(source_tools.clean_title(title2))})
+			#new_source_list = list(tools.SourceSorter(info).filter_sources2(source_list))
+			#if len(new_source_list) == 0:
+			#	continue
+
 			magnets_results.append(curr_dict)
 
 	new_magnets_results = list(tools.SourceSorter(info).filter_sources2(magnets_results))
@@ -154,7 +175,8 @@ def rarbg_4k_magnets():
 			except: pass
 		else:
 			response = rd_api.add_magnet(magnet)
-			torr_id = response['id']
+			try: torr_id = response['id']
+			except: continue
 			response = rd_api.torrent_select_all(torr_id)
 			torr_info = rd_api.torrent_info(torr_id)
 			try:

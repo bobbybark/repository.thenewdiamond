@@ -892,15 +892,7 @@ def get_tmdb_window(window_type):
 				self.type = self.media_type
 			if self.type == 'tv':
 				if str(self.listitem.getProperty('id')) == '':
-					#import requests, json
-					#ext_key = xbmcaddon.Addon().getSetting('tmdb_api')
-					#if len(ext_key) == 32:
-					#	API_key = ext_key
-					#else:
-					#	API_key = '1248868d7003f60f2386595db98455ef'
 					response = TheMovieDB.get_tmdb_data('search/%s?query=%s&first_air_date_year=%s&language=%s&include_adult=%s&' % ('tv', str(self.listitem.getProperty('title')), str(self.listitem.getProperty('year')) , str(xbmcaddon.Addon().getSetting('LanguageID')) , xbmcaddon.Addon().getSetting('include_adults')), 30)
-					#url = 'https://api.themoviedb.org/3/search/tv?api_key='+str(API_key)+'&language='+str(xbmcaddon.Addon().getSetting('LanguageID'))+'&page=1&query='+str(self.listitem.getProperty('title'))+'&include_adult=false&first_air_date_year='+str(self.listitem.getProperty('year'))
-					#response = requests.get(url).json()
 					tmdb_id = response['results'][0]['id']
 					wm.open_tvshow_info(prev_window=self, tmdb_id=tmdb_id, dbid=self.listitem.getProperty('dbid'))
 				else:
@@ -909,15 +901,7 @@ def get_tmdb_window(window_type):
 				wm.open_actor_info(prev_window=self, actor_id=self.listitem.getProperty('id'))
 			else:
 				if str(self.listitem.getProperty('id')) == '':
-					#import requests, json
-					#ext_key = xbmcaddon.Addon().getSetting('tmdb_api')
-					#if len(ext_key) == 32:
-					#	API_key = ext_key
-					#else:
-					#	API_key = '1248868d7003f60f2386595db98455ef'
 					response = TheMovieDB.get_tmdb_data('search/%s?query=%s&primary_release_year=%s&language=%s&include_adult=%s&' % ('movie', str(self.listitem.getProperty('title')), str(self.listitem.getProperty('year')) , str(xbmcaddon.Addon().getSetting('LanguageID')) , xbmcaddon.Addon().getSetting('include_adults')), 30)
-					#url = 'https://api.themoviedb.org/3/search/movie?api_key='+str(API_key)+'&language='+str(xbmcaddon.Addon().getSetting('LanguageID'))+'&page=1&query='+str(self.listitem.getProperty('title'))+'&include_adult=false&primary_release_year='+str(self.listitem.getProperty('year'))
-					#response = requests.get(url).json()
 					tmdb_id = response['results'][0]['id']
 					wm.open_movie_info(prev_window=self, movie_id=tmdb_id, dbid=self.listitem.getProperty('dbid'))
 				else:
@@ -1036,11 +1020,6 @@ def get_tmdb_window(window_type):
 			self.mode = 'imdb'
 			Utils.show_busy()
 			if 'ls' in str(imdb_list[selection]):
-				#from imdb import IMDb, IMDbError
-				#ia = IMDb()
-
-				#self.search_str = ia.get_movie_list(imdb_list[selection])
-				#from resources.lib.TheMovieDB import get_imdb_watchlist_ids
 				from resources.lib.TheMovieDB import get_imdb_list_ids
 				self.search_str = get_imdb_list_ids(list_str=imdb_list[selection],limit=0)
 				self.mode = 'imdb2'
@@ -1220,6 +1199,16 @@ def get_tmdb_window(window_type):
 						response2 = TheMovieDB.get_tastedive_data_scrape(query=i['title'], year=i['release_date'][:4], limit=50, media_type='movie')
 					"""
 
+					curr_item = {'name': i['title'], 'year': int(release_date), 'media_type': i['media_type'], 'item_id': int(i['id'])}
+					if not curr_item in response3:
+						#xbmc.log(str(curr_item)+'===>OPENINFO', level=xbmc.LOGINFO)
+						response3.append(curr_item)
+					for x in response2:
+						curr_item = {'name': x['name'], 'year': int(x['year']), 'media_type': x['media_type'], 'item_id': int(x['item_id'])}
+						if not curr_item in response3:
+							#xbmc.log(str(x)+'===>OPENINFO', level=xbmc.LOGINFO)
+							response3.append(curr_item)
+					"""
 					#if not {'name': i['title'], 'year': release_date, 'media_type': i['media_type'], 'item_id': i['id']} in response3:
 					if not str("'item_id': %s" % (i['id'])) in str(response3):
 						response3.append({'name': i['title'], 'year': release_date, 'media_type': i['media_type'], 'item_id': i['id']})
@@ -1227,6 +1216,7 @@ def get_tmdb_window(window_type):
 						#if not x in response3:
 						if not str("'item_id': %s" % (x['item_id'])) in str(response3):
 							response3.append(x)
+					"""
 
 				self.mode = mode='tastedive&' + str('movie')
 				self.type = 'movie'
@@ -1277,6 +1267,7 @@ def get_tmdb_window(window_type):
 
 		@ch.click(5017)
 		def get_user_lists(self):
+			old_page = self.page
 			self.page = 1
 			listitems = []
 			trakt_data = TheMovieDB.get_trakt_userlists()
@@ -1311,15 +1302,22 @@ def get_tmdb_window(window_type):
 			y = 0
 			for i in trakt_data['trakt_list']:
 				if i['name'] == listitems[selection] and y == selection:
-					self.mode = 'trakt'
-					self.type = 'movie'
 					trakt_type = 'movie'
 					trakt_list_name = str(i['name'])
 					trakt_user_id = str(i['user_id'])
 					takt_list_slug = str(i['list_slug'])
 					trakt_sort_by = str(i['sort_by'])
 					trakt_sort_order = str(i['sort_order'])
-					self.search_str = trakt_lists(list_name=trakt_list_name,user_id=trakt_user_id,list_slug=takt_list_slug,sort_by=trakt_sort_by,sort_order=trakt_sort_order)
+					trakt_search_str = trakt_lists(list_name=trakt_list_name,user_id=trakt_user_id,list_slug=takt_list_slug,sort_by=trakt_sort_by,sort_order=trakt_sort_order)
+					if not trakt_search_str:
+						self.page = old_page
+						Utils.hide_busy()
+						return
+					self.search_str = trakt_search_str
+					self.mode = 'trakt'
+					self.type = 'movie'
+
+					
 				y = y + 1
 			x = 0
 			for i in imdb_list_name:

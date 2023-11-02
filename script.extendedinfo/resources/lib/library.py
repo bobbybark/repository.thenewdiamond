@@ -4,8 +4,6 @@ import xbmcaddon
 import xbmcvfs
 import os
 import shutil
-#import sys
-#from os.path import expanduser
 
 import datetime
 from datetime import date, datetime, timedelta
@@ -90,7 +88,6 @@ def library_source_exists_tv():
     blank_sources_xml = xbmcvfs.translatePath(str(main_file_path()+'/blank_sources_xml'))
     if xbmcvfs.exists(str(xml_file)) == False:
         shutil.copyfile(blank_sources_xml, xml_file)
-    #root_dir = xbmcaddon.Addon(addon_ID()).getSetting('library_folder')
     root_dir = str(basedir_tv_path())
     f = open(xml_file, "r")
     string_f = str(f.read())
@@ -103,7 +100,6 @@ def library_source_exists_movies():
     blank_sources_xml = xbmcvfs.translatePath(str(main_file_path()+'/blank_sources_xml'))
     if xbmcvfs.exists(str(xml_file)) == False:
         shutil.copyfile(blank_sources_xml, xml_file)
-    #root_dir = xbmcaddon.Addon(addon_ID()).getSetting('library_folder')
     root_dir = str(basedir_movies_path())
     f = open(xml_file, "r")
     string_f = str(f.read())
@@ -138,14 +134,18 @@ def icon_path():
     return str(icon_path)
 
 def tmdb_api_key():
-    #return xbmcaddon.Addon('plugin.video.seren').getSetting('tmdb.apikey')
-    return xbmcaddon.Addon(addon_ID()).getSetting('tmdb_api')
+    #return xbmcaddon.Addon('plugin.video.seren').getSetting('tmdb.apikey')#
+    tmdb_API_key = xbmcaddon.Addon(addon_ID()).getSetting('tmdb_api')
+    if len(tmdb_API_key) != 32:
+        tmdb_API_key = 'edde6b5e41246ab79a2697cd125e1781'
+    return tmdb_API_key
 
 def fanart_api_key():
-    #return xbmcaddon.Addon('plugin.video.themoviedb.helper').getSetting('fanarttv_clientkey')
     fanart_api_key = xbmcaddon.Addon(addon_ID()).getSetting('fanart_api')
     if str(fanart_api_key) == '':
         fanart_api_key = xbmcaddon.Addon('plugin.video.themoviedb.helper').getSetting('fanarttv_clientkey')
+    if len(fanart_api_key) != 32:
+        fanart_api_key = '184e1a2b1fe3b94935365411f919f638'
     return fanart_api_key
 
 def show_settings_menu():
@@ -303,14 +303,11 @@ def setup_xml_filenames():
     """
 
 def get_art_fanart_movie(tmdb_id, fanart_api, show_file_path, art_path,tmdb_api):
-    #import requests
-    #import json
     from resources.lib.TheMovieDB import get_fanart_data
     from resources.lib.TheMovieDB import get_tmdb_data
     show_file_path = str(show_file_path)
 
     try: 
-        #response = requests.get('http://webservice.fanart.tv/v3/movies/'+str(tmdb_id)+'?api_key='+str(fanart_api)).json()
         response = get_fanart_data(tmdb_id=tmdb_id,media_type='movie')
     except: 
         response = ''
@@ -370,7 +367,6 @@ def get_art_fanart_movie(tmdb_id, fanart_api, show_file_path, art_path,tmdb_api)
     #TMDB_ID - poster, fanart, season posters
     #tvposter, showbackground, seasonposters
     if not d1.__contains__('moviebackground') or not d1.__contains__('movieposter'):
-        #response = requests.get('https://api.themoviedb.org/3/tv/'+str(tmdb_id)+'?api_key=' + str(tmdb_api))
         url = 'movie/'+str(tmdb_id) + '?'
         response = get_tmdb_data(url=url)
 
@@ -418,14 +414,11 @@ def get_art_fanart_movie(tmdb_id, fanart_api, show_file_path, art_path,tmdb_api)
             get_file(d1['movieposter'].replace(' ', '%20'), Path(show_file_path + '/poster.jpg'))
 
 def get_art_fanart_tv(tvdb_id, fanart_api, show_file_path, art_path,tmdb_id,tmdb_api):
-    #import requests
-    #import json
     from resources.lib.TheMovieDB import get_fanart_data
     from resources.lib.TheMovieDB import get_tmdb_data
     d1 = {}
     show_file_path = str(show_file_path)
     try: 
-        #response = requests.get('http://webservice.fanart.tv/v3/tv/'+str(tvdb_id)+'?api_key='+str(fanart_api)).json()
         response = get_fanart_data(tmdb_id=tvdb_id,media_type='tv_tvdb')
     except: 
         response = ''
@@ -517,7 +510,6 @@ def get_art_fanart_tv(tvdb_id, fanart_api, show_file_path, art_path,tmdb_id,tmdb
     #TMDB_ID - poster, fanart, season posters
     #tvposter, showbackground, seasonposters
     if not d1.__contains__('showbackground') or not d1.__contains__('tvposter') or not d1.__contains__('seasonposters'):
-        #response = requests.get('https://api.themoviedb.org/3/tv/'+str(tmdb_id)+'?api_key=' + str(tmdb_api))
         url = 'tv/'+str(tmdb_id) + '?'
         response = get_tmdb_data(url=url)
 

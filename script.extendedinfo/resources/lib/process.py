@@ -472,6 +472,39 @@ def start_info_actions(infos, params):
 
 
 		elif info == 'test_route':
+			from resources.lib.TheMovieDB import get_trakt_userlists
+			from resources.lib.library import trak_auth
+			trakt_data = get_trakt_userlists()
+			import json
+			import requests
+			headers = trak_auth()
+			#xbmc.log(str(trakt_data)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+
+			for i in trakt_data['trakt_list']:
+				list_slug = i['list_slug']
+				user_id = i['user_id']
+				if 'watchlist' in str(i):
+					continue
+				url = 'https://api.trakt.tv/users/%s/lists/%s/items' % (user_id,list_slug)
+				response2 = requests.get(url, headers=headers)
+				if not 'Response [200]' in str(response2):
+					xbmc.log(str(url)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+					xbmc.log(str(response2)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+					xbmc.log(str(i)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+					url = 'https://api.trakt.tv/users/%s/lists/%s' % (user_id,list_slug)
+					response2 = requests.get(url, headers=headers)
+					xbmc.log(str(response2)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+					url = 'https://api.trakt.tv/users/%s/lists/%s/like' % (user_id,list_slug)
+					response2 = requests.delete(url, headers=headers)
+					xbmc.log(str(response2)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+					url = 'https://api.trakt.tv/lists/%s/like' % (list_slug)
+					response2 = requests.delete(url, headers=headers)
+					xbmc.log(str(response2)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			Utils.hide_busy()
+			return
+
+
+
 			xbmc.log(str('test_route')+'===>OPEN_INFO', level=xbmc.LOGINFO)
 			Utils.hide_busy()
 			from resources.lib.library import get_trakt_data

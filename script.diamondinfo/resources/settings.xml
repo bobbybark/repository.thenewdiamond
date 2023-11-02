@@ -11,7 +11,6 @@
 		<setting label="Language" type="select" values="bg|cs|da|de|el|en|es|fi|fr|he|hr|hu|it|ja|ko|nl|no|pl|pt|ru|sl|sv|tr|zh" id="LanguageID" default="en"/>
 		<setting label="Include adult?" type="bool" id="include_adults" default="false"/>
 		<setting label="TMDB API key" id="tmdb_api" type="text" default=""/>
-        <setting id="tvdb_api"    type="text" label="TVDB API key" default=""/>
 		<setting label="Fanart API key" id="fanart_api" type="text" default=""/>
 		<setting label="Fanart Clear Logo Lookups?" type="bool" id="fanart_clearlogos" default="false"/>
 		<setting label="Settings button => TMDBHelper Context Menu/Addon Settings Menu?" type="lsep"/>

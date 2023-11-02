@@ -850,6 +850,15 @@ class PlayerMonitor(xbmc.Player):
 			self.player_meta['movie_title'] = json_object['result']['VideoPlayer.MovieTitle']
 			self.player_meta['title'] = json_object['result']['VideoPlayer.MovieTitle']
 			self.type = 'movie'
+		elif 'tt' in str(self.player_meta['imdb_id']):
+			response = TheMovieDB.get_tmdb_data('find/%s?external_source=imdb_id&language=%s&' % (self.player_meta['imdb_id'], xbmcaddon.Addon().getSetting('LanguageID')), 30)
+			if response.get('movie_results','') != '':
+				self.type = 'movie'
+				PTN_info['type'] = 'movie'
+			elif response.get('tv_results','') != '':
+				self.type = 'episode'
+				PTN_info['type'] = 'episode'
+
 		elif PTN_info['type'] == 'episode':
 			self.player_meta['tv_title'] = PTN_info.get('title','')
 			self.player_meta['tv_season'] = PTN_info.get('season','')
@@ -872,7 +881,8 @@ class PlayerMonitor(xbmc.Player):
 			self.type = 'episode'
 		if self.player_meta['title'] == None or self.player_meta['title'] == '':
 			self.player_meta['title'] = json_object['result']['VideoPlayer.Title']
-		
+
+
 		if self.type == None:
 			self.type = PTN_info['type']
 			if self.type == 'episode':
@@ -922,7 +932,14 @@ class PlayerMonitor(xbmc.Player):
 		self.playing_file = player.getPlayingFile()
 		self.player_meta['playing_file'] = self.playing_file
 
-		languages = TheMovieDB.get_imdb_language(self.player_meta['imdb_id'])
+		try: 
+			languages = TheMovieDB.get_imdb_language(self.player_meta['imdb_id'])
+		except Exception as e:
+			if 'port=443' in str(e):
+				xbmcgui.Dialog().notification(heading='get_imdb_language ERROR', message='you might want to restart HTTP error', icon=icon_path(),time=1000,sound=True)
+				languages = ['English']
+			else:
+				raise e
 		video_info = player.getVideoInfoTag()
 		audio_languages = [audio for audio in xbmc.Player().getAvailableAudioStreams()]
 		subtitle_languages = [subtitle for subtitle in xbmc.Player().getAvailableSubtitleStreams()]
@@ -949,15 +966,20 @@ class PlayerMonitor(xbmc.Player):
 		#tools.log('languages',languages, 'audio_languages', audio_languages, 'subtitle_languages', subtitle_languages,   'current_sub_language2',current_sub_language2,'current_audio_language',current_audio_language,'sub_audio_json',sub_audio_json,'curr_sub_audio_json',curr_sub_audio_json)
 		if languages[0] == 'English':
 			if current_audio_language != 'eng':
-				for i in sub_audio_json['result']['audiostreams']:
-					if i['language'] == 'eng':
-						resume_position = player.getTime()
-						player.setAudioStream(i['index'])
-						player.seekTime(resume_position-5)
-						#tools.log('languages',languages, 'audio_languages', audio_languages, 'subtitle_languages', subtitle_languages,   'current_sub_language2',current_sub_language2,'current_audio_language',current_audio_language,'sub_audio_json',sub_audio_json,'curr_sub_audio_json',curr_sub_audio_json)
-						tools.log('ENGLISH_LANG_NON_ENG_AUDIO_FIX')
-						lang_toggle = True
-						break
+				if self.type == 'movie':
+					tools.log('languages',languages, 'audio_languages', audio_languages, 'subtitle_languages', subtitle_languages,   'current_sub_language2',current_sub_language2,'current_audio_language',current_audio_language,'sub_audio_json',sub_audio_json,'curr_sub_audio_json',curr_sub_audio_json)
+				if 'dts' in current_audio_language.lower() and self.type == 'movie':
+					tools.log('UNKNOWN_MOVIE_AUDIO_DTS')
+				else:
+					for i in sub_audio_json['result']['audiostreams']:
+						if i['language'] == 'eng':
+							resume_position = player.getTime()
+							player.setAudioStream(i['index'])
+							player.seekTime(resume_position-5)
+							#tools.log('languages',languages, 'audio_languages', audio_languages, 'subtitle_languages', subtitle_languages,   'current_sub_language2',current_sub_language2,'current_audio_language',current_audio_language,'sub_audio_json',sub_audio_json,'curr_sub_audio_json',curr_sub_audio_json)
+							tools.log('ENGLISH_LANG_NON_ENG_AUDIO_FIX')
+							lang_toggle = True
+							break
 		if languages[0] != 'English':
 			if sub_audio_json['result']['subtitleenabled'] == False or sub_audio_json['result']['subtitleenabled'] == 'False':
 				for i in reversed(sub_audio_json['result']['subtitles']):

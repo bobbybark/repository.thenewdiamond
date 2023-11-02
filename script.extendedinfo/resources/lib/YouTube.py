@@ -4,9 +4,20 @@ from resources.lib.library import main_file_path
 import xbmcaddon, xbmc
 from pathlib import Path
 import html
+from random import choice
 
 #API_key = 'AIzaSyA-7-vxSFjNqfcOyCG33rwzRB0UZW30Pic'
 API_key = xbmcaddon.Addon('plugin.video.youtube').getSetting('youtube.api.key')
+#https://github.com/umbrellaplug/umbrellaplug.github.io/blob/77057a7cf63ab8a628246c986197d3ff88cf0fbf/nexus/plugin.video.youtube/resources/lib/youtube_plugin/__init__.py#L11
+if len(API_key) != 39:
+	#xbmcaddon.Addon('plugin.video.youtube').setSetting('youtube.api.key','ODYxNTU2NzA4NDU0LWQ2ZGxtM2xoMDVpZGQ4bnBlazE4azZiZThiYTNvYzY4')
+	#xbmcaddon.Addon('plugin.video.youtube').setSetting('youtube.api.id','QUl6YVN5QzZmdlpTSkhBN1Z6NWo4akNpS1J0N3RVSU9xakUyTjNn')
+	#xbmcaddon.Addon('plugin.video.youtube').setSetting('youtube.api.secret','U2JvVmhvRzlzMHJOYWZpeENTR0dLWEFU')
+	#API_key = xbmcaddon.Addon('plugin.video.youtube').getSetting('youtube.api.key')
+	API_key = choice(['AIzaSyA0LiS7G-KlrlfmREcCAXjyGqa_h_zfrSE', 'AIzaSyBOXZVC-xzrdXSAmau5UM3rG7rc8eFIuFw'])
+	#API_key = 'AIzaSyA0LiS7G-KlrlfmREcCAXjyGqa_h_zfrSE'
+
+
 
 def handle_youtube_videos(results, extended=False):
 	videos = []
@@ -49,8 +60,13 @@ def handle_youtube_videos(results, extended=False):
 	if not extended:
 		return videos
 	video_ids = [item['youtube_id'] for item in videos]
-	url = 'https://www.googleapis.com/youtube/v3/videos?id=%s&part=contentDetails%%2Cstatistics&key=%s' % (','.join(video_ids), API_key)
+	API_key2 = API_key
+	url = 'https://www.googleapis.com/youtube/v3/videos?id=%s&part=contentDetails%%2Cstatistics&key=%s' % (','.join(video_ids), API_key2)
 	ext_results = Utils.get_JSON_response(url=url, cache_days=0.5, folder='YouTube')
+	if 'API_KEY_INVALID' in str(ext_results):
+		API_key2 = choice(['AIzaSyA0LiS7G-KlrlfmREcCAXjyGqa_h_zfrSE', 'AIzaSyBOXZVC-xzrdXSAmau5UM3rG7rc8eFIuFw'])
+		url = 'https://www.googleapis.com/youtube/v3/videos?id=%s&part=contentDetails%%2Cstatistics&key=%s' % (','.join(video_ids), API_key2)
+		ext_results = Utils.get_JSON_response(url=url, cache_days=0.5, folder='YouTube')
 	if not ext_results:
 		return videos
 	for i, item in enumerate(videos):
@@ -99,9 +115,15 @@ def search_youtube(search_str='', hd='', limit=None, extended=True, page='', fil
 	else:
 		hd = ''
 	search_str = '&q=' + Utils.url_quote(search_str.replace('"', ''))
-	url = 'https://www.googleapis.com/youtube/v3/search?part=id%%2Csnippet&type=video%s%s&order=relevance&%skey=%s%s&maxResults=%i' % (page, search_str, filter_str, API_key, hd, int(limit))
+	API_key2 = API_key
+	url = 'https://www.googleapis.com/youtube/v3/search?part=id%%2Csnippet&type=video%s%s&order=relevance&%skey=%s%s&maxResults=%i' % (page, search_str, filter_str, API_key2, hd, int(limit))
 	#xbmc.log(str(url)+'YOUTUBE.PY===>OPENINFO', level=xbmc.LOGINFO)
 	results = Utils.get_JSON_response(url=url, cache_days=0.5, folder='YouTube')
+	if 'API_KEY_INVALID' in str(results):
+		API_key2 = choice(['AIzaSyA0LiS7G-KlrlfmREcCAXjyGqa_h_zfrSE', 'AIzaSyBOXZVC-xzrdXSAmau5UM3rG7rc8eFIuFw'])
+		url = 'https://www.googleapis.com/youtube/v3/search?part=id%%2Csnippet&type=video%s%s&order=relevance&%skey=%s%s&maxResults=%i' % (page, search_str, filter_str, API_key2, hd, int(limit))
+		results = Utils.get_JSON_response(url=url, cache_days=0.5, folder='YouTube')
+		
 	videos = handle_youtube_videos(results['items'], extended=extended)
 	if videos:
 		info = {

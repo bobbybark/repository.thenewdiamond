@@ -117,11 +117,7 @@ def get_fanart_results(tvdb_id, media_type=None, show_season = None):
 
 
 def get_next_ep_details(show_title, season_num, ep_num, tmdb):
-	#from a4kscrapers_wrapper import getSources, real_debrid, tools, source_tools, get_meta
-	#from a4kscrapers_wrapper.getSources import Sources
-	#rd_api = real_debrid.RealDebrid()
 	meta = get_meta.get_episode_meta(season=season_num,episode=ep_num,show_name=show_title, tmdb=tmdb, interactive=False)
-	#meta = get_meta.get_movie_meta(movie_name='Point Break',year=1991)
 	info = meta['episode_meta']
 
 	xbmcgui.Window(10000).clearProperty('Next_EP.ResolvedUrl')
@@ -970,7 +966,7 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 	li = None
 	clear_next_ep_props()
 	movie_title = movie_title.replace("'",'').replace('&','and')
-	kodi_send_command = 'kodi-send --action="RunScript(%s,info=diamond_rd_player,type=movie,movie_title=%s,movie_year=%s,tmdb=%s,test=True)"' % (addon_ID(), movie_title, movie_year, tmdb)
+	kodi_send_command = 'kodi-send --action="RunScript(%s,info=a4kwrapper_player,type=movie,movie_title=%s,movie_year=%s,tmdb=%s,test=True)"' % (addon_ID(), movie_title, movie_year, tmdb)
 	print_log(kodi_send_command,' ===>OPENINFO')
 
 	x265_enabled = xbmcaddon.Addon(addon_ID()).getSetting('x265_setting')
@@ -1046,7 +1042,6 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 					movie_genre = ''
 				break
 		#print_log(movie_genre,i['genre_ids'])
-		#response = requests.get('https://api.themoviedb.org/3/movie/'+str(tmdb_id)+'/external_ids?api_key='+str(tmdb_api())+'&language=en-US').json()
 		session_str = ''
 		response = get_tmdb_data('movie/%s?append_to_response=external_ids,runtime,alternative_titles&language=%s&%s' % (tmdb_id, xbmcaddon.Addon().getSetting('LanguageID'), session_str), 14)
 		imdb_id = response['external_ids']['imdb_id']
@@ -1054,7 +1049,6 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 		runtime = response['runtime']
 		runtime_seconds = response['runtime']* 60
 
-		#response = requests.get('https://api.themoviedb.org/3/movie/'+str(tmdb_id)+'/alternative_titles?api_key='+str(tmdb_api())+'&language=en-US').json()
 		response = single_movie_info(movie_id=tmdb_id)
 
 		#print_log(response)

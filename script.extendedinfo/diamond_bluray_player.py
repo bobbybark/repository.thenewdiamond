@@ -27,6 +27,11 @@ from resources.lib.library import get_processor_info
 tmdb_api = xbmcaddon.Addon(addon_ID()).getSetting('tmdb_api')
 fanart_api = xbmcaddon.Addon(addon_ID()).getSetting('fanart_api')
 
+if len(fanart_api) != 32:
+	fanart_api = '184e1a2b1fe3b94935365411f919f638'
+if len(tmdb_api) != 32:
+	tmdb_api = 'edde6b5e41246ab79a2697cd125e1781'
+
 try:
 	from infotagger.listitem import ListItemInfoTag
 except:
@@ -65,10 +70,14 @@ import xbmcvfs
 
 def tmdb_api():
 	tmdb_api = xbmcaddon.Addon(addon_ID()).getSetting('tmdb_api')
+	if len(tmdb_api) != 32:
+		tmdb_api = 'edde6b5e41246ab79a2697cd125e1781'
 	return tmdb_api
 
 def fanart_api():
 	fanart_api = xbmcaddon.Addon(addon_ID()).getSetting('fanart_api')
+	if len(fanart_api) != 32:
+		fanart_api = '184e1a2b1fe3b94935365411f919f638'
 	return fanart_api
 
 def print_log(log_item1, log_item2=None):
@@ -231,7 +240,6 @@ def next_ep_play_movie(movie_year, movie_title, tmdb, menu):
 	movie_title_clean = regex.sub(' ', movie_title).replace('  ',' ').lower()
 
 	#xbmc.log(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)+'===>OPENINFO', level=xbmc.LOGFATAL)
-	#response = requests.get('https://api.themoviedb.org/3/search/movie?api_key='+str(tmdb_api)+'&language=en-US&page=1&query='+str(movie_title)+'&include_adult=false').json()
 	response = get_movie_info(movie_label=movie_title, year=movie_year, use_dialog=False)
 
 	try: 
@@ -244,7 +252,6 @@ def next_ep_play_movie(movie_year, movie_title, tmdb, menu):
 	#print_log(str(response)+'===>OPENINFO')
 
 	if tmdb:
-		#response2 = requests.get('https://api.themoviedb.org/3/movie/'+str(tmdb)+'?api_key='+str(tmdb_api)+'&language=en-US').json()
 		response2 = single_movie_info(movie_id=tmdb)
 		response['results'] = []
 		response['results'].append(response2)
@@ -287,7 +294,6 @@ def next_ep_play_movie(movie_year, movie_title, tmdb, menu):
 			except: movie_original_language = ''
 			try: 
 				movie_genre = i['genre_ids']
-				#genres = requests.get('https://api.themoviedb.org/3/genre/movie/list?api_key='+str(tmdb_api())+'&language=en-US&page=1&query='+str(movie_title)+'&include_adult=false').json()
 				genres = get_tmdb_data('genre/movie/list?language=%s&' % xbmcaddon.Addon().getSetting('LanguageID'), 30)
 				xy = 0
 				for x in movie_genre:
@@ -298,11 +304,7 @@ def next_ep_play_movie(movie_year, movie_title, tmdb, menu):
 			except: 
 				movie_genre = ''
 			break
-	#response = requests.get('https://api.themoviedb.org/3/movie/'+str(tmdb_id)+'/external_ids?api_key='+str(tmdb_api)+'&language=en-US').json()
-	#imdb_id = response['imdb_id']
-	#xbmc.log(str(response)+'===>OPENINFO', level=xbmc.LOGFATAL)
 
-	#response = requests.get('https://api.themoviedb.org/3/movie/'+str(tmdb_id)+'/external_ids?api_key='+str(tmdb_api())+'&language=en-US').json()
 	session_str = ''
 	response = get_tmdb_data('movie/%s?append_to_response=external_ids,runtime,alternative_titles&language=%s&%s' % (tmdb_id, xbmcaddon.Addon().getSetting('LanguageID'), session_str), 14)
 	imdb_id = response['external_ids']['imdb_id']
@@ -310,7 +312,6 @@ def next_ep_play_movie(movie_year, movie_title, tmdb, menu):
 	runtime = response['runtime']
 	runtime_seconds = response['runtime']* 60
 
-	#response = requests.get('https://api.themoviedb.org/3/movie/'+str(tmdb_id)+'/alternative_titles?api_key='+str(tmdb_api)+'&language=en-US').json()
 	response = single_movie_info(movie_id=tmdb_id)
 	#print_log(response)
 	alternate_titles = []
@@ -336,70 +337,6 @@ def next_ep_play_movie(movie_year, movie_title, tmdb, menu):
 
 	print_log(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))
 	movielogo, hdmovielogo, movieposter, hdmovieclearart, movieart, moviedisc, moviebanner, moviethumb, moviebackground = get_fanart_results(tvdb_id=tmdb, media_type='movie')
-
-	"""
-	movielogo, hdmovielogo, movieposter, hdmovieclearart, movieart, moviedisc, moviebanner, moviethumb, moviebackground = '', '', '', '', '', '', '', '', ''
-	#xbmc.log(str(tmdb_id)+'===>OPENINFO', level=xbmc.LOGFATAL)
-	try: 
-		response = requests.get('http://webservice.fanart.tv/v3/movies/'+str(tmdb_id)+'?api_key='+str(fanart_api)).json()
-		#for i in response:
-		#	print(i)
-		#	print(response[i])
-	except: 
-		response = ''
-		
-
-	for i in response:
-	#	print(i)
-		for j in response[i]:
-			try: 
-				lang = j['lang']
-				if j['lang'] == 'en' or (i == 'movielogo' and j['lang'] == ''):
-					if i == 'movielogo':
-						movielogo = j['url']
-						break
-				if j['lang'] == 'en' or (i == 'hdmovielogo' and j['lang'] == ''):
-					if i == 'hdmovielogo':
-						hdmovielogo = j['url']
-						break
-				if i == 'movieposter':
-					for k in response[i]:
-						if k['lang'] == 'en':
-							movieposter = k['url']
-							break
-				if i == 'hdmovieclearart':
-					for k in response[i]:
-						if k['lang'] == 'en':
-							hdmovieclearart = k['url']
-							break
-				if i == 'movieart':
-					for k in response[i]:
-						if k['lang'] == 'en':
-							movieart = k['url']
-							break
-				if i == 'moviedisc':
-					for k in response[i]:
-						if k['lang'] == 'en':
-							moviedisc = k['url']
-							break
-				if i == 'moviebanner':
-					for k in response[i]:
-						if k['lang'] == 'en':
-							moviebanner = k['url']
-							break
-				if i == 'moviethumb':
-					for k in response[i]:
-						if k['lang'] == 'en':
-							moviethumb = k['url']
-							break
-				if i == 'moviebackground':
-					for k in response[i]:
-						if k['lang'] == 'en' or k['lang'] == '':
-							moviebackground = k['url']
-							break
-			except:
-				pass
-	"""
 
 	dvd_flag = 'False'
 	BDMV = ''

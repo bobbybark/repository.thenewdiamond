@@ -15,7 +15,14 @@ ext_key = xbmcaddon.Addon().getSetting('tmdb_api')
 if len(ext_key) == 32:
 	API_key = ext_key
 else:
-	API_key = '1248868d7003f60f2386595db98455ef'
+	API_key = 'edde6b5e41246ab79a2697cd125e1781'
+
+#https://github.com/umbrellaplug/umbrellaplug.github.io/blob/77057a7cf63ab8a628246c986197d3ff88cf0fbf/nexus/plugin.video.umbrella/resources/lib/modules/playcount.py#L8
+#https://github.com/umbrellaplug/umbrellaplug.github.io/blob/77057a7cf63ab8a628246c986197d3ff88cf0fbf/nexus/plugin.video.umbrella/resources/lib/context/tmdb.py#L9
+#tmdb_api_key = 'edde6b5e41246ab79a2697cd125e1781'
+#omdb_api_key = 'd4daa2b'
+#tvdb_api_key = '06cff30690f9b9622957044f2159ffae'
+#tmdb_API_key = 'bc96b19479c7db6c8ae805744d0bdfe2'
 
 def get_certification_list(media_type):
 	response = get_tmdb_data('certification/%s/list?' % media_type, 999999)
@@ -1520,6 +1527,8 @@ def get_trakt_userlists():
 
 	if response:
 		for i in response:
+			if (i['list']['user']['private'] == True or str( i['list']['user']['private']) == 'true') or (i['list']['privacy'] != 'public'):
+				continue
 			if 'latest' in str(i['list']['name']).lower():
 				i['list']['sort_by'] = 'listed_at'
 				i['list']['sort_how'] = 'desc'

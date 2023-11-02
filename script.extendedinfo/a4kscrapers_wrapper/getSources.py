@@ -1879,7 +1879,8 @@ getSources.setup_providers('https://bit.ly/a4kScrapers')
 
 
 def get_providers():
-	providers_dict = eval(tools.read_all_text(tools.PROVIDERS_JSON))
+	try: providers_dict = eval(tools.read_all_text(tools.PROVIDERS_JSON))
+	except: providers_dict = get_providers_dict()
 	providers_dict_test = providers_dict
 	for idx, i in enumerate(providers_dict_test):
 		for xdx, x in enumerate(providers_dict_test[i]):
@@ -2273,16 +2274,19 @@ class Sources(object):
 		for idx,i in enumerate(self.torrent_providers):
 			if i[3] == False or str(i[3]) == 'False':
 				pop_list.append(idx)
+				#tools.log(i)
 				#pop_list_items.append(i)
+
 		for i in pop_list:
-			self.torrent_providers.pop(i)
+			try:self.torrent_providers.pop(i)
+			except: pass
 		#for i in pop_list_items:
 		#	self.torrent_providers.append(i)
 
 		for i in self.torrent_providers:
+			if i[3] == False or str(i[3]) == 'False':
+				continue
 			tools.log(i)
-
-		for i in self.torrent_providers:
 			try: self.torrent_threads.put(self._get_torrent, self.item_information, i)
 			except Exception: log('EXCEPTION:', Exception, str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 
@@ -2413,6 +2417,7 @@ class Sources(object):
 
 	def _process_provider_torrent(self, torrent, provider_name, info):
 		torrent['type'] = 'torrent'
+		torrent['provider_name'] = provider_name
 
 		if not torrent.get('info'):
 			torrent['info'] = tools.get_info(torrent['release_title'])
@@ -2422,6 +2427,9 @@ class Sources(object):
 
 		torrent['hash'] = torrent.get('hash', self.hash_regex.findall(torrent['magnet'])[0]).lower()
 		torrent['pack_size'], torrent['size'] = self._torrent_filesize(torrent, info)
+		if len(str(torrent['size'])) == 7 and torrent['size'] == torrent['pack_size']:
+			torrent['size'] = torrent['size']/1024
+			torrent['pack_size'] = torrent['pack_size']/1024
 		torrent['seeds'] = self._torrent_seeds(torrent)
 
 		if 'provider_name_override' in torrent:
@@ -2693,7 +2701,7 @@ class Sources(object):
 	@staticmethod
 	def _torrent_filesize(torrent, info):
 		size = torrent.get('size', 0)
-		#tools.log(torrent)
+		#tools.log(len(str(size)), torrent)
 		pack_size = size
 		try:
 			size = float(size)

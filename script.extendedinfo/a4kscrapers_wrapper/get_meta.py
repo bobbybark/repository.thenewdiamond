@@ -15,6 +15,11 @@ except:
 	tmdb_API_key = tools.tmdb_API_key
 	fanart_api_key = tools.fanart_api_key
 
+if len(fanart_api_key) != 32:
+	fanart_api_key = '184e1a2b1fe3b94935365411f919f638'
+if len(tmdb_API_key) != 32:
+	tmdb_API_key = 'edde6b5e41246ab79a2697cd125e1781'
+
 try:
 	unicode = unicode  # noqa # pylint: disable=undefined-variable
 except NameError:
@@ -203,8 +208,6 @@ def get_tmdb_from_imdb(imdb, media_type):
 	return tmdb
 
 def get_tmdb_data(url='', cache_days=14, folder='TheMovieDB'):
-	#try: url = 'https://api.themoviedb.org/3/%sapi_key=%s' % (url, tools.tmdb_API_key)
-	#except: url = 'https://api.themoviedb.org/3/%sapi_key=%s' % (url, g.get_setting("tmdb.apikey"))
 	url = 'https://api.themoviedb.org/3/%sapi_key=%s' % (url, tmdb_API_key)
 	return get_response_cache(url, cache_days, folder)
 
@@ -219,8 +222,6 @@ def get_tvshow_ids(tvshow_id=None, cache_time=14):
 	return external_ids
 
 def get_fanart_data(url='', tmdb_id=None, media_type=None, cache_days=14, folder='FanartTV'):
-	#try: fanart_api = g.get_setting("fanart.apikey")
-	#except: fanart_api = tools.fanart_api_key
 	fanart_api = fanart_api_key
 	if media_type =='tv':
 		tvdb_id = get_tvshow_ids(tmdb_id)
@@ -786,12 +787,10 @@ def get_fanart_results(tvdb_id, media_type=None, show_season = None):
 
 	if 'tv_tvdb' == media_type:
 		try: 
-			#response = requests.get('http://webservice.fanart.tv/v3/tv/'+str(tvdb_id)+'?api_key='+str(fanart_api)).json()
 			response = get_fanart_data(tmdb_id=tvdb_id,media_type='tv_tvdb')
 		except: 
 			response = None
 	else:
-		#response = requests.get('http://webservice.fanart.tv/v3/movies/'+str(tmdb_id)+'?api_key='+str(fanart_api)).json()
 		response = get_fanart_data(tmdb_id=tvdb_id,media_type='movie')
 	
 	if 'tv_tvdb' == media_type:

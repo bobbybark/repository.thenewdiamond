@@ -114,6 +114,9 @@ def get_quality(release_title):
 	if 'cam' in release_title:
 		quality = 'CAM'
 
+	if quality == '4K' and '264' in release_title:
+		quality = '1080p'
+
 	return quality
 
 def strip_non_ascii_and_unprintable(text):

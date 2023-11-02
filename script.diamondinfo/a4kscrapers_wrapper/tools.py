@@ -249,15 +249,22 @@ DOWNLOAD_FOLDER = get_setting("DOWNLOAD_FOLDER", 'string')
 if diamond:
 	fanart_api_key = get_setting("fanart_api", 'string')
 	tmdb_API_key = get_setting("tmdb_api", 'string')
-	tvdb_apikey =  get_setting("tvdb_api", 'string')
+	#tvdb_apikey =  get_setting("tvdb_api", 'string')
 if diamond == False:
 	fanart_api_key = get_setting("fanart.apikey", 'string')
 	tmdb_API_key = get_setting("tmdb.apikey", 'string')
-	tvdb_apikey =  get_setting("tvdb.apikey", 'string')
+	#tvdb_apikey =  get_setting("tvdb.apikey", 'string')
 	if tmdb_API_key == None or tmdb_API_key == 'None' or tmdb_API_key == '':
 		fanart_api_key = get_setting("fanart_api", 'string')
 		tmdb_API_key = get_setting("tmdb_api", 'string')
-		tvdb_apikey =  get_setting("tvdb_api", 'string')
+		#tvdb_apikey =  get_setting("tvdb_api", 'string')
+
+if len(fanart_api_key) != 32:
+	fanart_api_key = '184e1a2b1fe3b94935365411f919f638'
+if len(tmdb_API_key) != 32:
+	tmdb_API_key = 'edde6b5e41246ab79a2697cd125e1781'
+
+
 
 VIDEO_META = ''
 SUB_FILE = ''
@@ -1962,12 +1969,10 @@ def get_fanart_results(tvdb_id, media_type=None, show_season = None):
 
 	if 'tv_tvdb' == media_type:
 		try: 
-			#response = requests.get('http://webservice.fanart.tv/v3/tv/'+str(tvdb_id)+'?api_key='+str(fanart_api)).json()
 			response = get_fanart_data(tmdb_id=tvdb_id,media_type='tv_tvdb')
 		except: 
 			response = None
 	else:
-		#response = requests.get('http://webservice.fanart.tv/v3/movies/'+str(tmdb_id)+'?api_key='+str(fanart_api)).json()
 		response = get_fanart_data(tmdb_id=tvdb_id,media_type='movie')
 	
 	if 'tv_tvdb' == media_type:
