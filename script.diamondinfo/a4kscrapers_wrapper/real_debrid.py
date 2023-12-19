@@ -240,6 +240,9 @@ class RealDebrid:
 		tools.log(response.request.url)
 
 	def _is_response_ok(self, response):
+		if not response:
+			tools.log("Real Debrid API return a {} response".format('ERROR'))
+			return False
 		if 200 <= response.status_code < 400:
 			return True
 		if response.status_code > 400:

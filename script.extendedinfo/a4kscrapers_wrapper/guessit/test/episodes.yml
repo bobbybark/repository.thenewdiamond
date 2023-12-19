@@ -137,6 +137,17 @@
   release_group: AlFleNi-TeaM
   website: tvu.org.ru
 
+? Star.Trek.The.Next.Generation.S03E26S04E01.The.Best.Of.Both.Worlds.1080p.BluRay.x264-ROVERS.mkv
+: title: Star Trek The Next Generation
+  season: [3,4]
+  episode: [26,1]
+  episode_title: The Best of Both Worlds
+  source: BluRay
+  video_codec: H.264
+  container: mkv
+  mimetype: video/x-matroska
+  screen_size: 1080p
+
 ? series/__ Incomplete __/Dr Slump (Catalan)/Dr._Slump_-_003_DVB-Rip_Catalan_by_kelf.avi
 : title: Dr Slump
   episode: 3

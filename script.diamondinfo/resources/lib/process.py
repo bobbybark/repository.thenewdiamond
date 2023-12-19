@@ -472,169 +472,48 @@ def start_info_actions(infos, params):
 
 
 		elif info == 'test_route':
-			from resources.lib.TheMovieDB import get_trakt_userlists
-			from resources.lib.library import trak_auth
-			trakt_data = get_trakt_userlists()
-			import json
-			import requests
-			headers = trak_auth()
-			#xbmc.log(str(trakt_data)+'===>OPEN_INFO', level=xbmc.LOGINFO)
-
-			for i in trakt_data['trakt_list']:
-				list_slug = i['list_slug']
-				user_id = i['user_id']
-				if 'watchlist' in str(i):
-					continue
-				url = 'https://api.trakt.tv/users/%s/lists/%s/items' % (user_id,list_slug)
-				response2 = requests.get(url, headers=headers)
-				if not 'Response [200]' in str(response2):
-					xbmc.log(str(url)+'===>OPEN_INFO', level=xbmc.LOGINFO)
-					xbmc.log(str(response2)+'===>OPEN_INFO', level=xbmc.LOGINFO)
-					xbmc.log(str(i)+'===>OPEN_INFO', level=xbmc.LOGINFO)
-					url = 'https://api.trakt.tv/users/%s/lists/%s' % (user_id,list_slug)
-					response2 = requests.get(url, headers=headers)
-					xbmc.log(str(response2)+'===>OPEN_INFO', level=xbmc.LOGINFO)
-					url = 'https://api.trakt.tv/users/%s/lists/%s/like' % (user_id,list_slug)
-					response2 = requests.delete(url, headers=headers)
-					xbmc.log(str(response2)+'===>OPEN_INFO', level=xbmc.LOGINFO)
-					url = 'https://api.trakt.tv/lists/%s/like' % (list_slug)
-					response2 = requests.delete(url, headers=headers)
-					xbmc.log(str(response2)+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			Utils.hide_busy()
-			return
-
-
-
-			xbmc.log(str('test_route')+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			Utils.hide_busy()
-			from resources.lib.library import get_trakt_data
-			from resources.lib.TheMovieDB import extended_episode_info
-			from datetime import datetime, timedelta
-			#url = 'https://api.trakt.tv/sync/playback/type?start_at=2023-09-26T00%3A00%3A00.000Z&end_at=2023-07-01T23%3A59%3A59.000Z'
-			past_date = datetime.now() - timedelta(days=12)
-			tomorrow = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
-			today = (datetime.now()).strftime('%Y-%m-%d')
-			url = 'https://api.trakt.tv/calendars/my/shows/%s/14' % str(past_date.strftime('%Y-%m-%d'))
-			response = get_trakt_data(url=url, cache_days=0.0001, folder='Trakt')
-			listitems = []
-			for i in reversed(response):
-				ep = extended_episode_info(i['show']['ids']['tmdb'], i['episode']['season'], i['episode']['number'])
-				if ep[0]['release_date'] == tomorrow:
-					ep[0]['title'] = ep[0]['title'] + '**'
-				if ep[0]['release_date'] == today:
-					ep[0]['title'] = ep[0]['title'] + '*'
-				listitems.append(ep[0])
-			xbmc.log(str(listitems)+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			for i in listitems:
-				xbmc.log(str(i['title'])+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			return
-			
-			from resources.lib.TheMovieDB import get_trakt_playback
-			from resources.lib.TheMovieDB import extended_episode_info
-			from resources.lib.TheMovieDB import single_movie_info
-			response = get_trakt_playback('tv')
-			listitems = []
-			#xbmc.log(str(response)+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			for i in response:
-				ep = extended_episode_info(i['show']['ids']['tmdb'], i['episode']['season'], i['episode']['number'])
-				listitems.append(ep[0])
-				#xbmc.log(str(ep[0])+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			response = get_trakt_playback('movie')
-			#xbmc.log(str(response)+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			for i in response:
-				mov = single_movie_info(i['movie']['ids']['tmdb'])
-				listitems.append(mov)
-				#xbmc.log(str(mov)+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			#from resources.lib.library import trakt_watched_tv_shows
-			#response = trakt_watched_tv_shows()
-			#xbmc.log(str(response)+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			listitems = Utils.create_listitems(listitems,preload_images=0, enable_clearlogo=False, info=None)
-			xbmc.log(str(listitems[0].getArt('thumb'))+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			Utils.hide_busy()
-			return
-
-			from a4kscrapers_wrapper import getSources, real_debrid, tools, source_tools, get_meta
-			from a4kscrapers_wrapper.getSources import Sources
-			rd_api = real_debrid.RealDebrid()
-			meta = get_meta.get_episode_meta(season=1,episode=1,show_name='Deep Space Nine')
-			#meta = get_meta.get_movie_meta(movie_name='Point Break',year=1991)
-			info = meta
-			result = getSources.get_subtitles(meta['tmdb_seasons']['episodes'][0], '')
-			#result = getSources.get_subtitles(info, '')
-
-			xbmc.log(str(result)+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			xbmc.log(str('test_route')+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			return
-		
-			import json
-			xbmc.log(str('test_route')+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			xbmc.log(str(xbmc.getSupportedMedia("video"))+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			return
-			Utils.hide_busy()
-			from resources.lib.library import trakt_unwatched_tv_shows
-			from resources.lib.library import trakt_watched_tv_shows
-			string = trakt_unwatched_tv_shows()
-			for i in string:
-				xbmc.log(str(i['name'])+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			string = trakt_watched_tv_shows()
-			#xbmc.log(str(string)+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			for i in string:
-				xbmc.log(str(i['show']['title'])+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			return
-			from resources.lib import TheMovieDB
-			#response = TheMovieDB.get_tastedive_data(query=search_str, limit=limit, media_type=media_type)
-			response = TheMovieDB.get_tastedive_data_scrape(query='Alien³', year='1992', limit=50, media_type='movie')
-			xbmc.log(str(response)+'=System.HasMediaDVD===>OPENINFO', level=xbmc.LOGINFO)
-			return
+			#from resources.lib.TheMovieDB import get_trakt_userlists
+			#from resources.lib.library import trak_auth
+			#trakt_data = get_trakt_userlists()
 			#import json
-			#json_result_test = xbmc.executeJSONRPC('{"jsonrpc": "2.0","method": "Playlist.GetItems","params": {"properties": ["title", "file"],"playlistid": 1},"id": "1"}')
-			#json_object_test  = json.loads(json_result_test)
-			#xbmc.log(str(json_object_test['result']['limits']['total'])+'Playlist.GetItems===>OPENINFO', level=xbmc.LOGINFO)
-			#json_result_test = xbmc.getInfoLabel('System.HasMediaDVD')
-			#xbmc.log(str(json_result_test)+'=System.HasMediaDVD===>OPENINFO', level=xbmc.LOGINFO)
-			#json_result_test = xbmc.executeJSONRPC('{"jsonrpc": "2.0","method": "System.EjectOpticalDrive","params": {},"id": "1"}')
+			#import requests
+			#headers = trak_auth()
+			##xbmc.log(str(trakt_data)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+
+			#for i in trakt_data['trakt_list']:
+			#	list_slug = i['list_slug']
+			#	user_id = i['user_id']
+			#	if 'watchlist' in str(i):
+			#		continue
+			#	url = 'https://api.trakt.tv/users/%s/lists/%s/items' % (user_id,list_slug)
+			#	response2 = requests.get(url, headers=headers)
+			#	if not 'Response [200]' in str(response2):
+			#		xbmc.log(str(url)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			#		xbmc.log(str(response2)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			#		xbmc.log(str(i)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			#		url = 'https://api.trakt.tv/users/%s/lists/%s' % (user_id,list_slug)
+			#		response2 = requests.get(url, headers=headers)
+			#		xbmc.log(str(response2)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			#		url = 'https://api.trakt.tv/users/%s/lists/%s/like' % (user_id,list_slug)
+			#		response2 = requests.delete(url, headers=headers)
+			#		xbmc.log(str(response2)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			#		url = 'https://api.trakt.tv/lists/%s/like' % (list_slug)
+			#		response2 = requests.delete(url, headers=headers)
+			#		xbmc.log(str(response2)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			#Utils.hide_busy()
 			#return
-			
-			from resources.lib import library
-			#import mediainfo
-			#from resources.lib import TheMovieDB
-			#title = 'Game of Thrones'
-			#response = TheMovieDB.get_tmdb_data('search/tv?query=%s&language=en-US&include_adult=%s&' % (title, xbmcaddon.Addon().getSetting('include_adults')), 30)
-			#xbmc.log(str(response['results'][0]['id'])+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			#return
-			#library.auto_setup_xml_filenames()
-			#library.trakt_add_movie(tmdb_id_num=604563,mode='Add')
-			#return
-			
-			#from pathlib import Path
-			#tvdb_id = 295685
-			#tmdb_id = 63174
-			#tmdb_api = library.tmdb_api_key()
-			#fanart_api = library.fanart_api_key()
-			#file_path = library.main_file_path()
-			#show_file_path = str(Path(str(library.basedir_tv_path()) + '/' + str(tvdb_id) + '/'))
-			#art_path = str(Path(str(file_path) + '/' + str(tvdb_id) + '/' + 'tvshow.fanart'))
-			#library.get_art_fanart_tv(tvdb_id, fanart_api, show_file_path, art_path, tmdb_id,tmdb_api)
-			#return
-			#
-			#tmdb_id = 9999
-			#show_file_path = library.basedir_movies_path() + '\\' + str(tmdb_id) + '\\'
-			#art_path = library.basedir_movies_path() + '\\' + str(tmdb_id) + '\\' + 'movie.fanart'
-			#library.get_art_fanart_movie(tmdb_id, fanart_api, show_file_path, art_path,tmdb_api)
-		
-			#from resources.lib.library import icon_path
-			#xbmc.log(str(library.basedir_movies_path())+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			#xbmc.log(str(addon_ID())+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			#xbmc.log(str(addon_ID_short())+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			#xbmc.log(str(library.main_file_path())+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			#xbmc.log(str(library.tmdb_settings_path())+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			#xbmc.log(str(library.tmdb_traktapi_path())+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			#xbmc.log(str(library.tmdb_traktapi_new_path())+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			#xbmc.log(str(library.basedir_tv_path())+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			#xbmc.log(str(library.basedir_movies_path())+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			#xbmc.log(str(icon_path())+'===>OPEN_INFO', level=xbmc.LOGINFO)
-			#realizer_test = xbmc.getCondVisibility('System.HasAddon(plugin.video.realizer)')
-			#xbmc.log(str(realizer_test)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+
+			xbmc.log(str('test_route')+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			Utils.hide_busy()
+			from resources.lib.library import trakt_uncollected_watched_movies
+			search_str = trakt_uncollected_watched_movies()
+			#xbmc.log(str(search_str)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			output = []
+			for i in search_str:
+				try: output.append(str(i['movie']['title'])+'__'+str(i['movie']['year']))
+				except: pass
+			for i in sorted(output):
+				xbmc.log(str(i)+'===>OPEN_INFO', level=xbmc.LOGINFO)
 
 		elif info == 'setup_trakt_watched':
 			Utils.show_busy()
@@ -691,6 +570,52 @@ def start_info_actions(infos, params):
 				xbmc.log(str({'rd_bluray_player2_path_in': rd_bluray_player2_path_in, 'rd_bluray_player2_path_out': rd_bluray_player2_path_out})+'player_path===>OPENINFO', level=xbmc.LOGINFO)
 			Utils.hide_busy()
 
+		elif info == 'setup_fen_light_players':
+			Utils.show_busy()
+			from pathlib import Path
+
+			from resources.lib.library import tmdb_settings_path
+			player_path = str(Path(str(tmdb_settings_path()).replace('settings.xml','players')))
+			from resources.lib.library import main_file_path
+		
+			fen_player_1_in = os.path.join(main_file_path(), 'resources','skins','direct.fenlight.json')
+			fen_player_2_in = os.path.join(main_file_path(), 'resources','skins','direct.fenlight.select.json')
+			fen_player_1_out = os.path.join(player_path, 'direct.fenlight.json')
+			fen_player_2_out = os.path.join(player_path, 'direct.fenlight.select.json')
+
+			import shutil
+			if not xbmcvfs.exists(fen_player_1_out):
+				shutil.copyfile(fen_player_1_in, fen_player_1_out)
+				xbmc.log(str({'fen_player_1_in': fen_player_1_out, 'fen_player_1_out': fen_player_1_out})+'===>OPENINFO', level=xbmc.LOGINFO)
+			if not xbmcvfs.exists(fen_player_2_out):
+				shutil.copyfile(fen_player_2_in, fen_player_2_out)
+				xbmc.log(str({'fen_player_2_in': fen_player_2_out, 'fen_player_2_out': fen_player_2_out})+'===>OPENINFO', level=xbmc.LOGINFO)
+
+			Utils.hide_busy()
+
+		elif info == 'install_latest_fen_light':
+			Utils.show_busy()
+			#import os
+			import requests
+			import json
+
+			GITHUB_URL = 'https://github.com/Tikipeter/repository.tikipeter.test/raw/main/zips/plugin.video.fenlight/'
+
+			result = requests.get(GITHUB_URL).json()
+			for i in result['payload']['tree']['items']:
+				path = i['path']
+
+			latest_zip = 'https://github.com/Tikipeter/repository.tikipeter.test/raw/main/zips/plugin.video.fenlight/' + path.split('/')[-1]
+
+			payload = {
+					"jsonrpc": "2.0",
+					"method": "Addons.InstallAddon",
+					"params": {"addonid": "plugin.video.fenlight", "url": latest_zip},
+					"id": 1
+			}
+			xbmc.log(str(json.dumps(payload))+'===>OPENINFO', level=xbmc.LOGINFO)
+			response = xbmc.executeJSONRPC(json.dumps(payload))
+			Utils.hide_busy()
 
 
 		elif info == 'setup_sources':
@@ -1193,6 +1118,118 @@ def start_info_actions(infos, params):
 			auto_clean_cache(days=days)
 			Utils.notify('Cache deleted')
 
+		elif info == 'patch_fen_light':
+			Utils.show_busy()
+			file_path = os.path.join(os.path.join(Utils.ADDON_PATH.replace(addon_ID(),'plugin.video.fenlight'), 'resources','lib','modules') , 'sources.py')
+			from distutils.dir_util import copy_tree
+			skin_source = os.path.join(Utils.ADDON_PATH, 'resources' , 'skins', 'skin.estuary_fen_light')
+			skin_dest = os.path.join(os.path.join(Utils.ADDON_PATH.replace(addon_ID(),'plugin.video.fenlight'), 'resources', 'skins'), 'Custom','skin.estuary')
+
+			fenlight_path = os.path.join(Utils.ADDON_PATH.replace(addon_ID(),'plugin.video.fenlight'))
+			if os.path.exists(fenlight_path):
+				if not os.path.exists(skin_dest):
+					copy_tree(skin_source, skin_dest)
+					xbmc.log(str(skin_dest)+'_FENLIGHT_SKIN===>OPENINFO', level=xbmc.LOGINFO)
+			
+			fen_path = os.path.join(Utils.ADDON_PATH.replace(addon_ID(),'plugin.video.fen'))
+			skin_source = os.path.join(Utils.ADDON_PATH, 'resources' , 'skins', 'skin.estuary_fen')
+			skin_dest = os.path.join(os.path.join(Utils.ADDON_PATH.replace(addon_ID(),'plugin.video.fen'), 'resources', 'skins'), 'Custom','skin.estuary')
+			if os.path.exists(fen_path):
+				if not os.path.exists(skin_dest):
+					copy_tree(skin_source, skin_dest)
+					xbmc.log(str(skin_dest)+'_FEN_SKIN===>OPENINFO', level=xbmc.LOGINFO)
+
+			xbmc.log(str(file_path)+'===>OPENINFO', level=xbmc.LOGINFO)
+			Utils.hide_busy()
+			return
+			#xbmc.log(str(fenlight_path)+'===>OPENINFO', level=xbmc.LOGINFO)
+			file1 = open(file_path, 'r')
+			lines = file1.readlines()
+			new_file = ''
+			update_flag = False
+			line_update = '''		params_get = self.params.get ## PATCH
+		params['number'] = fenlight_number() ## PATCH
+'''
+			for idx, line in enumerate(lines):
+				if '## PATCH' in str(line):
+					update_flag = False
+					xbmc.log('ALREADY_PATCHED_FEN_===>OPENINFO', level=xbmc.LOGINFO)
+					break
+				try: test_var = lines[idx+1]
+				except: test_var = ''
+				if 'params_get = self.params.get' in str(line) and 'TMDbHelper cannot be used with Fen Light' in str(test_var):
+					new_file = new_file + line_update
+					update_flag = True
+				else:
+					new_file = new_file + line
+			file1.close()
+			if update_flag:
+				file1 = open(file_path, 'w')
+				file1.writelines(new_file)
+				file1.close()
+				xbmc.log(str(file_path)+'_PATCH_FEN===>OPENINFO', level=xbmc.LOGINFO)
+			Utils.hide_busy()
+
+		elif info == 'patch_tmdb_helper':
+			Utils.show_busy()
+			
+			file_path = os.path.join(os.path.join(Utils.ADDON_PATH.replace(addon_ID(),'plugin.video.themoviedb.helper'), 'resources', 'tmdbhelper','lib','player') , 'players.py')
+			#from distutils.dir_util import copy_tree
+			#skin_source = os.path.join(Utils.ADDON_PATH, 'resources' , 'skins', 'skin.estuary_fen_light')
+			#skin_dest = os.path.join(os.path.join(Utils.ADDON_PATH.replace(addon_ID(),'plugin.video.fenlight'), 'resources', 'skins'), 'Custom','skin.estuary')
+
+			themoviedb_helper_path = os.path.join(Utils.ADDON_PATH.replace(addon_ID(),'plugin.video.themoviedb.helper'))
+			#if os.path.exists(themoviedb_helper_path):
+			#	if not os.path.exists(skin_dest):
+			#		copy_tree(skin_source, skin_dest)
+			#		xbmc.log(str(skin_dest)+'_FENLIGHT_SKIN===>OPENINFO', level=xbmc.LOGINFO)
+			
+			#fen_path = os.path.join(Utils.ADDON_PATH.replace(addon_ID(),'plugin.video.fen'))
+			#skin_source = os.path.join(Utils.ADDON_PATH, 'resources' , 'skins', 'skin.estuary_fen')
+			#skin_dest = os.path.join(os.path.join(Utils.ADDON_PATH.replace(addon_ID(),'plugin.video.fen'), 'resources', 'skins'), 'Custom','skin.estuary')
+			#if os.path.exists(fen_path):
+			#	if not os.path.exists(skin_dest):
+			#		copy_tree(skin_source, skin_dest)
+			#		xbmc.log(str(skin_dest)+'_FEN_SKIN===>OPENINFO', level=xbmc.LOGINFO)
+
+			xbmc.log(str(file_path)+'===>OPENINFO', level=xbmc.LOGINFO)
+			#xbmc.log(str(fenlight_path)+'===>OPENINFO', level=xbmc.LOGINFO)
+			file1 = open(file_path, 'r')
+			lines = file1.readlines()
+			new_file = ''
+			update_flag = False
+			line_update = '''            for idx, i in enumerate(players_list): ## PATCH
+                if 'auto_cloud' in str(i).lower() and self.tmdb_type != 'movie': ## PATCH
+                    auto_var = idx ## PATCH
+                    break ## PATCH
+                if 'Auto_Torr_Scrape' in str(i) and self.tmdb_type == 'movie': ## PATCH
+                    auto_var = idx ## PATCH
+                    break ## PATCH
+            #return Dialog().select(header, players, useDetails=detailed) ## PATCH
+            #return Dialog().select(header, players, autoclose=30000, preselect=auto_var, useDetails=detailed) ## PATCH
+            return Dialog().select(header, players, autoclose=30000, preselect=auto_var, useDetails=detailed) ## PATCH
+'''
+			for idx, line in enumerate(lines):
+				if '## PATCH' in str(line):
+					update_flag = False
+					xbmc.log('ALREADY_PATCHED_TMDB_HELPER_===>OPENINFO', level=xbmc.LOGINFO)
+					break
+				#try: test_var = lines[idx+1]
+				#except: test_var = ''
+				if 'return Dialog().select(header, players, useDetails=detailed)' in str(line):# and 'TMDbHelper cannot be used with Fen Light' in str(test_var):
+					new_file = new_file + line_update
+					update_flag = True
+				else:
+					new_file = new_file + line
+			file1.close()
+			if update_flag:
+				file1 = open(file_path, 'w')
+				file1.writelines(new_file)
+				file1.close()
+				xbmc.log(str(file_path)+'_PATCH_TMDB_HELPER===>OPENINFO', level=xbmc.LOGINFO)
+			Utils.hide_busy()
+
+
 def follow(thefile):
 	while True:
 		line = thefile.readline()
@@ -1279,7 +1316,7 @@ def auto_clean_cache(days=None):
 		xbmcvfs.mkdir(path)
 	os.chdir(path) #changing path to current path(same as cd command)
 
-	directories = ['temp','TheMovieDB','data','TVMaze','Trakt','YouTube','IMDB','images','FanartTV','TasteDive','Google','rss','show_filters']
+	directories_list = ['Trakt', 'TheMovieDB', 'show_filters', 'TVMaze', 'IMDB', 'FanartTV', 'TasteDive', 'YouTube', 'images', 'rss']
 	#we are taking current folder, directory and files 
 	#separetly using os.walk function
 	for root,directories,files in os.walk(path,topdown=False): 
@@ -1291,7 +1328,7 @@ def auto_clean_cache(days=None):
 			#or not if yes then remove them
 			if filetime.days <= days: # and 'Taste' not in str(root):
 				#print(os.path.join(root, name), filetime.days)
-				for i in directories:
+				for i in directories_list:
 					target = str(os.path.join(root, name))
 					if str(i) in target:
 						xbmc.log(str(target)+'===>DELETE', level=xbmc.LOGINFO)

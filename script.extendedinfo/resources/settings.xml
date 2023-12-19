@@ -29,6 +29,9 @@
 		<setting label="Auto Clear cache on startup?" type="bool" id="auto_clean_cache_bool" default="true"/>
 		<setting label="Log Plugin URLS" type="bool" id="log_urls" default="false"/>
 		<setting label="TEST ROUTE" type="action" action="RunScript(script.extendedinfo,info=test_route)"/>
+		<setting label="fenlight_open_setting" type="action" action="RunPlugin(plugin://plugin.video.fenlight/?mode=open_settings)" visible="System.HasAddon(plugin.video.fenlight)"/>
+		<setting label="fenlight_patch" type="action" action="RunScript(script.extendedinfo,info=patch_fen_light)" visible="System.HasAddon(plugin.video.fenlight)"/>
+		<setting label="fen_light_players" type="action" action="RunScript(script.extendedinfo,info=setup_fen_light_players)" visible="System.HasAddon(plugin.video.fenlight)"/>
 	</category>
     <category label="Trakt Collection Library Options">
 		<setting label="TMDBHelper Trakt Authentication" type="action" action="RunScript(plugin.video.themoviedb.helper,authenticate_trakt)"/>
@@ -41,7 +44,6 @@
 		<setting label="Auto Sync TV Collection" type="bool" id="library_tv_sync" default="false"/>
 		<setting label="Auto Sync Movies Collection" type="bool" id="library_movies_sync" default="false"/>
 		<setting label="SETUP SOURCES.XML" type="action" action="RunScript(script.extendedinfo,info=setup_sources)"/>
-		<!---setting label="Setup XML Filenames (Extended)" type="action" action="RunScript(script.extendedinfo,info=setup_xml_filenames)" visible="System.HasAddon(script.extendedinfo)"/--->
 		<setting label="Library Auto Sync" type="action" action="RunScript(script.extendedinfo,info=auto_library)"/>
 	</category>
 	<category label="Trakt/IMDB Custom Userlists JSON Location">
@@ -70,6 +72,9 @@
 		<setting label="RD API Token" type="text" id="RD_api" default="" />
 		<setting label="X265 Enable" type="bool" id="x265_setting" default="true" /--->
 		<setting label="RD Player Enable" type="bool" id="RD_player" default="false" />
+		<setting label="RD Player Subtitle Lookup" type="bool" id="RD_player_subs" default="false" />
+		<setting label="RD Player Subtitle Clean" type="bool" id="RD_player_subs_clean" default="false" />
+		<setting label="Player Attempt Subs/Lang fix on playback" type="bool" id="player_subs_lang_fix" default="false" />
 		<setting label="Bluray Player (Direct) enable" type="bool" id="RD_bluray_player" default="false" />
 		<setting label="Bluray Player (Menu) enable" type="bool" id="RD_bluray_player2" default="false" />
 		<setting label="Bluray path? (/media,/storage,d:/???)" type="lsep"/>
@@ -169,10 +174,10 @@
 
 
     <!-- Sort & Filter -->
-    <category label="30148">
+    <category label="Sort & Filter">
 
         <!-- Source Filters -->
-        <setting type="lsep" label="30117"/>
+        <setting type="lsep" label="Source Filters"/>
         <setting type="action" label="Filter - Comma Separated List"
                  action="RunPlugin(plugin://script.extendedinfo/?action=chooseFilters)" option="close" visible="false"/>
         <!--setting id="general.filters"      type="text"  default="3D"
@@ -557,7 +562,7 @@
 		<!---setting id="rss.timeout" type="slider" label="Rss Auto Update Time (in hours)" default="24" range="1,24" option="int" /--->
 		
 		<setting type="lsep" label="Address 1" />
-		<setting id="rss_rarbg" type="bool" label="Enable TheRarbg latest 2160p" default="false" />
+		<!---setting id="rss_rarbg" type="bool" label="Enable TheRarbg latest 2160p" default="false" /--->
 		<setting id="rss.1" type="bool" label="Enable Rss" default="false" />
 		<setting id="rss.link.1" type="text" label="Rss Address" default="" visible="eq(-1,true)" />
 		<!---setting id="rss.link.1.offset" type="slider" label="Max Number of Days to check from today (offset)" default="3" range="0,14" option="int" visible="eq(-2,true)" /--->

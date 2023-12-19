@@ -5,9 +5,9 @@ import importlib
 import os, json
 import sys
 import shutil
+import re
 
-
-import tools
+import tools, source_tools
 #import queue
 #import threading, time, random
 from a4kSubtitles.lib import utils
@@ -349,7 +349,102 @@ class SubtitleService(object):
 					total_result = total_result + 1
 				if total_result > 66:
 					break
+
+		download_type = self.VIDEO_META.get('download_type',False)
+		#if download_type == 'movie':
+		#	simple_info = tools._build_simple_movie_info(self.VIDEO_META)
+		#	simple_info['imdb_id'] = self.VIDEO_META['imdb_id']
+		#else:
+		#	simple_info = tools._build_simple_show_info(self.VIDEO_META)
+
+		#source_list = []
+		#for i in result_store:
+		#	tools.log(i['name'])
+		#	if download_type == 'movie':
+		#		test = source_tools.filter_movie_title(i['name'], source_tools.clean_title(i['name']), meta['title'], simple_info)
+		#		if test:
+		#			test = ': True'
+		#	else:
+		#		test = source_tools.run_show_filters(simple_info, pack_title = source_tools.clean_title(i['name']), show_title_match = True)
+		#		test2 = source_tools.run_show_filters(simple_info, release_title = source_tools.clean_title(i['name']), show_title_match = True)
+		#	tools.log(test, test2)
+
+		#	if ': True' in str(test):
+		#		source_list.append({'pack_title': i['name'], 'release_title': i['name'], 'filename': i['name'], 'pack_size': 999, 'size': 999, 'info': tools.get_info(i['name']), 'quality': tools.get_quality(i['name'])})
+		source_list = []
+		if download_type == 'movie':
+			input_guess = get_guess(self.VIDEO_META['file_name'])
+			for i in result_store:
+				guess = get_guess(i['name'])
+				if distance.jaro_similarity(input_guess.get('title',''), guess.get('title','')) > 0.92:
+					source_list.append({'pack_title': i['name'], 'release_title': i['name'], 'filename': i['name'], 'pack_size': 999, 'size': 999, 'info': tools.get_info(i['name']), 'quality': tools.get_quality(i['name'])})
+		else:
+			input_guess = get_guess(self.VIDEO_META['file_name'])
+			for i in result_store:
+				guess = get_guess(i['name'])
+				try: ep_test = int(guess.get('episode',0))
+				except: ep_test = 0
+				try: season_test = int(guess.get('season',0))
+				except: season_test = 0
+				i_info = tools.get_info(i['name'])
+				i_quality = tools.get_quality(i['name'])
+				if 'web' in str(i_info).lower():
+					if i_quality != '4K' and i_quality != '1080p':
+						i_quality = '720p'
+				if input_guess.get('season','') == guess.get('season','') and input_guess.get('episode','') == guess.get('episode',''):
+					if distance.jaro_similarity(input_guess.get('episode_title',''), guess.get('episode_title','')) > 0.92:
+						source_list.append({'pack_title': i['name'], 'release_title': i['name'], 'filename': i['name'], 'pack_size': 999, 'size': 999, 'info': i_info, 'quality': i_quality})
+						continue
+				if input_guess.get('season','') == guess.get('season','') and input_guess.get('episode','') != guess.get('episode','') and ep_test > 0:
+					if distance.jaro_similarity(input_guess.get('episode_title',''), guess.get('episode_title','')) > 0.92:
+						source_list.append({'pack_title': i['name'], 'release_title': i['name'], 'filename': i['name'], 'pack_size': 999, 'size': 999, 'info': i_info, 'quality': i_quality})
+						continue
+				if distance.jaro_similarity(input_guess.get('episode_title',''), guess.get('episode_title','')) > 0.92:
+					source_list.append({'pack_title': i['name'], 'release_title': i['name'], 'filename': i['name'], 'pack_size': 999, 'size': 999, 'info': i_info, 'quality': i_quality})
+					continue
+				if (ep_test == 0 or ep_test == int(self.VIDEO_META['episode'])) and guess.get('episode_title','') == '' and season_test == int(self.VIDEO_META['season_number']):
+					clean_guess_title = source_tools.clean_title(guess.get('title'))
+					try: 
+						guess_title2 = guess.get('title') + ' ' + guess.get('alternative_title')
+						clean_guess_title2 = source_tools.clean_title(guess_title2)
+					except: 
+						guess_title2 = guess.get('title')
+						clean_guess_title2 = clean_guess_title
+					clean_guess_title = re.sub(r'\W+', '', clean_guess_title)
+					clean_guess_title2 = re.sub(r'\W+', '', clean_guess_title2)
+					match = False
+					for x in self.VIDEO_META['aliases']:
+						clean_alias = source_tools.clean_title(x).lower().replace(' ','')
+						score = distance.jaro_similarity(guess.get('title'), x)
+						score2 = distance.jaro_similarity(guess_title2 , x)
+						#tools.log(score, x)
+						clean_alias = re.sub(r'\W+', '', clean_alias)
+						if (clean_alias == clean_guess_title.lower().replace(' ','') or score > 0.92) or (clean_alias == clean_guess_title2.lower().replace(' ','') or score2 > 0.92):
+							match = True
+							break
+					if match == True:
+						source_list.append({'pack_title': i['name'], 'release_title': i['name'], 'filename': i['name'], 'pack_size': 999, 'size': 999, 'info': i_info, 'quality': i_quality})
+						continue
+				#tools.log(guess)
+		new_source_list = tools.SourceSorter(self.VIDEO_META).sort_sources(source_list)
+		#tools.log('new_source_list',new_source_list)
+		#tools.log('result_store',result_store)
+		#tools.log(source_list)
+		result_store2 = result_store
+		result_store = []
+		for x in new_source_list:
+			match = False
+			for i in result_store2:
+				if i['name'] == x['release_title']:
+					match = True
+					break
+			if match == True:
+				result_store.append(i)
+
 		#tools.log(result_store)
+		#for i in result_store:
+		#	tools.log(i['name'])
+		"""
 		input_guess = get_guess(self.VIDEO_META['file_name'])
 		#tools.log(input_guess)
 		index_scores = []
@@ -396,6 +491,7 @@ class SubtitleService(object):
 		result_store_sorted = sorted(result_store, key=lambda x: (x['score'],len(x['name'])), reverse=True)
 		#tools.log(result_store_sorted)
 		result_store = result_store_sorted
+		"""
 		sources = [A4kSubtitlesAdapter(self.VIDEO_META)]
 		#result_store[0]['VIDEO_META'] = self.VIDEO_META
 		foreign_parts = []
@@ -415,6 +511,7 @@ class SubtitleService(object):
 				os.mkdir(utils.temp_dir2)
 			for r in sources:
 				sub_result = r.download(foreign_parts[0])
+				tools.log(foreign_parts[0]['name'])
 				break
 			#result_foreign = os.path.splitext(sub_result)[0] + '.FOREIGN.PARTS' +os.path.splitext(sub_result)[1]
 			result_foreign = os.path.splitext(sub_result)[0] + '.FORCED' +os.path.splitext(sub_result)[1]
@@ -426,6 +523,7 @@ class SubtitleService(object):
 		for r in sources:
 			try: 
 				sub_result = r.download(normal_subs[0])
+				tools.log(normal_subs[0]['name'])
 			except Exception as e: 
 				if 'zipfile.BadZipFile' in str(e):
 					pass

@@ -503,19 +503,25 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True):
 	#tools.log('a4kw_meta_info',meta_info)
 	#subs_list = getSources.get_subtitles_list(meta_info, PTN_download)
 	#from getSources import get_subtitles_list
-	try: subs = importlib.import_module("subs")
-	except: subs = reload_module(importlib.import_module("subs"))
-	subs.META = meta_info
-	subs_list = subs.get_subtitles_list(meta_info, PTN_download)
-	del subs
-	#exit()
-	if len(subs_list) > 0:
-		from subcleaner import clean_file
-		from pathlib import Path
-		for i in subs_list:
-			sub = Path(i)
-			clean_file.clean_file(sub)
-		clean_file.files_handled = []
+	RD_player_subs = xbmcaddon.Addon(addon_ID()).getSetting('RD_player_subs')
+	RD_player_subs_clean = xbmcaddon.Addon(addon_ID()).getSetting('RD_player_subs_clean')
+	if RD_player_subs == True or RD_player_subs == 'true':
+		try: subs = importlib.import_module("subs")
+		except: subs = reload_module(importlib.import_module("subs"))
+		subs.META = meta_info
+		subs_list = subs.get_subtitles_list(meta_info, PTN_download)
+		del subs
+		#exit()
+		if len(subs_list) > 0:
+			if RD_player_subs_clean == True or RD_player_subs_clean == 'true':
+				from subcleaner import clean_file
+				from pathlib import Path
+				for i in subs_list:
+					sub = Path(i)
+					clean_file.clean_file(sub)
+				clean_file.files_handled = []
+	else:
+		subs_list = []
 
 
 	con = db_connection()
@@ -549,6 +555,24 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True):
 		duration = runtime
 	if resumeTimeInSeconds == None:
 		resumeTimeInSeconds = 0
+
+	try:
+		file_name = PTN_download.split('/')[5]
+		sql_result = cur.execute("SELECT idfile,strFilename  from files where strFilename = '"+str(file_name)+"' ;").fetchall()
+		for i in sql_result:
+			id_file = i[0]
+			delete_result = cur.execute("DELETE FROM stacktimes WHERE idFile  = '"+str(id_file)+"' ;")
+			#delete_result = cur.execute("DELETE FROM movie WHERE idFile  = '"+str(id_file)+"' ;")
+			delete_result = cur.execute("DELETE FROM settings WHERE idFile  = '"+str(id_file)+"' ;")
+			#delete_result = cur.execute("DELETE FROM episode WHERE idFile  = '"+str(id_file)+"' ;")
+			delete_result = cur.execute("DELETE FROM bookmark WHERE idFile  = '"+str(id_file)+"' ;")
+			delete_result = cur.execute("DELETE FROM streamdetails WHERE idFile  = '"+str(id_file)+"' ;")
+			#delete_result = cur.execute("DELETE FROM musicvideo WHERE idFile  = '"+str(id_file)+"' ;")
+			delete_result = cur.execute("DELETE FROM files WHERE idFile  = '"+str(id_file)+"' ;")
+		con.commit()
+	except:
+		pass
+	cur.close()
 
 	cur.close()
 
@@ -842,8 +866,8 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True):
 						li.setCast(actors)
 					li.setProperty('Cast', str(actors))
 					li.setProperty('CastAndRole', str(actors))
-					infolabels['Cast'] = list(zip(actor_name,actor_role,actor_thumbnail,actor_order))
-					infolabels['CastAndRole'] = list(zip(actor_name,actor_role,actor_thumbnail,actor_order))
+					#infolabels['Cast'] = list(zip(actor_name,actor_role,actor_thumbnail,actor_order))
+					#infolabels['CastAndRole'] = list(zip(actor_name,actor_role,actor_thumbnail,actor_order))
 					#li.setInfo('video', {'Cast': list(zip(actor_name,actor_role,actor_thumbnail,actor_order)), 'CastAndRole': list(zip(actor_name,actor_role,actor_thumbnail,actor_order)) })
 				director = []
 				writer = []
@@ -889,8 +913,12 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True):
 
 			infolabels['genre'] = genre
 
-			infolabels['FileNameAndPath'] = PTN_download
-			infolabels['EpisodeName'] = episode_name
+			#infolabels['FileNameAndPath'] = PTN_download
+			#infolabels['EpisodeName'] = episode_name
+
+			li.setProperty('FileNameAndPath', str(PTN_download))
+			li.setProperty('EpisodeName', str(episode_name))
+
 			infolabels['path'] = PTN_download
 
 			#li.setInfo(type='Video', infoLabels = infolabels)
@@ -985,7 +1013,7 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 		#tools.log(tmdb_id, meta)
 		movie_title_clean = regex.sub(' ', movie_title).replace('  ',' ').lower()
 
-		print_log(x265_enabled,'x265_enabled')
+		#print_log(x265_enabled,'x265_enabled')
 		#print_log(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename),'===>OPENINFO')
 		response = get_movie_info(movie_label=meta['title'], year=meta['year'], use_dialog=False, item_id=meta['tmdb_id'])
 		
@@ -1121,20 +1149,25 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 	#subs_list = subs.get_subtitles_list(meta, PTN_download)
 	#del get_subtitles_list
 
-	try: subs = importlib.import_module("subs")
-	except: subs = reload_module(importlib.import_module("subs"))
-	subs.META = meta
-	subs_list = subs.get_subtitles_list(meta, PTN_download)
-	del subs
-	#exit()
-
-	if len(subs_list) > 0:
-		from subcleaner import clean_file
-		from pathlib import Path
-		for i in subs_list:
-			sub = Path(i)
-			clean_file.clean_file(sub)
-		clean_file.files_handled = []
+	RD_player_subs = xbmcaddon.Addon(addon_ID()).getSetting('RD_player_subs')
+	RD_player_subs_clean = xbmcaddon.Addon(addon_ID()).getSetting('RD_player_subs_clean')
+	if RD_player_subs == True or RD_player_subs == 'true':
+		try: subs = importlib.import_module("subs")
+		except: subs = reload_module(importlib.import_module("subs"))
+		subs.META = meta
+		subs_list = subs.get_subtitles_list(meta, PTN_download)
+		del subs
+		#exit()
+		if len(subs_list) > 0:
+			if RD_player_subs_clean == True or RD_player_subs_clean == 'true':
+				from subcleaner import clean_file
+				from pathlib import Path
+				for i in subs_list:
+					sub = Path(i)
+					clean_file.clean_file(sub)
+				clean_file.files_handled = []
+	else:
+		subs_list = []
 
 	movie_title_clean, tmdb_id, runtime_seconds, resume_progress_seconds, movie_year, movie_vote_count, movie_vote_average, movie_title, movie_release_date, movie_poster, movie_popularity, movie_plot, movie_original_title, movie_original_language, movie_genre, movie_backdrop, imdb_id, genres, alternate_titles = meta_process(new_meta)
 
@@ -1143,7 +1176,7 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 	con = db_connection()
 	cur = con.cursor()
 	movie_title2 = movie_title.replace("'","''")
-	print_log(str(movie_title2),'===>OPENINFO')
+	#print_log(str(movie_title2),'===>OPENINFO')
 	sql_result1 = cur.execute("SELECT * from files,movie where movie.idfile = files.idfile and movie.c00 = '"+str(movie_title2.replace("'","''"))+"' order by dateadded asc").fetchall()
 	
 	#print_log(sql_result)
@@ -1159,12 +1192,22 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 		duration = ''
 	if resumeTimeInSeconds == None:
 		resumeTimeInSeconds = 0
-	#try:
-	#	file_name = PTN_download.split('/')[5]
-	#	delete_result = cur.execute("DELETE FROM files WHERE strFilename = '"+str(file_name)+"' ;")
-	#	con.commit()
-	#except:
-	#	pass
+	try:
+		file_name = PTN_download.split('/')[5]
+		sql_result = cur.execute("SELECT idfile,strFilename  from files where strFilename = '"+str(file_name)+"' ;").fetchall()
+		for i in sql_result:
+			id_file = i[0]
+			delete_result = cur.execute("DELETE FROM stacktimes WHERE idFile  = '"+str(id_file)+"' ;")
+			#delete_result = cur.execute("DELETE FROM movie WHERE idFile  = '"+str(id_file)+"' ;")
+			delete_result = cur.execute("DELETE FROM settings WHERE idFile  = '"+str(id_file)+"' ;")
+			#delete_result = cur.execute("DELETE FROM episode WHERE idFile  = '"+str(id_file)+"' ;")
+			delete_result = cur.execute("DELETE FROM bookmark WHERE idFile  = '"+str(id_file)+"' ;")
+			delete_result = cur.execute("DELETE FROM streamdetails WHERE idFile  = '"+str(id_file)+"' ;")
+			#delete_result = cur.execute("DELETE FROM musicvideo WHERE idFile  = '"+str(id_file)+"' ;")
+			delete_result = cur.execute("DELETE FROM files WHERE idFile  = '"+str(id_file)+"' ;")
+		con.commit()
+	except:
+		pass
 	cur.close()
 	if PTN_download:
 		PTN_title = meta['title']
@@ -1180,8 +1223,8 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 		tools.log(movie_original_title,movie_plot,movie_release_date,movie_backdrop,movie_genre,movie_release_date[0:4],movie_vote_average)
 
 		tools.log(movielogo,hdmovielogo,movieposter,hdmovieclearart,movieart,moviedisc,moviebanner,moviethumb,moviebackground,resumeTimeInSeconds,duration,sql_result1)
-	else:
-		print_log('xbmc_plugin == True')
+	#else:
+		#print_log('xbmc_plugin == True')
 
 	if xbmc_plugin == 'True' and str(PTN_title) == str(movie_title_clean) and str(PTN_season) == '' and str(PTN_episode) == '':
 		if movieposter != '':
@@ -1344,8 +1387,8 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 				li.setCast(actors)
 			li.setProperty('Cast', str(actors))
 			li.setProperty('CastAndRole', str(actors))
-			infolabels['Cast'] = list(zip(actor_name,actor_role,actor_thumbnail,actor_order))
-			infolabels['CastAndRole'] = list(zip(actor_name,actor_role,actor_thumbnail,actor_order))
+			#infolabels['Cast'] = list(zip(actor_name,actor_role,actor_thumbnail,actor_order))
+			#infolabels['CastAndRole'] = list(zip(actor_name,actor_role,actor_thumbnail,actor_order))
 			#li.setInfo('video', {'Cast': list(zip(actor_name,actor_role,actor_thumbnail,actor_order)), 'CastAndRole': list(zip(actor_name,actor_role,actor_thumbnail,actor_order)) })
 		director = []
 		writer = []
@@ -1382,7 +1425,8 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 		infolabels['genre'] = genre
 		infolabels['studio'] = studio
 		infolabels['country'] = None
-		infolabels['FileNameAndPath'] = PTN_download
+		#infolabels['FileNameAndPath'] = PTN_download
+		li.setProperty('FileNameAndPath', str(PTN_download))
 		infolabels['path'] = PTN_download
 
 		#li.setInfo(type='Video', infoLabels = infolabels)

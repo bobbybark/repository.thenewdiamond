@@ -110,7 +110,7 @@
 					<height>300</height>
 					<label>[B]$INFO[Container(500).ListItem.Year][/B] </label>
 					<font>font12</font>
-					<visible>String.IsEmpty(ListItem.TVShowTitle)</visible>
+					<visible>String.IsEmpty(ListItem.TVShowTitle)|String.IsEqual(ListItem.DBTYPE,episode)</visible>
 					<textcolor>FF999999</textcolor>
 				</control>
 

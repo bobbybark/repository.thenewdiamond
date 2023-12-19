@@ -106,9 +106,9 @@ def get_rss_cache(rss_feed=None, cache_days=30, folder='rss'):
 	import feedparser
 	import real_debrid
 	import xbmcaddon
-	import rapbg_2160
+	#import rapbg_2160
 	from resources.lib.library import addon_ID
-	rss_rarbg_enabled = xbmcaddon.Addon(addon_ID()).getSetting('rss_rarbg')
+	#rss_rarbg_enabled = xbmcaddon.Addon(addon_ID()).getSetting('rss_rarbg')
 	rss_1_enabled = xbmcaddon.Addon(addon_ID()).getSetting('rss.1')
 	rss_2_enabled = xbmcaddon.Addon(addon_ID()).getSetting('rss.2')
 	rss_3_enabled = xbmcaddon.Addon(addon_ID()).getSetting('rss.3')
@@ -165,8 +165,8 @@ def get_rss_cache(rss_feed=None, cache_days=30, folder='rss'):
 					torr_info = read_all_text(path) if os.path.exists(path) else []
 				if not torr_info:
 					continue
-	if rss_rarbg_enabled == 'true':
-		rapbg_2160.rarbg_4k_magnets()
+	#if rss_rarbg_enabled == 'true':
+	#	rapbg_2160.rarbg_4k_magnets()
 
 def get_response_cache(url='', cache_days=7.0, folder=False, headers=False):
 	now = time.time()
@@ -496,7 +496,7 @@ def get_episode_meta_special(season, episode,tmdb=None, show_name=None, year=Non
 		#import pprint
 		#from pprint import pprint
 		#pprint(show)
-		episode_meta = {'special': True, 'alt_season': alt_season, 'alt_episode': alt_episode, 'year': episode_year, 'episode': episode,'imdb_id': imdb,'imdbnumber': imdb,'mediatype': 'episode','season': season,'title': episode_title,'tvshow_year': first_air_date[:4], 'tvshow': show_name,'is_movie': False, 'is_tvshow': True, 'tmdb_id': tmdb,'imdb_id': imdb, 'media_type': 'episode', 'download_type': 'episode','absoluteNumber': show['tmdb_absolute_number'],'episode_count': show['tmdb_seasons_episode_tot'],'info': {'tvshow': show_name, 'episode': episode,'imdb_id': imdb,'imdbnumber': imdb,'mediatype': 'episode','season': season,'title': episode_title,'tmdb_id': tmdb,'tmdb_show_id': tmdb,
+		episode_meta = {'show_aliases': alternative_titles, 'show_title': show_name,'season_number': season, 'special': True, 'alt_season': alt_season, 'alt_episode': alt_episode, 'year': episode_year, 'episode': episode,'imdb_id': imdb,'imdbnumber': imdb,'mediatype': 'episode','season': season,'title': episode_title,'tvshow_year': first_air_date[:4], 'tvshow': show_name,'is_movie': False, 'is_tvshow': True, 'tmdb_id': tmdb,'imdb_id': imdb, 'media_type': 'episode', 'download_type': 'episode','absoluteNumber': show['tmdb_absolute_number'],'episode_count': show['tmdb_seasons_episode_tot'],'info': {'show_aliases': alternative_titles, 'season_number': season, 'show_title': show_name,'tvshow': show_name, 'episode': episode,'imdb_id': imdb,'imdbnumber': imdb,'mediatype': 'episode','season': season,'title': episode_title,'tmdb_id': tmdb,'tmdb_show_id': tmdb,
 		'tvdb_id': tvdb,'tvdb_show_id': tvdb,'tvshow.imdb_id': imdb,'tvshow.tmdb_id': tmdb,'tvshow.tvdb_id': tvdb,'tvshow.year': first_air_date[:4],'tvshowtitle': show_name,'year': episode_year},'is_airing': is_airing,'season_count': show['total_seasons'],'show_episode_count': show['tot_episode_count']}
 		show['episode_meta'] = episode_meta
 		#tools.log(episode_meta)
@@ -728,7 +728,7 @@ def get_episode_meta(season, episode,tmdb=None, show_name=None, year=None, inter
 		#import pprint
 		#from pprint import pprint
 		#pprint(show)
-		episode_meta = {'year': episode_year, 'episode': episode,'imdb_id': imdb,'imdbnumber': imdb,'mediatype': 'episode','season': season,'title': episode_title,'tvshow_year': first_air_date[:4], 'tvshow': show_name,'is_movie': False, 'is_tvshow': True, 'tmdb_id': tmdb,'imdb_id': imdb, 'media_type': 'episode', 'download_type': 'episode','absoluteNumber': show['tmdb_absolute_number'],'episode_count': show['tmdb_seasons_episode_tot'],'info': {'tvshow': show_name, 'episode': episode,'imdb_id': imdb,'imdbnumber': imdb,'mediatype': 'episode','season': season,'title': episode_title,'tmdb_id': tmdb,'tmdb_show_id': tmdb,
+		episode_meta = {'show_aliases': alternative_titles, 'season_number': season, 'show_title': show_name, 'year': episode_year, 'episode': episode,'imdb_id': imdb,'imdbnumber': imdb,'mediatype': 'episode','season': season,'title': episode_title,'tvshow_year': first_air_date[:4], 'tvshow': show_name,'is_movie': False, 'is_tvshow': True, 'tmdb_id': tmdb,'imdb_id': imdb, 'media_type': 'episode', 'download_type': 'episode','absoluteNumber': show['tmdb_absolute_number'],'episode_count': show['tmdb_seasons_episode_tot'],'info': {'show_aliases': alternative_titles, 'season_number': season, 'show_title': show_name, 'tvshow': show_name, 'episode': episode,'imdb_id': imdb,'imdbnumber': imdb,'mediatype': 'episode','season': season,'title': episode_title,'tmdb_id': tmdb,'tmdb_show_id': tmdb,
 		'tvdb_id': tvdb,'tvdb_show_id': tvdb,'tvshow.imdb_id': imdb,'tvshow.tmdb_id': tmdb,'tvshow.tvdb_id': tvdb,'tvshow.year': first_air_date[:4],'tvshowtitle': show_name,'year': episode_year},'is_airing': is_airing,'season_count': show['total_seasons'],'show_episode_count': show['tot_episode_count']}
 		show['episode_meta'] = episode_meta
 		return show

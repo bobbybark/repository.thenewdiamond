@@ -670,21 +670,23 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 
 			elif key.lower() in INT_INFOLABELS:
 				try:
+					
 					if key.lower() == 'percentplayed':
 						listitem.setProperty('StartPercent', str(value))
-					#listitem.setInfo('video', {key.lower(): int(value)})
-					try: 
-						info_tag = ListItemInfoTag(listitem, 'video')
-						info_tag.set_info({key.lower(): int(value)})
-					except: 
-						listitem.setInfo('video', {key.lower(): int(value)})
+					else:
+						#listitem.setInfo('video', {key.lower(): int(value)})
+						try: 
+						#	info_tag = ListItemInfoTag(listitem, 'video')
+							info_tag.set_info({key.lower(): int(value)})
+						except: 
+							listitem.setInfo('video', {key.lower(): int(value)})
 				except:
 					pass
 			elif key.lower() in STRING_INFOLABELS:
 				#listitem.setInfo('video', {key.lower(): value})
 				try: 
 					info_tag = ListItemInfoTag(listitem, 'video')
-					if key.lower() == 'genre':
+					if key.lower() in ['genre', 'director', 'studio','writer']:
 						info_tag.set_info({key.lower(): value.split(' / ')})
 					else:
 						try:

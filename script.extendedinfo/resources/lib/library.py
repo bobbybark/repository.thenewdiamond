@@ -120,7 +120,7 @@ def db_path():
     import glob
     db_name = 'MyVideos*.db'
     path_db = 'special://profile/Database/%s' % db_name
-    filelist = glob.glob(xbmcvfs.translatePath(path_db))
+    filelist = sorted(glob.glob(xbmcvfs.translatePath(path_db)))
     if filelist:
         return filelist[-1]
 
@@ -1263,6 +1263,16 @@ def trakt_watched_tv_shows(cache_days=None):
     reverse_order = True
     response = sorted(response, key=lambda k: k['last_updated_at'], reverse=reverse_order)
     return response
+
+def taste_dive_movies(cache_days=None):
+    from resources.lib import TheMovieDB
+    response = TheMovieDB.get_trakt(trakt_type='movie',info='trakt_watched',limit=100)
+    response3 = []
+    for i in response:
+        release_date = i['release_date'][:4]
+        response2 = []
+        response2 = TheMovieDB.get_tastedive_data_scrape(query=i['title'], year=i['release_date'][:4], limit=50, media_type='movie',item_id=i['id'])
+    xbmc.log(str('library.taste_dive_movies()_finished')+'===>OPEN_INFO', level=xbmc.LOGINFO)
 
 def trakt_unwatched_tv_shows(cache_days=None):
     #import requests

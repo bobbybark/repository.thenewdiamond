@@ -193,6 +193,8 @@ def handle_tmdb_episodes(results):
 			artwork = get_image_urls(still=item.get('still_path'))
 		except:
 			artwork = []
+		try: rating = round(float(Utils.fetch(item, 'vote_average')), 1)
+		except: rating = 0
 		listitem = {
 			'media_type': 'episode',
 			'mediatype': 'episode',
@@ -201,7 +203,7 @@ def handle_tmdb_episodes(results):
 			'episode': Utils.fetch(item, 'episode_number'),
 			'production_code': Utils.fetch(item, 'production_code'),
 			'season': Utils.fetch(item, 'season_number'),
-			'Rating': round(float(Utils.fetch(item, 'vote_average')), 1),
+			'Rating': rating,
 			'Votes': Utils.fetch(item, 'vote_count'),
 			'Plot': Utils.fetch(item, 'overview'),
 			'id': Utils.fetch(item, 'id'),
@@ -1066,21 +1068,58 @@ def extended_episode_info(tvshow_id, season, episode, cache_time=7):
 		images = handle_tmdb_images(response['images']['stills'])
 	except:
 		images = []
+	try: overview = Utils.clean_text(response['overview'])
+	except KeyError: overview = ''
+	try: runtime = response['runtime']
+	except KeyError: runtime = None
 	answer = {
-		'SeasonDescription': Utils.clean_text(response['overview']),
-		'Plot': Utils.clean_text(response['overview']),
+		'SeasonDescription': overview,
+		'Plot': overview,
 		'TVShowTitle': TVShowTitle,
 		'tvshow_id': tmdb_id,
 		'tvdb_id': tvdb_id,
 		'actors': actors,
 		'path': 'plugin://'+str(addon_ID())+'?info=extendedepisodeinfo&tvshow_id=%s&season=%s&episode=%s' % (tvshow_id, season, episode),
 		'crew': crew,
-		'runtime': response['runtime'],
+		'runtime': runtime,
 		'guest_stars': guest_stars,
 		'videos': videos,
 		'images': images
 		}
-	return (handle_tmdb_episodes([response])[0], answer)
+	#response = {'status_code': 7, 'status_message': 'Invalid API key: You must be granted a valid key.', 'success': False}
+	ep = (handle_tmdb_episodes([response])[0], answer)
+	#xbmc.log(str(ep)+'===>get_trakt_playback', level=xbmc.LOGINFO)
+	if ep[0]['episode'] == '':
+		season_dict = extended_season_info(tvshow_id, season)
+		ep[1]['actors'] = season_dict[1]['actors']
+		ep[1]['crew'] = season_dict[1]['crew']
+		#ep[1]['guest_stars'] = season[1]['guest_stars']
+		ep[0]['season'] = int(season)
+		ep[0]['episode'] = int(episode)
+		ep[0]['Plot'] = season_dict[1]['episodes'][int(episode)-1]['Description']
+		ep[0]['Description'] = season_dict[1]['episodes'][int(episode)-1]['Description']
+		ep[0]['Votes'] = season_dict[1]['episodes'][int(episode)-1]['Votes']
+		ep[0]['Rating'] = season_dict[1]['episodes'][int(episode)-1]['Rating']
+		ep[0]['id'] = season_dict[1]['episodes'][int(episode)-1]['id']
+		ep[0]['production_code'] = season_dict[1]['episodes'][int(episode)-1]['production_code']
+		ep[0]['release_date'] = season_dict[1]['episodes'][int(episode)-1]['release_date']
+		ep[0]['title'] = season_dict[1]['episodes'][int(episode)-1]['title']
+		ep[0]['still'] = season_dict[1]['episodes'][int(episode)-1]['still'] 
+		ep[0]['still_original'] = season_dict[1]['episodes'][int(episode)-1]['still_original'] 
+		ep[0]['still_small'] = season_dict[1]['episodes'][int(episode)-1]['still_small'] 
+		ep[0]['thumb'] = season_dict[1]['episodes'][int(episode)-1]['thumb'] 
+		ep[1]['images'] = []
+		ep[1]['images'].append({'aspectratio': 1.778,
+			'iso_639_1': None,
+			'original': season_dict[1]['episodes'][int(episode)-1]['still_original'] ,
+			'poster': season_dict[1]['episodes'][int(episode)-1]['still'],
+			'poster_original': season_dict[1]['episodes'][int(episode)-1]['still_original'],
+			'poster_small': season_dict[1]['episodes'][int(episode)-1]['still_small'], 
+			'thumb': season_dict[1]['episodes'][int(episode)-1]['thumb'],
+			'vote_average': 0.0})
+	#return (handle_tmdb_episodes([response])[0], answer)
+	ep[0]['year'] = ep[0]['release_date'][:4]
+	return ep
 
 def extended_actor_info(actor_id):
 	if not actor_id:

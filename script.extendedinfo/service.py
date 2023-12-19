@@ -941,96 +941,116 @@ class PlayerMonitor(xbmc.Player):
 			else:
 				raise e
 		video_info = player.getVideoInfoTag()
-		audio_languages = [audio for audio in xbmc.Player().getAvailableAudioStreams()]
-		subtitle_languages = [subtitle for subtitle in xbmc.Player().getAvailableSubtitleStreams()]
-		#subtitles_enabled = player.isSubtitlesEnabled()
-		#subtitles_enabled = xbmc.getInfoLabel('VideoPlayer.SubtitlesEnabled')
-		#subtitles_enabled2 = xbmc.getInfoLabel('VideoPlayer.HasSubtitles')
-		#current_sub_language = xbmc.Player().getSubtitles()
-		current_sub_language2 = xbmc.getInfoLabel('VideoPlayer.SubtitlesLanguage')
-		current_audio_language = xbmc.getInfoLabel('VideoPlayer.AudioLanguage')
-		#json_result = xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"XBMC.GetInfoLabels","params": {"labels":["VideoPlayer.AudioLanguage"]}, "id":1}')
-		#json_object  = json.loads(json_result)
-		#try: current_language = json_object['result']['VideoPlayer.AudioLanguage']
-		#except: current_language = None
-		json_result = xbmc.executeJSONRPC('{"jsonrpc": "2.0","id": "1","method": "Player.GetProperties","params": {"playerid": 1,"properties": ["subtitles","audiostreams","subtitleenabled"]}}')
-		sub_audio_json  = json.loads(json_result)
-		json_result = xbmc.executeJSONRPC('{"jsonrpc": "2.0","id": "1","method": "Player.GetProperties","params": {"playerid": 1,"properties": ["currentaudiostream", "currentsubtitle", "currentvideostream"]}}')
-		curr_sub_audio_json  = json.loads(json_result)
-		
-		#currentaudiostream_index = curr_sub_audio_json['result']['currentaudiostream']['index']
-		#currentsubtitle_index = curr_sub_audio_json['result']['currentsubtitle']['index']
-		#currentsubtitle_forced = curr_sub_audio_json['result']['currentsubtitle']['isforced']
-		
-		lang_toggle = False
-		#tools.log('languages',languages, 'audio_languages', audio_languages, 'subtitle_languages', subtitle_languages,   'current_sub_language2',current_sub_language2,'current_audio_language',current_audio_language,'sub_audio_json',sub_audio_json,'curr_sub_audio_json',curr_sub_audio_json)
-		if languages[0] == 'English':
-			if current_audio_language != 'eng':
-				if self.type == 'movie':
-					tools.log('languages',languages, 'audio_languages', audio_languages, 'subtitle_languages', subtitle_languages,   'current_sub_language2',current_sub_language2,'current_audio_language',current_audio_language,'sub_audio_json',sub_audio_json,'curr_sub_audio_json',curr_sub_audio_json)
-				if 'dts' in current_audio_language.lower() and self.type == 'movie':
-					tools.log('UNKNOWN_MOVIE_AUDIO_DTS')
-				else:
+		player_subs_lang_fix = xbmcaddon.Addon(addon_ID()).getSetting('player_subs_lang_fix')
+		if player_subs_lang_fix == True or player_subs_lang_fix == 'true':
+			audio_languages = [audio for audio in xbmc.Player().getAvailableAudioStreams()]
+			subtitle_languages = [subtitle for subtitle in xbmc.Player().getAvailableSubtitleStreams()]
+			#subtitles_enabled = player.isSubtitlesEnabled()
+			#subtitles_enabled = xbmc.getInfoLabel('VideoPlayer.SubtitlesEnabled')
+			#subtitles_enabled2 = xbmc.getInfoLabel('VideoPlayer.HasSubtitles')
+			#current_sub_language = xbmc.Player().getSubtitles()
+			current_sub_language2 = xbmc.getInfoLabel('VideoPlayer.SubtitlesLanguage')
+			current_audio_language = xbmc.getInfoLabel('VideoPlayer.AudioLanguage')
+			#json_result = xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"XBMC.GetInfoLabels","params": {"labels":["VideoPlayer.AudioLanguage"]}, "id":1}')
+			#json_object  = json.loads(json_result)
+			#try: current_language = json_object['result']['VideoPlayer.AudioLanguage']
+			#except: current_language = None
+			json_result = xbmc.executeJSONRPC('{"jsonrpc": "2.0","id": "1","method": "Player.GetProperties","params": {"playerid": 1,"properties": ["subtitles","audiostreams","subtitleenabled"]}}')
+			sub_audio_json  = json.loads(json_result)
+			json_result = xbmc.executeJSONRPC('{"jsonrpc": "2.0","id": "1","method": "Player.GetProperties","params": {"playerid": 1,"properties": ["currentaudiostream", "currentsubtitle", "currentvideostream"]}}')
+			curr_sub_audio_json  = json.loads(json_result)
+			
+			#currentaudiostream_index = curr_sub_audio_json['result']['currentaudiostream']['index']
+			#currentsubtitle_index = curr_sub_audio_json['result']['currentsubtitle']['index']
+			#currentsubtitle_forced = curr_sub_audio_json['result']['currentsubtitle']['isforced']
+			
+			lang_toggle = False
+			#tools.log('languages',languages, 'audio_languages', audio_languages, 'subtitle_languages', subtitle_languages,   'current_sub_language2',current_sub_language2,'current_audio_language',current_audio_language,'sub_audio_json',sub_audio_json,'curr_sub_audio_json',curr_sub_audio_json)
+			if languages[0] == 'English':
+				if current_audio_language != 'eng':
+					if self.type == 'movie':
+						tools.log('languages',languages, 'audio_languages', audio_languages, 'subtitle_languages', subtitle_languages,   'current_sub_language2',current_sub_language2,'current_audio_language',current_audio_language,'sub_audio_json',sub_audio_json,'curr_sub_audio_json',curr_sub_audio_json)
+					if 'dts' in current_audio_language.lower() and self.type == 'movie':
+						tools.log('UNKNOWN_MOVIE_AUDIO_DTS')
+					else:
+						for i in sub_audio_json['result']['audiostreams']:
+							if i['language'] == 'eng':
+								resume_position = player.getTime()
+								player.setAudioStream(i['index'])
+								player.seekTime(resume_position-5)
+								tools.log('ENGLISH_LANG_NON_ENG_AUDIO_FIX')
+								lang_toggle = True
+								break
+						if lang_toggle == False:
+							for i in sub_audio_json['result']['audiostreams']:
+								if i['language'] in i['name'] and 'Original' in i['name']:
+									resume_position = player.getTime()
+									player.setAudioStream(i['index'])
+									player.seekTime(resume_position-5)
+									tools.log('ORIGINAL__NON_ENG_AUDIO_FIX')
+									lang_toggle = True
+									break
+				if current_audio_language == 'eng' and 'commentary' in str(curr_sub_audio_json['result']['currentaudiostream']['name'].lower()):
 					for i in sub_audio_json['result']['audiostreams']:
+						if 'dts' in i['language'].lower() and self.type == 'movie':
+							resume_position = player.getTime()
+							player.setAudioStream(i['index'])
+							player.seekTime(resume_position-5)
+							tools.log('COMMENTARY_UNKNOWN_MOVIE_AUDIO_DTS')
+							lang_toggle = True
+							break
+				
+			if languages[0] != 'English':
+				if sub_audio_json['result']['subtitleenabled'] == False or sub_audio_json['result']['subtitleenabled'] == 'False':
+					for i in reversed(sub_audio_json['result']['subtitles']):
 						if i['language'] == 'eng':
+							player.setSubtitleStream(i['index'])
+							player.showSubtitles(True)
+							tools.log('NON_ENGLISH_LANG_ENG_SUBS_FIX')
+							break
+				if current_audio_language == 'eng':
+					for i in sub_audio_json['result']['audiostreams']:
+						if babelfish.Language(i['language']).name == languages[0]:
 							resume_position = player.getTime()
 							player.setAudioStream(i['index'])
 							player.seekTime(resume_position-5)
 							#tools.log('languages',languages, 'audio_languages', audio_languages, 'subtitle_languages', subtitle_languages,   'current_sub_language2',current_sub_language2,'current_audio_language',current_audio_language,'sub_audio_json',sub_audio_json,'curr_sub_audio_json',curr_sub_audio_json)
-							tools.log('ENGLISH_LANG_NON_ENG_AUDIO_FIX')
-							lang_toggle = True
+							tools.log('NON_ENGLISH_LANG_ENG_DUB_FIX')
 							break
-		if languages[0] != 'English':
-			if sub_audio_json['result']['subtitleenabled'] == False or sub_audio_json['result']['subtitleenabled'] == 'False':
+			sub_toggle = False
+			if lang_toggle == True:
+				for i in reversed(sub_audio_json['result']['subtitles']):
+					if i['language'] == 'eng' and (i['isforced'] == True or i['isforced'] == 'True' or 'forced' in str(i['name']).lower()):
+						if sub_audio_json['result']['subtitleenabled'] == False or sub_audio_json['result']['subtitleenabled'] == 'False':
+							player.setSubtitleStream(i['index'])
+							player.showSubtitles(True)
+							tools.log('ENGLISH_LANG_NON_ENG_AUDIO_FORCED_SUBS_FIX')
+							sub_toggle = True
+							break
+			if sub_toggle == False and current_sub_language2 != 'eng':
 				for i in reversed(sub_audio_json['result']['subtitles']):
 					if i['language'] == 'eng':
 						player.setSubtitleStream(i['index'])
-						player.showSubtitles(True)
-						tools.log('NON_ENGLISH_LANG_ENG_SUBS_FIX')
-						break
-			if current_audio_language == 'eng':
-				for i in sub_audio_json['result']['audiostreams']:
-					if babelfish.Language(i['language']).name == languages[0]:
-						resume_position = player.getTime()
-						player.setAudioStream(i['index'])
-						player.seekTime(resume_position-5)
-						#tools.log('languages',languages, 'audio_languages', audio_languages, 'subtitle_languages', subtitle_languages,   'current_sub_language2',current_sub_language2,'current_audio_language',current_audio_language,'sub_audio_json',sub_audio_json,'curr_sub_audio_json',curr_sub_audio_json)
-						tools.log('NON_ENGLISH_LANG_ENG_DUB_FIX')
-						break
-		sub_toggle = False
-		if lang_toggle == True:
-			for i in reversed(sub_audio_json['result']['subtitles']):
-				if i['language'] == 'eng' and (i['isforced'] == True or i['isforced'] == 'True' or 'forced' in str(i['name']).lower()):
-					if sub_audio_json['result']['subtitleenabled'] == False or sub_audio_json['result']['subtitleenabled'] == 'False':
-						player.setSubtitleStream(i['index'])
-						player.showSubtitles(True)
-						tools.log('ENGLISH_LANG_NON_ENG_AUDIO_FORCED_SUBS_FIX')
+						player.showSubtitles(False)
+						tools.log('ENGLISH_LANG_NON_ENG_SUBS_FORCED_SUBS_FIX')
 						sub_toggle = True
 						break
-		if sub_toggle == False and current_sub_language2 != 'eng':
-			for i in reversed(sub_audio_json['result']['subtitles']):
-				if i['language'] == 'eng':
-					player.setSubtitleStream(i['index'])
-					player.showSubtitles(False)
-					tools.log('ENGLISH_LANG_NON_ENG_SUBS_FORCED_SUBS_FIX')
-					sub_toggle = True
-					break
-		json_result = xbmc.executeJSONRPC('{"jsonrpc": "2.0","id": "1","method": "Player.GetProperties","params": {"playerid": 1,"properties": ["subtitleenabled"]}}')
-		subtitleenabled  = json.loads(json_result)
-		if languages[0] == 'English' and (subtitleenabled['result']['subtitleenabled'] == 'True' or subtitleenabled['result']['subtitleenabled'] == True):
-			forced_external = False
-			for i in reversed(sub_audio_json['result']['subtitles']):
-				if i['language'] == 'eng' and (i['isforced'] == True or i['isforced'] == 'True' or 'forced' in str(i['name']).lower()) and i['name'] == '(External)':
-					forced_external = True
-					break
-			if forced_external == True:
+			json_result = xbmc.executeJSONRPC('{"jsonrpc": "2.0","id": "1","method": "Player.GetProperties","params": {"playerid": 1,"properties": ["subtitleenabled"]}}')
+			subtitleenabled  = json.loads(json_result)
+			if languages[0] == 'English' and (subtitleenabled['result']['subtitleenabled'] == 'True' or subtitleenabled['result']['subtitleenabled'] == True):
+				forced_external = False
 				for i in reversed(sub_audio_json['result']['subtitles']):
-					if i['language'] == 'eng' and (i['isforced'] == True or i['isforced'] == 'True' or 'forced' in str(i['name']).lower()) and i['name'] != '(External)':
-						player.setSubtitleStream(i['index'])
-						player.showSubtitles(True)
-						tools.log('ENGLISH_LANG_FORCED_EXTERNAL_SUBS_FIX')
-						sub_toggle = True
+					if i['language'] == 'eng' and (i['isforced'] == True or i['isforced'] == 'True' or 'forced' in str(i['name']).lower()) and i['name'] == '(External)':
+						forced_external = True
 						break
+				if forced_external == True:
+					for i in reversed(sub_audio_json['result']['subtitles']):
+						if i['language'] == 'eng' and (i['isforced'] == True or i['isforced'] == 'True' or 'forced' in str(i['name']).lower()) and i['name'] != '(External)':
+							player.setSubtitleStream(i['index'])
+							player.showSubtitles(True)
+							tools.log('ENGLISH_LANG_FORCED_EXTERNAL_SUBS_FIX')
+							sub_toggle = True
+							break
 
 
 		if self.type == 'movie':
@@ -1481,6 +1501,10 @@ class CronJobMonitor(Thread):
 					unwatched_thread = Thread(target=library.trakt_unwatched_tv_shows)
 					unwatched_thread.setDaemon(True)
 					unwatched_thread.start()
+					log(str('library.taste_dive_movies()'))
+					taste_dive_thread = Thread(target=library.taste_dive_movies)
+					taste_dive_thread.setDaemon(True)
+					taste_dive_thread.start()
 				library_update_period = int(xbmcaddon.Addon(library.addon_ID()).getSetting('library_sync_hours'))
 				self.next_time = self.curr_time + library_update_period*60*60
 
