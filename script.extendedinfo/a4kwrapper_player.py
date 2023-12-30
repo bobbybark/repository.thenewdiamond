@@ -607,7 +607,7 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True):
 	next_ep_play_details['tvbanner'] = tvbanner
 	next_ep_play_details['banner'] = tvbanner
 	if showbackground == '' or showbackground == None:
-		try: showbackground = extended_tvshow_info_response['fanart_original']
+		try: showbackground = extended_tvshow_info_response[0]['fanart_original']
 		except: showbackground = tvthumb
 	next_ep_play_details['showbackground'] = showbackground
 	next_ep_play_details['fanart'] = showbackground
@@ -619,7 +619,7 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True):
 	if tvposter == '' or tvposter == None:
 		next_ep_play_details['poster'] = seasonposter
 	if tvposter == '' or tvposter == None:
-		try: tvposter = extended_tvshow_info_response['poster_original']
+		try: tvposter = extended_tvshow_info_response[0]['poster_original']
 		except: tvposter = seasonposter
 	next_ep_play_details['clearart'] = clearart
 	next_ep_play_details['hdtvlogo'] = hdtvlogo
@@ -643,7 +643,7 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True):
 		elif tvposter != '' and tvposter != None:
 			poster = tvposter
 		else:
-			poster = extended_tvshow_info_response['poster_original']
+			poster = extended_tvshow_info_response[0]['poster_original']
 		xbmcgui.Window(10000).setProperty('Next_EP.poster', poster)
 		fanart = showbackground
 		xbmcgui.Window(10000).setProperty('Next_EP.fanart', fanart)
@@ -654,7 +654,7 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True):
 		xbmcgui.Window(10000).setProperty('Next_EP.clearlogo', clearlogo)
 		landscape = showbackground
 		if landscape == '' or  landscape == None:
-			try: landscape = extended_tvshow_info_response['fanart_original']
+			try: landscape = extended_tvshow_info_response[0]['fanart_original']
 			except: landscape = tvthumb
 		xbmcgui.Window(10000).setProperty('Next_EP.landscape', landscape)
 		banner = tvbanner

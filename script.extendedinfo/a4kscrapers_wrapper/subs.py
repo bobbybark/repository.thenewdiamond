@@ -170,6 +170,7 @@ getSources.get_subtitles(info , '')
 """
 	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 	#try:
+	from urllib.parse import unquote
 	if 1==1:
 		VIDEO_META['season'] = str(VIDEO_META['season'] )
 		VIDEO_META['episode'] = str(VIDEO_META['episode'])
@@ -177,10 +178,10 @@ getSources.get_subtitles(info , '')
 	#	pass
 	#try:
 	if 1==1:
-		VIDEO_META['file_name'] = os.path.basename(file_path)
-		VIDEO_META['filename'] = VIDEO_META['file_name']
-		VIDEO_META['filename_without_ext'] = os.path.splitext(VIDEO_META['file_name'])[0]
-		VIDEO_META['subs_filename'] = VIDEO_META['filename_without_ext'] + '.srt'
+		VIDEO_META['file_name'] = unquote(os.path.basename(file_path))
+		VIDEO_META['filename'] = unquote(VIDEO_META['file_name'])
+		VIDEO_META['filename_without_ext'] = unquote(os.path.splitext(VIDEO_META['file_name'])[0])
+		VIDEO_META['subs_filename'] = unquote(VIDEO_META['filename_without_ext'] + '.srt')
 		#tools.VIDEO_META = VIDEO_META
 		#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		#tools.log('VIDEO_META',VIDEO_META, 'file_path',file_path)
@@ -402,7 +403,7 @@ class SubtitleService(object):
 				if distance.jaro_similarity(input_guess.get('episode_title',''), guess.get('episode_title','')) > 0.92:
 					source_list.append({'pack_title': i['name'], 'release_title': i['name'], 'filename': i['name'], 'pack_size': 999, 'size': 999, 'info': i_info, 'quality': i_quality})
 					continue
-				if (ep_test == 0 or ep_test == int(self.VIDEO_META['episode'])) and guess.get('episode_title','') == '' and season_test == int(self.VIDEO_META['season_number']):
+				if (ep_test == 0 or ep_test == int(self.VIDEO_META['episode'])) and guess.get('episode_title','') == '' and season_test == int(self.VIDEO_META['season_number']) and guess.get('title') != None:
 					clean_guess_title = source_tools.clean_title(guess.get('title'))
 					try: 
 						guess_title2 = guess.get('title') + ' ' + guess.get('alternative_title')
@@ -425,6 +426,9 @@ class SubtitleService(object):
 					if match == True:
 						source_list.append({'pack_title': i['name'], 'release_title': i['name'], 'filename': i['name'], 'pack_size': 999, 'size': 999, 'info': i_info, 'quality': i_quality})
 						continue
+				elif guess.get('title') == None and ep_test == int(self.VIDEO_META['episode']) and season_test == int(self.VIDEO_META['season_number']):
+					source_list.append({'pack_title': i['name'], 'release_title': i['name'], 'filename': i['name'], 'pack_size': 999, 'size': 999, 'info': i_info, 'quality': i_quality})
+					continue
 				#tools.log(guess)
 		new_source_list = tools.SourceSorter(self.VIDEO_META).sort_sources(source_list)
 		#tools.log('new_source_list',new_source_list)

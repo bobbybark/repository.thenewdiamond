@@ -21,7 +21,7 @@ from a4kscrapers_wrapper import source_tools
 from a4kscrapers_wrapper import tools, distance
 from a4kscrapers_wrapper.tools import log
 
-
+import requests, json
 #from a4kscrapers_wrapper import subs
 
 import urllib
@@ -658,6 +658,7 @@ def run_movie_search():
 			download_link = rd_api.resolve_hoster(unrestrict_link)
 			download_id = rd_api.UNRESTRICT_FILE_ID
 			log(download_link, download_id)
+
 	elif result == 4:#'Add to downloader list (whole pack)': 4,
 		tools.log(torrent)
 
@@ -666,12 +667,104 @@ def run_movie_search():
 
 		meta['magnet'] = torrent['magnet']
 
+		response = rd_api.add_magnet(torrent['magnet'])
+		#tools.log(response)
+		torr_id = response['id']
+		response = rd_api.torrent_select_all(torr_id)
+		torr_info = rd_api.torrent_info(torr_id)
+		#tools.log(torr_info)
+
+		for i in torr_info['links']:
+			unrestrict_link = i
+			download_link = rd_api.resolve_hoster(unrestrict_link)
+			download_id = rd_api.UNRESTRICT_FILE_ID
+			log(download_link, download_id)
+			
+		stream_link = download_link
+		#file_name = unquote(stream_link).split('/')[-1]
+		file_name = os.path.basename(stream_link)
+		#filename_without_ext = file_name.replace('.'+file_name.split('.')[-1],'')
+		filename_without_ext = os.path.splitext(os.path.basename(stream_link))[0]
+		#file_name_ext = file_name.replace(filename_without_ext,'')
+		file_name_ext = os.path.splitext(os.path.basename(stream_link))[1]
+		#if filename_without_ext == g.CURR_SOURCE['release_title'].lower() or filename_without_ext in g.CURR_SOURCE['release_title'].lower():
+		#	file_name = g.CURR_SOURCE['release_title'] + file_name_ext
+		#	filename_without_ext = g.CURR_SOURCE['release_title']
+		subs_filename = filename_without_ext + '.srt'
+
+		#meta['download_type'] = 'movie'
+		meta['filename'] = file_name
+		meta['filename_without_ext'] = filename_without_ext
+		meta['filesize'] = ''
+		meta['filehash'] = ''
+		meta['url'] = stream_link
+		#meta['magnet'] = g.CURR_SOURCE['magnet']
+		meta['release_title'] = torrent['release_title']
+		meta['CURR_LABEL'] =  torrent['release_title']
+		meta['package'] = torrent['package']
+		meta['file_name'] = file_name
+
+		tools.log(meta)
+
+		magnet_list = tools.get_setting('magnet_list')
+		file1 = open(magnet_list, "a") 
+		file1.write(str(meta))
+		file1.write("\n")
+		file1.close()
+
+
 	elif result == 6:#'Add to downloader list (whole pack + subtitles)': 6,
 		tools.log(torrent)
+
 		meta['download_type'] = 'pack'
 		meta['download_type'] = 'movie'
 
 		meta['magnet'] = torrent['magnet']
+
+		response = rd_api.add_magnet(torrent['magnet'])
+		#tools.log(response)
+		torr_id = response['id']
+		response = rd_api.torrent_select_all(torr_id)
+		torr_info = rd_api.torrent_info(torr_id)
+		#tools.log(torr_info)
+
+		for i in torr_info['links']:
+			unrestrict_link = i
+			download_link = rd_api.resolve_hoster(unrestrict_link)
+			download_id = rd_api.UNRESTRICT_FILE_ID
+			log(download_link, download_id)
+			
+		stream_link = download_link
+		#file_name = unquote(stream_link).split('/')[-1]
+		file_name = os.path.basename(stream_link)
+		#filename_without_ext = file_name.replace('.'+file_name.split('.')[-1],'')
+		filename_without_ext = os.path.splitext(os.path.basename(stream_link))[0]
+		#file_name_ext = file_name.replace(filename_without_ext,'')
+		file_name_ext = os.path.splitext(os.path.basename(stream_link))[1]
+		#if filename_without_ext == g.CURR_SOURCE['release_title'].lower() or filename_without_ext in g.CURR_SOURCE['release_title'].lower():
+		#	file_name = g.CURR_SOURCE['release_title'] + file_name_ext
+		#	filename_without_ext = g.CURR_SOURCE['release_title']
+		subs_filename = filename_without_ext + '.srt'
+
+		#meta['download_type'] = 'movie'
+		meta['filename'] = file_name
+		meta['filename_without_ext'] = filename_without_ext
+		meta['filesize'] = ''
+		meta['filehash'] = ''
+		meta['url'] = stream_link
+		#meta['magnet'] = g.CURR_SOURCE['magnet']
+		meta['release_title'] = torrent['release_title']
+		meta['CURR_LABEL'] =  torrent['release_title']
+		meta['package'] = torrent['package']
+		meta['file_name'] = file_name
+
+		tools.log(meta)
+
+		magnet_list = tools.get_setting('magnet_list')
+		file1 = open(magnet_list, "a") 
+		file1.write(str(meta))
+		file1.write("\n")
+		file1.close()
 
 	return
 
@@ -1675,7 +1768,11 @@ def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr
 def download_cached_movie(rd_api, download_path, curr_download, torr_id, torr_info):
 	#tools.log('download_cached_movie')
 	folder = curr_download['CURR_LABEL']
-	download_folder = os.path.join(download_path, folder)
+	folder = curr_download['filename_without_ext']
+	
+	download_folder = unquote(os.path.join(download_path, folder))
+	
+	
 	torr_info = rd_api.torrent_info_files(torr_info)
 	sorted_torr_info = sorted(torr_info['files_links'], key=lambda x: x['pack_path'])
 	simple_info = tools._build_simple_show_info(curr_download)
@@ -1694,6 +1791,7 @@ def download_cached_movie(rd_api, download_path, curr_download, torr_id, torr_in
 			unrestrict_link = x['unrestrict_link']
 			break
 	download_path = os.path.join(download_folder + pack_path)
+	
 	if not os.path.exists(download_folder):
 		os.makedirs(download_folder)
 	log(unrestrict_link, download_path)
@@ -1702,11 +1800,44 @@ def download_cached_movie(rd_api, download_path, curr_download, torr_id, torr_in
 	log(download_link, download_id)
 	
 	tools.download_progressbar(download_link, download_path)
-	info = get_subtitles(curr_download, download_path)
-	sub_out = os.path.basename(tools.SUB_FILE)
-	sub_path = os.path.join(download_folder, sub_out)
-	shutil.copyfile(tools.SUB_FILE, sub_path)
-	log(sub_path)
+	#info = get_subtitles(curr_download, download_path)
+
+
+	try: subs = importlib.import_module("subs")
+	except: subs = reload_module(importlib.import_module("subs"))
+	subs.META = curr_download
+	subs_list = subs.get_subtitles_list(curr_download, download_path)
+	del subs
+	#exit()
+	if len(subs_list) > 0:
+		from subcleaner import clean_file
+		from pathlib import Path
+		for i in subs_list:
+			sub = Path(i)
+			try: clean_file.clean_file(sub)
+			except: tools.log('EXCEPTION', i)
+		clean_file.files_handled = []
+
+	for i in subs_list:
+		#os.rename(i, os.path.join(download_folder, os.path.basename(i)))
+		#tools.log(i, os.path.join(download_folder, os.path.basename(i)))
+		out_path = os.path.join(download_folder, os.path.basename(i))
+		shutil.copyfile(i, out_path)
+		tools.log(out_path)
+	tmdb_api = tools.get_setting('tmdb_api')
+	tmdb_url = 'https://api.themoviedb.org/3/movie/%s?language=en-US&api_key=%s' % (str(curr_download['tmdb_id']),tmdb_api)
+	
+	meta_info = requests.get(tmdb_url).json()
+	movie_poster = 'https://image.tmdb.org/t/p/original' + meta_info['poster_path']
+	if '.png' in movie_poster:
+		poster_path = os.path.join(download_folder, 'poster.png')
+	elif '.jpg' in movie_poster:
+		poster_path = os.path.join(download_folder,'poster.jpg')
+	tools.download_progressbar(movie_poster, poster_path)
+	#sub_out = os.path.basename(tools.SUB_FILE)
+	#sub_path = os.path.join(download_folder, sub_out)
+	#shutil.copyfile(tools.SUB_FILE, sub_path)
+	#log(sub_path)
 
 	rd_api.delete_torrent(torr_id)
 	rd_api.delete_download(rd_api.UNRESTRICT_FILE_ID)
@@ -1883,6 +2014,8 @@ getSources.setup_providers('https://bit.ly/a4kScrapers')
 		shutil.rmtree(tools.A4KPROVIDERS_PATH)
 	if os.path.exists(tools.PROVIDERS_JSON):
 		os.remove(tools.PROVIDERS_JSON)
+
+	tools.log(tools.A4KPROVIDERS_PATH)
 	provider_url = 'https://bit.ly/a4kScrapers'
 	temp_zip = tools.temp_file()
 	tools.download_file(provider_url, temp_zip)

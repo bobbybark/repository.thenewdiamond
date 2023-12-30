@@ -286,7 +286,8 @@ def get_movie_meta(tmdb=None, movie_name=None, year=None, imdb=None, interactive
 			else:
 				if interactive:
 					for i in response['results']:
-						list_name = '%s (%s)' % (i['title'], str(i['release_date'][:4]))
+						try: list_name = '%s (%s)' % (i['title'], str(i['release_date'][:4]))
+						except: tools.log(i)
 						options[list_name] = str(i['id'])
 					tmdb = selectFromDict(options, 'Movie')
 				else:

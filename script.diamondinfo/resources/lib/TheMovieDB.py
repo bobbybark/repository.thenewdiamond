@@ -1242,7 +1242,12 @@ def get_imdb_language(imdb_id=None, cache_days=14, folder='IMDB'):
 			try: language_list.append(i.split('ref_=tt_dt_ln">')[1].split('</a>')[0])
 			except: continue
 		
+		
+		country = details_section.split('?country_of_origin=')[1].split('&amp;')[0]
+		
 		results = language_list
+		if country == 'US' or country == 'UK' and results[1] == 'English':
+			results[0] = 'English'
 
 		try:
 			Utils.save_to_file(results, hashed_url, cache_path)
@@ -1307,7 +1312,11 @@ def get_imdb_recommendations(imdb_id=None, return_items=False, cache_days=14, fo
 
 	else:
 		imdb_response = requests.get(imdb_url, headers=imdb_header)
-		imdb_response = imdb_response.text.split('<span>Storyline</span>')[0].split('<span>More like this</span>')[1]
+		try: 
+			imdb_response = imdb_response.text.split('<span>Storyline</span>')[0].split('<span>More like this</span>')[1]
+		except:
+			Utils.log('IMDB_ERROR with URL =  %s. RETUNR_NONE_TheMovieDB.py_get_imdb_recommendations()' % imdb_url)
+			return []
 		list_container = str(imdb_response).split('poster-card__title--clickable" aria-label="')
 		toggle = False
 		movies = []

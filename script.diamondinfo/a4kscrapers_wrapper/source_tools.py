@@ -1716,13 +1716,13 @@ def match_episodes_season_pack(meta, sorted_torr_info):
 						simple_info = tools._build_simple_show_info(curr_episode_tvmaze)
 						test = run_show_filters(simple_info, release_title = i['pack_path'])
 						#tools.log(simple_info,test)
-						if test['get_filter_single_absolute_episode_fn'] == True or test['filter_check_episode_title_match'] == True or test['filter_single_special_episode'] == True or test['get_filter_single_episode_fn'] == True:
+						if test.get('get_filter_single_absolute_episode_fn',False) == True or test.get('filter_check_episode_title_match',False) == True or test.get('filter_single_special_episode',False) == True or test.get('get_filter_single_episode_fn',False) == True:
 							season_match = True
 						else:
 							simple_info = tools._build_simple_show_info(curr_episode_tmdb)
 							test = run_show_filters(simple_info, release_title = i['pack_path'])
 							#tools.log(test)
-							if test['get_filter_single_absolute_episode_fn'] == True or test['filter_check_episode_title_match'] == True or test['filter_single_special_episode'] == True or test['get_filter_single_episode_fn'] == True:
+							if test.get('get_filter_single_absolute_episode_fn',False) == True or test.get('filter_check_episode_title_match',False) == True or test.get('filter_single_special_episode',False) == True or test.get('get_filter_single_episode_fn',False) == True:
 								season_match = True
 					if season_match == False:
 						continue
@@ -1836,11 +1836,14 @@ def match_episodes_season_pack(meta, sorted_torr_info):
 		#tools.log(matched_episodes,'matched_episodes')
 		for idx, i in enumerate(matched_episodes):
 			if idx > 0:
-				if matched_episodes[i] == matched_episodes[i-1]:
-					if len(matched_episodes[i]) == 2:
-						double_fix = matched_episodes[i]
-						matched_episodes[i-1] = [double_fix[0]]
-						matched_episodes[i] = [double_fix[1]]
+				try: 
+					if matched_episodes[i] == matched_episodes[i-1]:
+						if len(matched_episodes[i]) == 2:
+							double_fix = matched_episodes[i]
+							matched_episodes[i-1] = [double_fix[0]]
+							matched_episodes[i] = [double_fix[1]]
+				except:
+					continue
 
 
 		for xdx, x in enumerate(meta[meta_source]['episodes']):
