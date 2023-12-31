@@ -46,9 +46,12 @@ BROWSER_AGENTS = [
 
 #ADDON_USERDATA_PATH = './user_data'
 try:
-	from resources.lib import Utils
+	#from resources.lib import Utils
+	import xbmc,xbmcvfs
 	from resources.lib.library import addon_ID
-	ADDON_USERDATA_PATH = Utils.ADDON_DATA_PATH
+	ADDON_PATH = xbmcvfs.translatePath('special://home/addons/'+str(addon_ID()))
+	ADDON_DATA_PATH = xbmcvfs.translatePath('special://profile/addon_data/'+str(addon_ID()))
+	ADDON_USERDATA_PATH = ADDON_DATA_PATH
 	ADDON_USERDATA_PATH_1 = ADDON_USERDATA_PATH
 	ADDON_NAME = addon_ID()
 	A4KPROVIDERS_PATH = os.path.join(ADDON_USERDATA_PATH, 'providers2')
@@ -59,7 +62,6 @@ try:
 	OPENSUB_PASSWORD = 'password'
 	PID_FILE = os.path.join(ADDON_USERDATA_PATH, 'pid')
 	diamond = True
-
 
 except:
 	ADDON_USERDATA_PATH = os.path.join(folder, 'user_data')
