@@ -583,11 +583,12 @@ def run_tv_search():
 		torr_info = rd_api.torrent_info(torr_id)
 		#tools.log(torr_info)
 
-		for i in torr_info['links']:
-			unrestrict_link = i
-			download_link = rd_api.resolve_hoster(unrestrict_link)
-			download_id = rd_api.UNRESTRICT_FILE_ID
-			log(download_link, download_id)
+		#for i in torr_info['links']:
+		#	unrestrict_link = i
+		#	download_link = rd_api.resolve_hoster(unrestrict_link)
+		#	download_id = rd_api.UNRESTRICT_FILE_ID
+		#	log(download_link, download_id)
+		download_link, new_meta = cloud_get_ep_season(rd_api, meta, torr_id, torr_info)
 			
 		stream_link = download_link
 		#file_name = unquote(stream_link).split('/')[-1]
@@ -1970,28 +1971,43 @@ def download_cached_movie(rd_api, download_path, curr_download, torr_id, torr_in
 	tools.download_progressbar(download_link, download_path)
 	#info = get_subtitles(curr_download, download_path)
 
+	sub_path1 = os.path.join(download_folder,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.srt')))
+	sub_path2 = os.path.join(download_folder,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.eng.FORCED.srt')))
+	sub_path3 = os.path.join(download_folder,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.eng.srt')))
 
-	try: subs = importlib.import_module("subs")
-	except: subs = reload_module(importlib.import_module("subs"))
-	subs.META = curr_download
-	subs_list = subs.get_subtitles_list(curr_download, download_path)
-	del subs
-	#exit()
-	if len(subs_list) > 0:
-		from subcleaner import clean_file
-		from pathlib import Path
+	#sub_path1 = os.path.join(download_folder, str(curr_download['filename_without_ext'].replace(':','') + '.srt'))
+	#sub_path2 = os.path.join(download_folder, str(curr_download['filename_without_ext'].replace(':','') + '.eng.FORCED.srt'))
+	#sub_path3 = os.path.join(download_folder, str(curr_download['filename_without_ext'].replace(':','') + '.eng.srt'))
+	tools.log(sub_path1)
+	tools.log(sub_path2)
+	tools.log(sub_path3)
+
+	exists_flag = False
+	if os.path.exists(sub_path1) or os.path.exists(sub_path2) or os.path.exists(sub_path3):
+		exists_flag = True
+
+	if exists_flag == False:
+		try: subs = importlib.import_module("subs")
+		except: subs = reload_module(importlib.import_module("subs"))
+		subs.META = curr_download
+		subs_list = subs.get_subtitles_list(curr_download, download_path)
+		del subs
+		#exit()
+		if len(subs_list) > 0:
+			from subcleaner import clean_file
+			from pathlib import Path
+			for i in subs_list:
+				sub = Path(i)
+				try: clean_file.clean_file(sub)
+				except: tools.log('EXCEPTION', i)
+			clean_file.files_handled = []
+
 		for i in subs_list:
-			sub = Path(i)
-			try: clean_file.clean_file(sub)
-			except: tools.log('EXCEPTION', i)
-		clean_file.files_handled = []
-
-	for i in subs_list:
-		#os.rename(i, os.path.join(download_folder, os.path.basename(i)))
-		#tools.log(i, os.path.join(download_folder, os.path.basename(i)))
-		out_path = os.path.join(download_folder, os.path.basename(i))
-		shutil.copyfile(i, out_path)
-		tools.log(out_path)
+			#os.rename(i, os.path.join(download_folder, os.path.basename(i)))
+			#tools.log(i, os.path.join(download_folder, os.path.basename(i)))
+			out_path = os.path.join(download_folder, os.path.basename(i))
+			shutil.copyfile(i, out_path)
+			tools.log(out_path)
 	tmdb_api = tools.get_setting('tmdb_api')
 	tmdb_url = 'https://api.themoviedb.org/3/movie/%s?language=en-US&api_key=%s' % (str(curr_download['tmdb_id']),tmdb_api)
 	
@@ -2055,28 +2071,45 @@ def download_cached_episode(rd_api, download_path, curr_download, torr_id, torr_
 			#sub_out = os.path.basename(tools.SUB_FILE)
 			#sub_path = os.path.join(download_folder, sub_out)
 			#shutil.copyfile(tools.SUB_FILE, sub_path)
+			
+			#tools.log(curr_download)
+			sub_path1 = os.path.join(download_folder,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.srt'))).replace(':','')
+			sub_path2 = os.path.join(download_folder,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.eng.FORCED.srt'))).replace(':','')
+			sub_path3 = os.path.join(download_folder,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.eng.srt'))).replace(':','')
 
-			try: subs = importlib.import_module("subs")
-			except: subs = reload_module(importlib.import_module("subs"))
-			subs.META = curr_download
-			subs_list = subs.get_subtitles_list(info2, download_path)
-			del subs
-			#exit()
-			if len(subs_list) > 0:
-				from subcleaner import clean_file
-				from pathlib import Path
+			#sub_path1 = os.path.join(download_folder, str(curr_download['filename_without_ext'].replace(':','') + '.srt'))
+			#sub_path2 = os.path.join(download_folder, str(curr_download['filename_without_ext'].replace(':','') + '.eng.FORCED.srt'))
+			#sub_path3 = os.path.join(download_folder, str(curr_download['filename_without_ext'].replace(':','') + '.eng.srt'))
+			tools.log(sub_path1)
+			tools.log(sub_path2)
+			tools.log(sub_path3)
+
+			exists_flag = False
+			if os.path.exists(sub_path1) or os.path.exists(sub_path2) or os.path.exists(sub_path3):
+				exists_flag = True
+
+			if exists_flag == False:
+				try: subs = importlib.import_module("subs")
+				except: subs = reload_module(importlib.import_module("subs"))
+				subs.META = curr_download
+				subs_list = subs.get_subtitles_list(info2, download_path)
+				del subs
+				#exit()
+				if len(subs_list) > 0:
+					from subcleaner import clean_file
+					from pathlib import Path
+					for i in subs_list:
+						sub = Path(i)
+						try: clean_file.clean_file(sub)
+						except: tools.log('EXCEPTION', i)
+					clean_file.files_handled = []
+
 				for i in subs_list:
-					sub = Path(i)
-					try: clean_file.clean_file(sub)
-					except: tools.log('EXCEPTION', i)
-				clean_file.files_handled = []
-
-			for i in subs_list:
-				#os.rename(i, os.path.join(download_folder, os.path.basename(i)))
-				#tools.log(i, os.path.join(download_folder, os.path.basename(i)))
-				out_path = os.path.join(download_folder, os.path.basename(i))
-				shutil.copyfile(i, out_path)
-				tools.log(out_path)
+					#os.rename(i, os.path.join(download_folder, os.path.basename(i)))
+					#tools.log(i, os.path.join(download_folder, os.path.basename(i)))
+					out_path = os.path.join(download_folder, os.path.basename(i))
+					shutil.copyfile(i, out_path)
+					tools.log(out_path)
 
 			rd_api.delete_download(rd_api.UNRESTRICT_FILE_ID)
 	#log(sub_path)
@@ -2087,6 +2120,8 @@ def download_cached_episode(rd_api, download_path, curr_download, torr_id, torr_
 
 def download_cached_magnet_pack(rd_api, download_path, curr_download, torr_id, torr_info):
 	folder = curr_download['CURR_LABEL']
+	folder = torr_info['original_filename']
+
 	download_folder = os.path.join(download_path, folder)
 	torr_info = rd_api.torrent_info_files(torr_info)
 	sorted_torr_info = sorted(torr_info['files_links'], key=lambda x: x['pack_path'])
@@ -2122,27 +2157,42 @@ def download_cached_magnet_pack(rd_api, download_path, curr_download, torr_id, t
 			os.makedirs(download_folder)
 		tools.download_progressbar(download_link, download_path)
 
-		try: subs = importlib.import_module("subs")
-		except: subs = reload_module(importlib.import_module("subs"))
-		subs.META = curr_download
-		subs_list = subs.get_subtitles_list(info, download_path)
-		del subs
-		#exit()
-		if len(subs_list) > 0:
-			from subcleaner import clean_file
-			from pathlib import Path
-			for i in subs_list:
-				sub = Path(i)
-				try: clean_file.clean_file(sub)
-				except: tools.log('EXCEPTION', i)
-			clean_file.files_handled = []
+		sub_path1 = os.path.join(download_folder,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.srt'))).replace(':','')
+		sub_path2 = os.path.join(download_folder,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.eng.FORCED.srt'))).replace(':','')
+		sub_path3 = os.path.join(download_folder,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.eng.srt'))).replace(':','')
 
-		for i in subs_list:
-			#os.rename(i, os.path.join(download_folder, os.path.basename(i)))
-			#tools.log(i, os.path.join(download_folder, os.path.basename(i)))
-			out_path = os.path.join(download_folder, os.path.basename(i))
-			shutil.copyfile(i, out_path)
-			tools.log(out_path)
+		#sub_path1 = os.path.join(download_folder, str(curr_download['filename_without_ext'].replace(':','') + '.srt'))
+		#sub_path2 = os.path.join(download_folder, str(curr_download['filename_without_ext'].replace(':','') + '.eng.FORCED.srt'))
+		#sub_path3 = os.path.join(download_folder, str(curr_download['filename_without_ext'].replace(':','') + '.eng.srt'))
+		tools.log(sub_path1)
+		tools.log(sub_path2)
+		tools.log(sub_path3)
+		exists_flag = False
+		if os.path.exists(sub_path1) or os.path.exists(sub_path2) or os.path.exists(sub_path3):
+			exists_flag = True
+
+		if exists_flag == False:
+			try: subs = importlib.import_module("subs")
+			except: subs = reload_module(importlib.import_module("subs"))
+			subs.META = curr_download
+			subs_list = subs.get_subtitles_list(info, download_path)
+			del subs
+			#exit()
+			if len(subs_list) > 0:
+				from subcleaner import clean_file
+				from pathlib import Path
+				for i in subs_list:
+					sub = Path(i)
+					try: clean_file.clean_file(sub)
+					except: tools.log('EXCEPTION', i)
+				clean_file.files_handled = []
+
+			for i in subs_list:
+				#os.rename(i, os.path.join(download_folder, os.path.basename(i)))
+				#tools.log(i, os.path.join(download_folder, os.path.basename(i)))
+				out_path = os.path.join(download_folder, os.path.basename(i))
+				shutil.copyfile(i, out_path)
+				tools.log(out_path)
 
 
 		rd_api.delete_download(rd_api.UNRESTRICT_FILE_ID)
