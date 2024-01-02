@@ -320,8 +320,10 @@ def get_tvshow_window(window_type):
 				selection = xbmcgui.Dialog().select(heading='Choose option', list=listitems)
 			if selection == 0:
 				self.close()
-				url = 'plugin://plugin.video.themoviedb.helper?info=play&amp;type=episode&amp;tmdb_id=%s&amp;season=1&amp;episode=1' % self.info['id']
-				xbmc.executebuiltin('RunPlugin(%s)' % url)
+				url = 'plugin://plugin.video.themoviedb.helper?info=play&amp;type=episode&amp;tmdb_id=%s&amp;season=%s&amp;episode=1' % (self.info['id'], str(self.listitem.getProperty('season')))
+				#xbmc.executebuiltin('RunPlugin(%s)' % url)
+				xbmc.executebuiltin('Dialog.Close(all,true)')
+				PLAYER.play_from_button(url, listitem=None, window=self)
 
 		@ch.click(550)
 		def open_company_info(self):

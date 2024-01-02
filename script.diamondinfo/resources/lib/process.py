@@ -1174,6 +1174,8 @@ def start_info_actions(infos, params):
 			Utils.show_busy()
 			
 			file_path = os.path.join(os.path.join(Utils.ADDON_PATH.replace(addon_ID(),'plugin.video.themoviedb.helper'), 'resources', 'tmdbhelper','lib','player') , 'players.py')
+			if not os.path.exists(file_path):
+				file_path = os.path.join(os.path.join(Utils.ADDON_PATH.replace(addon_ID(),'plugin.video.themoviedb.helper'), 'resources', 'lib','player') , 'players.py')
 			#from distutils.dir_util import copy_tree
 			#skin_source = os.path.join(Utils.ADDON_PATH, 'resources' , 'skins', 'skin.estuary_fen_light')
 			#skin_dest = os.path.join(os.path.join(Utils.ADDON_PATH.replace(addon_ID(),'plugin.video.fenlight'), 'resources', 'skins'), 'Custom','skin.estuary')

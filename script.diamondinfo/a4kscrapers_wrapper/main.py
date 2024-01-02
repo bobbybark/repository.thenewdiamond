@@ -36,7 +36,7 @@ program_choices = {
 	'Search Torrent (episode) 				"main.py -search \'foundation\' -episode 1 -season 2 -interactive False"': 1 ,
 	'Search Torrent (movie)				"main.py -search \'batman begins\' -year 2005"': 2,
 	'Start downloader service (if not running)		"main.py -downloader -start"': 3,
-	'check downloader status				"main.py -downloader -status"': 4,
+	'manage downloader list				"main.py -downloader -status"': 4,
 	'Setup Providers					"main.py -providers_setup"': 5,
 	'enable_disable_providers				"main.py -providers_enable"': 6,
 	#'setup_userdata_folder': 7,
@@ -72,6 +72,53 @@ def main():
 		magnet_list = tools.get_setting('magnet_list')
 		download_path = tools.get_setting('download_path')
 		getSources.run_downloader(magnet_list, download_path)
+
+	if result == 4:
+		magnet_list = tools.get_setting('magnet_list')
+		download_path = tools.get_setting('download_path')
+		lines = tools.read_all_text(magnet_list).split('\n')
+		for line in lines:
+			try: new_line = eval(line)
+			except: continue
+			print('CURR_PACK=%s,          CURR_LINE=%s,        CURR_FILE=%s' % (new_line['download_type'], new_line['file_name'], new_line['release_title']))
+		print('Process_Lines')
+		print('\n')
+		try: 
+			append_line = input('Modify Downloads Y?\n')
+		except: 
+			print('\n')
+			append_line = 'N'
+		if append_line.lower()[:1] == 'y':
+			except_flag = False
+			file1 = open(magnet_list, "w")
+			file1.write("\n")
+			file1.close()
+			for line in lines:
+				if except_flag == False:
+					try: new_line = eval(line)
+					except: continue
+					print('CURR_PACK=%s,          CURR_LINE=%s,        CURR_FILE=%s' % (new_line['download_type'], new_line['file_name'], new_line['release_title']))
+					try: 
+						append_line = input('Delete Line From File:  Y?\n')
+						if append_line.lower()[:1] == 'y':
+							continue
+						else:
+							file1 = open(magnet_list, "a") 
+							file1.write(str(line))
+							file1.write("\n")
+							file1.close()
+					except:
+						except_flag = True
+						file1 = open(magnet_list, "a") 
+						file1.write(str(line))
+						file1.write("\n")
+						file1.close()
+				else:
+					print('EXCEPTION_EXIT\n')
+					file1 = open(magnet_list, "a") 
+					file1.write(str(line))
+					file1.write("\n")
+					file1.close()
 
 	if result == 5:
 		tools.setup_userdata()

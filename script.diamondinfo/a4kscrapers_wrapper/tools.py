@@ -130,9 +130,9 @@ torrent_choices = {
 	'Add to RD Cache + Unrestrict (whole pack)': 2,
 	'Unrestrict specific files': 3,
 	'Add to downloader list (whole pack)': 4,
-	'Add to downloader list (specific files)': 5,
+	'Add to downloader list (episode)': 5,
 	'Add to downloader list (whole pack + subtitles)': 6,
-	'Add to downloader list (specific files + subtitles)': 7,
+	'Add to downloader list (episode + subtitles)': 7,
 	'(Uncached) Add to RD (whole pack) ': 8,
 	'(Uncached) Add to RD (individual files) ': 9
 }
@@ -940,7 +940,9 @@ def download_file(url, save_as):
 		download.write(content)
 
 def download_progressbar(url, file_path):
-	from urllib.request import urlretrieve
+	#from urllib.request import urlretrieve
+	from resumable import urlretrieve, sha256, DownloadError
+	
 	from urllib.parse import unquote
 	import sys
 	global rem_file # global variable to be used in dlProgress

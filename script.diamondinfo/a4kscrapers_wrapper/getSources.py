@@ -568,27 +568,195 @@ def run_tv_search():
 			if result and result.strip() != '':
 				response = rd_api.torrent_select(torr_id, i['id'])
 	elif result == 4:#'Add to downloader list (whole pack)': 4,
+
 		tools.log(torrent)
 
 		meta['download_type'] = 'pack'
-		meta['download_type'] = 'movie'
+		#meta['download_type'] = 'episode'
 
 		meta['magnet'] = torrent['magnet']
 
-	elif result == 7:#'Add to downloader list (specific files)': 5,
+		response = rd_api.add_magnet(torrent['magnet'])
+		#tools.log(response)
+		torr_id = response['id']
+		response = rd_api.torrent_select_all(torr_id)
+		torr_info = rd_api.torrent_info(torr_id)
+		#tools.log(torr_info)
+
+		for i in torr_info['links']:
+			unrestrict_link = i
+			download_link = rd_api.resolve_hoster(unrestrict_link)
+			download_id = rd_api.UNRESTRICT_FILE_ID
+			log(download_link, download_id)
+			
+		stream_link = download_link
+		#file_name = unquote(stream_link).split('/')[-1]
+		file_name = os.path.basename(stream_link)
+		#filename_without_ext = file_name.replace('.'+file_name.split('.')[-1],'')
+		filename_without_ext = os.path.splitext(os.path.basename(stream_link))[0]
+		#file_name_ext = file_name.replace(filename_without_ext,'')
+		file_name_ext = os.path.splitext(os.path.basename(stream_link))[1]
+		#if filename_without_ext == g.CURR_SOURCE['release_title'].lower() or filename_without_ext in g.CURR_SOURCE['release_title'].lower():
+		#	file_name = g.CURR_SOURCE['release_title'] + file_name_ext
+		#	filename_without_ext = g.CURR_SOURCE['release_title']
+		subs_filename = filename_without_ext + '.srt'
+
+		#meta['download_type'] = 'movie'
+		meta['filename'] = file_name
+		meta['filename_without_ext'] = filename_without_ext
+		meta['filesize'] = ''
+		meta['filehash'] = ''
+		meta['url'] = stream_link
+		#meta['magnet'] = g.CURR_SOURCE['magnet']
+		meta['release_title'] = torrent['release_title']
+		meta['CURR_LABEL'] =  torrent['release_title']
+		meta['package'] = torrent['package']
+		meta['file_name'] = file_name
+
+		#tools.log(meta)
+
+		magnet_list = tools.get_setting('magnet_list')
+		file1 = open(magnet_list, "a") 
+		file1.write(str(meta))
+		file1.write("\n")
+		file1.close()
+
+
+
+
+	elif result == 5:#'Add to downloader list (episode)': 5,
 		meta['download_type'] = 'episode'
 		meta['magnet'] = torrent['magnet']
-		tools.log(torrent)
+
+		response = rd_api.add_magnet(torrent['magnet'])
+		#tools.log(response)
+		torr_id = response['id']
+		response = rd_api.torrent_select_all(torr_id)
+		torr_info = rd_api.torrent_info(torr_id)
+		#tools.log(torr_info)
+
+		download_link, new_meta = cloud_get_ep_season(rd_api, meta, torr_id, torr_info)
+		
+		#tools.log(torrent)
+		#tools.log(download_link)
+		#tools.log(new_meta)
+
+		magnet_list = tools.get_setting('magnet_list')
+
+		stream_link = download_link
+		file_name = os.path.basename(stream_link)
+		filename_without_ext = os.path.splitext(os.path.basename(stream_link))[0]
+		file_name_ext = os.path.splitext(os.path.basename(stream_link))[1]
+		subs_filename = filename_without_ext + '.srt'
+
+		meta['filename'] = file_name
+		meta['filename_without_ext'] = filename_without_ext
+		meta['filesize'] = ''
+		meta['filehash'] = ''
+		meta['url'] = stream_link
+		#meta['magnet'] = g.CURR_SOURCE['magnet']
+		meta['release_title'] = torrent['release_title']
+		meta['CURR_LABEL'] =  torrent['release_title']
+		meta['package'] = torrent['package']
+		meta['file_name'] = file_name
+
+		#tools.log(meta)
+
+		file1 = open(magnet_list, "a") 
+		file1.write(str(meta))
+		file1.write("\n")
+		file1.close()
+
 	elif result == 6:#'Add to downloader list (whole pack + subtitles)': 6,
 		tools.log(torrent)
-		meta['download_type'] = 'pack'
-		meta['download_type'] = 'movie'
+		meta['download_type'] = 'episode'
+		#meta['download_type'] = 'movie'
 
 		meta['magnet'] = torrent['magnet']
-	elif result == 7:#'Add to downloader list (specific files + subtitles)': 7,
+		response = rd_api.add_magnet(torrent['magnet'])
+		#tools.log(response)
+		torr_id = response['id']
+		response = rd_api.torrent_select_all(torr_id)
+		torr_info = rd_api.torrent_info(torr_id)
+
+		#tools.log(torrent)
+		magnet_list = tools.get_setting('magnet_list')
+		for i in meta['tvmaze_seasons']['episodes']:
+			ep_meta = get_meta.get_episode_meta(season=i['season'],episode=i['episode'],tmdb=i['tmdb'])
+			ep_meta['download_type'] = 'episode'
+			ep_meta['magnet'] = torrent['magnet']
+			download_link, new_ep_meta = cloud_get_ep_season(rd_api, ep_meta, torr_id, torr_info)
+
+			#tools.log(download_link)
+			#tools.log(new_ep_meta)
+
+			stream_link = download_link
+			file_name = os.path.basename(stream_link)
+			filename_without_ext = os.path.splitext(os.path.basename(stream_link))[0]
+			file_name_ext = os.path.splitext(os.path.basename(stream_link))[1]
+			subs_filename = filename_without_ext + '.srt'
+
+			ep_meta['filename'] = file_name
+			ep_meta['filename_without_ext'] = filename_without_ext
+			ep_meta['filesize'] = ''
+			ep_meta['filehash'] = ''
+			ep_meta['url'] = stream_link
+			#meta['magnet'] = g.CURR_SOURCE['magnet']
+			ep_meta['release_title'] = torrent['release_title']
+			ep_meta['CURR_LABEL'] =  torrent['release_title']
+			ep_meta['package'] = torrent['package']
+			ep_meta['file_name'] = file_name
+
+			#tools.log(ep_meta)
+
+			file1 = open(magnet_list, "a") 
+			file1.write(str(ep_meta))
+			file1.write("\n")
+			file1.close()
+
+
+	elif result == 7:#'Add to downloader list (episode + subtitles)': 7,
 		meta['download_type'] = 'episode'
 		meta['magnet'] = torrent['magnet']
+
+		response = rd_api.add_magnet(torrent['magnet'])
+		#tools.log(response)
+		torr_id = response['id']
+		response = rd_api.torrent_select_all(torr_id)
+		torr_info = rd_api.torrent_info(torr_id)
+		#tools.log(torr_info)
+
+		download_link, new_meta = cloud_get_ep_season(rd_api, meta, torr_id, torr_info)
+		
 		tools.log(torrent)
+		tools.log(download_link)
+		tools.log(new_meta)
+
+		magnet_list = tools.get_setting('magnet_list')
+
+		stream_link = download_link
+		file_name = os.path.basename(stream_link)
+		filename_without_ext = os.path.splitext(os.path.basename(stream_link))[0]
+		file_name_ext = os.path.splitext(os.path.basename(stream_link))[1]
+		subs_filename = filename_without_ext + '.srt'
+
+		meta['filename'] = file_name
+		meta['filename_without_ext'] = filename_without_ext
+		meta['filesize'] = ''
+		meta['filehash'] = ''
+		meta['url'] = stream_link
+		#meta['magnet'] = g.CURR_SOURCE['magnet']
+		meta['release_title'] = torrent['release_title']
+		meta['CURR_LABEL'] =  torrent['release_title']
+		meta['package'] = torrent['package']
+		meta['file_name'] = file_name
+
+		tools.log(meta)
+
+		file1 = open(magnet_list, "a") 
+		file1.write(str(meta))
+		file1.write("\n")
+		file1.close()
 
 	return
 
@@ -1658,11 +1826,11 @@ def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr
 		if not os.path.exists(download_folder):
 			os.makedirs(download_folder)
 		tools.download_progressbar(download_link, download_path2)
-		info = get_subtitles(info, download_path2)
-		sub_out = os.path.basename(tools.SUB_FILE)
-		sub_path = os.path.join(download_folder, sub_out)
-		shutil.copyfile(tools.SUB_FILE, sub_path)
-		log(sub_path)
+		#info = get_subtitles(info, download_path2)
+		#sub_out = os.path.basename(tools.SUB_FILE)
+		#sub_path = os.path.join(download_folder, sub_out)
+		#shutil.copyfile(tools.SUB_FILE, sub_path)
+		#log(sub_path)
 
 	def is_movie_process(torr_id, torr_info):
 		#tools.log('is_movie_process')
@@ -1683,11 +1851,11 @@ def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr
 		if not os.path.exists(download_folder):
 			os.makedirs(download_folder)
 		tools.download_progressbar(download_link, download_path2)
-		info = get_subtitles(curr_download, download_path2)
-		sub_out = os.path.basename(tools.SUB_FILE)
-		sub_path = os.path.join(download_folder, sub_out)
-		shutil.copyfile(tools.SUB_FILE, sub_path)
-		log(sub_path)
+		#info = get_subtitles(curr_download, download_path2)
+		#sub_out = os.path.basename(tools.SUB_FILE)
+		#sub_path = os.path.join(download_folder, sub_out)
+		#shutil.copyfile(tools.SUB_FILE, sub_path)
+		#log(sub_path)
 
 	def plain_download(torr_id, torr_info):
 		#tools.log('DOWNLOAD_TO_MAIN_FOLDER_NO_META')
@@ -1844,34 +2012,74 @@ def download_cached_movie(rd_api, download_path, curr_download, torr_id, torr_in
 
 def download_cached_episode(rd_api, download_path, curr_download, torr_id, torr_info):
 	#tools.log('download_cached_episode')
-	folder = curr_download['CURR_LABEL']
+	folder = curr_download['CURR_LABEL'].replace(':','')
 	download_folder = os.path.join(download_path, folder)
 	torr_info = rd_api.torrent_info_files(torr_info)
 	sorted_torr_info = sorted(torr_info['files_links'], key=lambda x: x['pack_path'])
 	simple_info = tools._build_simple_show_info(curr_download['episode_meta'])
 	info = curr_download['episode_meta']
-	show_folder = os.path.join(download_path, str(curr_download['episode_meta']['tvshow']) + ' (' + str(curr_download['episode_meta']['tvshow_year'] + ')'))
+
+
+	info2 = None
+	#tools.log(curr_download)
+	for i in curr_download['tvmaze_seasons']['episodes']:
+		if i['episode'] == curr_download['episode_meta']['episode'] and curr_download['episode_meta']['season'] == i['season'] and curr_download['episode_meta']['title'] == i['title']: 
+			info2 = i
+			break
+	if not info2:
+		for i in curr_download['tmdb_seasons']['episodes']:
+			if i['episode'] == curr_download['episode_meta']['episode'] and curr_download['episode_meta']['season'] == i['season'] and curr_download['episode_meta']['title'] == i['title']: 
+				info2 = i
+				break
+	#tools.log(info2)
+	#curr_download = info2
+	info2['aliases'].append(info2['tvshowtitle'])
+
+	show_folder = os.path.join(download_path, str(curr_download['episode_meta']['tvshow']) + ' (' + str(curr_download['episode_meta']['tvshow_year'] + ')')).replace(':','')
 	if not os.path.exists(show_folder):
 		os.makedirs(show_folder)
-	season_folder = os.path.join(show_folder, str(curr_download['episode_meta']['tvshow']) + ' - Season ' + str(curr_download['episode_meta']['season']).zfill(2))
+	season_folder = os.path.join(show_folder, str(curr_download['episode_meta']['tvshow']) + ' - Season ' + str(curr_download['episode_meta']['season']).zfill(2)).replace(':','')
 	if not os.path.exists(season_folder):
 		os.makedirs(season_folder)
 	download_folder = season_folder
 	for i in torr_info['files_links']:
 		if curr_download['file_name'] in str(i):
 			unrestrict_link = i['unrestrict_link']
-	download_path = os.path.join(download_folder, curr_download['filename'])
-	log(unrestrict_link, download_path)
-	download_link = rd_api.resolve_hoster(unrestrict_link)
-	download_id = rd_api.UNRESTRICT_FILE_ID
-	log(download_link, download_id)
-	tools.download_progressbar(download_link, download_path)
-	info = get_subtitles(info, download_path)
-	sub_out = os.path.basename(tools.SUB_FILE)
-	sub_path = os.path.join(download_folder, sub_out)
-	shutil.copyfile(tools.SUB_FILE, sub_path)
-	rd_api.delete_download(rd_api.UNRESTRICT_FILE_ID)
-	log(sub_path)
+			download_path = os.path.join(download_folder, curr_download['filename']).replace(':','')
+			log(unrestrict_link, download_path)
+			download_link = rd_api.resolve_hoster(unrestrict_link)
+			download_id = rd_api.UNRESTRICT_FILE_ID
+			log(download_link, download_id)
+			tools.download_progressbar(download_link, download_path)
+			#info = get_subtitles(info, download_path)
+			#sub_out = os.path.basename(tools.SUB_FILE)
+			#sub_path = os.path.join(download_folder, sub_out)
+			#shutil.copyfile(tools.SUB_FILE, sub_path)
+
+			try: subs = importlib.import_module("subs")
+			except: subs = reload_module(importlib.import_module("subs"))
+			subs.META = curr_download
+			subs_list = subs.get_subtitles_list(info2, download_path)
+			del subs
+			#exit()
+			if len(subs_list) > 0:
+				from subcleaner import clean_file
+				from pathlib import Path
+				for i in subs_list:
+					sub = Path(i)
+					try: clean_file.clean_file(sub)
+					except: tools.log('EXCEPTION', i)
+				clean_file.files_handled = []
+
+			for i in subs_list:
+				#os.rename(i, os.path.join(download_folder, os.path.basename(i)))
+				#tools.log(i, os.path.join(download_folder, os.path.basename(i)))
+				out_path = os.path.join(download_folder, os.path.basename(i))
+				shutil.copyfile(i, out_path)
+				tools.log(out_path)
+
+			rd_api.delete_download(rd_api.UNRESTRICT_FILE_ID)
+	#log(sub_path)
 
 	rd_api.delete_torrent(torr_id)
 
@@ -1903,6 +2111,7 @@ def download_cached_magnet_pack(rd_api, download_path, curr_download, torr_id, t
 			info = curr_download['tmdb_seasons']['episodes'][int(episode)-1]
 		else:
 			info = curr_download['tvmaze_seasons']['episodes'][int(episode)-1]
+		info['aliases'].append(info['tvshowtitle'])
 		download_path = os.path.join(download_folder + pack_path)
 		#log(season, episode, pack_path, unrestrict_link, info)
 		log(unrestrict_link, download_path)
@@ -1912,12 +2121,32 @@ def download_cached_magnet_pack(rd_api, download_path, curr_download, torr_id, t
 		if not os.path.exists(download_folder):
 			os.makedirs(download_folder)
 		tools.download_progressbar(download_link, download_path)
-		info = get_subtitles(info, download_path)
-		sub_out = os.path.basename(tools.SUB_FILE)
-		sub_path = os.path.join(download_folder, sub_out)
-		shutil.copyfile(tools.SUB_FILE, sub_path)
+
+		try: subs = importlib.import_module("subs")
+		except: subs = reload_module(importlib.import_module("subs"))
+		subs.META = curr_download
+		subs_list = subs.get_subtitles_list(info, download_path)
+		del subs
+		#exit()
+		if len(subs_list) > 0:
+			from subcleaner import clean_file
+			from pathlib import Path
+			for i in subs_list:
+				sub = Path(i)
+				try: clean_file.clean_file(sub)
+				except: tools.log('EXCEPTION', i)
+			clean_file.files_handled = []
+
+		for i in subs_list:
+			#os.rename(i, os.path.join(download_folder, os.path.basename(i)))
+			#tools.log(i, os.path.join(download_folder, os.path.basename(i)))
+			out_path = os.path.join(download_folder, os.path.basename(i))
+			shutil.copyfile(i, out_path)
+			tools.log(out_path)
+
+
 		rd_api.delete_download(rd_api.UNRESTRICT_FILE_ID)
-		log(sub_path)
+		#log(sub_path)
 
 	rd_api.delete_torrent(torr_id)
 	
