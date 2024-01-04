@@ -203,6 +203,9 @@ getSources.get_subtitles(info , '')
 	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 	#tools.log('VIDEO_META', VIDEO_META,'json.dumps???????????????????????')
 	VIDEO_META = VIDEO_META2
+	if VIDEO_META.get('tvshowtitle','') != '':
+		if (VIDEO_META['tvshowtitle'] in VIDEO_META['aliases']) == False:
+			VIDEO_META['aliases'].append(VIDEO_META['tvshowtitle'])
 	#tools.VIDEO_META['SUB_FILE'] = tools.SUB_FILE
 	#json_data = json.dumps(VIDEO_META, indent=2)
 	#curr_meta = os.path.join(tools.ADDON_USERDATA_PATH, 'curr_meta.json')

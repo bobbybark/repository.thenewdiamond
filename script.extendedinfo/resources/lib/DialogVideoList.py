@@ -328,8 +328,10 @@ def get_tmdb_window(window_type):
 
 		def onClick(self, control_id):
 			xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
+			#xbmc.log('%s,%s,%s,%s,' % (control_id,self.focus_id,self.position,self.listitems[self.position].getProperty('tmdb_id'))+'===>OPENINFO', level=xbmc.LOGINFO)
 			if (self.search_str == 'Trakt Episodes/Movies in progress' or self.search_str == 'Trakt Calendar Episodes') and xbmc.getInfoLabel('listitem.DBTYPE') == 'episode':
-				wm.open_tvshow_info(prev_window=self, tmdb_id=self.listitem.getProperty('tmdb_id'), dbid=self.listitem.getProperty('dbid'))
+				try: wm.open_tvshow_info(prev_window=self, tmdb_id=self.listitem.getProperty('tmdb_id'), dbid=self.listitem.getProperty('dbid'))
+				except: wm.open_tvshow_info(prev_window=self, tmdb_id=self.listitems[self.position].getProperty('tmdb_id'), dbid=self.listitems[self.position].getProperty('dbid'))
 			else:
 				super(DialogVideoList, self).onClick(control_id)
 				self.control_id2 = control_id
