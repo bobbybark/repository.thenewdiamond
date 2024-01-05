@@ -1127,6 +1127,88 @@ def start_info_actions(infos, params):
 			auto_clean_cache(days=days)
 			Utils.notify('Cache deleted')
 
+		elif info == 'setDownloadLocation':
+			Utils.show_busy()
+			new_location = xbmcgui.Dialog().browse(0, "Select Download Location", "video", defaultt=Utils.ADDON_DATA_PATH)
+			xbmcaddon.Addon(addon_ID()).setSetting('DOWNLOAD_FOLDER', new_location)
+			xbmcaddon.Addon(addon_ID()).setSetting('download_path', new_location)
+			try: 
+				xbmcaddon.Addon('plugin.video.seren_downloader').setSetting('DOWNLOAD_FOLDER',new_location)
+				xbmcaddon.Addon('plugin.video.seren_downloader').setSetting('download_path',new_location)
+			except:
+				pass
+			Utils.hide_busy()
+
+		elif info == 'setmagnet_list':
+			Utils.show_busy()
+			new_location = xbmcgui.Dialog().browse(0, "Select Magnet Path Location", "video", defaultt=Utils.ADDON_DATA_PATH)
+			new_location = os.path.join(new_location, 'magnet_list.txt')
+			xbmcaddon.Addon(addon_ID()).setSetting('magnet_list', new_location)
+			try: xbmcaddon.Addon('plugin.video.seren_downloader').setSetting('magnet_list',new_location)
+			except: pass
+			Utils.hide_busy()
+			
+
+		elif info == 'run_downloader':
+			Utils.hide_busy()
+			try:
+				import getSources
+			except:
+				from a4kscrapers_wrapper import getSources
+			magnet_list = xbmcaddon.Addon(addon_ID()).getSetting('magnet_list')
+			download_path = xbmcaddon.Addon(addon_ID()).getSetting('download_path')
+			xbmc.log(str('run_downloader___')+'run_downloader===>OPENINFO', level=xbmc.LOGINFO)
+			return getSources.run_downloader(magnet_list, download_path)
+			
+		elif info == 'stop_downloader':
+			Utils.hide_busy()
+			#filename = "stop_downloader"
+			stop_downloader = xbmcaddon.Addon(addon_ID()).getSetting('magnet_list').replace('magnet_list.txt','stop_downloader')
+			open(stop_downloader, 'w')
+			xbmc.log(str('stop_downloader__')+'stop_downloader===>OPENINFO', level=xbmc.LOGINFO)
+			
+	
+		elif info == 'manage_download_list':
+			magnet_list = xbmcaddon.Addon(addon_ID()).getSetting('magnet_list')
+			from a4kscrapers_wrapper.tools import read_all_text
+			lines = read_all_text(magnet_list).split('\n')
+			labels = []
+			for line in lines:
+				try: new_line = eval(line)
+				except: continue
+				labels.append(str('%s | %s | %s' % (new_line['download_type'].upper(), unquote(new_line['file_name']), unquote(new_line['release_title']))))
+			indexes = []
+			indexes = xbmcgui.Dialog().multiselect(heading='Select Lines to Delete',options=labels)
+			#xbmc.log(str(indexes)+'indexes===>OPENINFO', level=xbmc.LOGINFO)
+			if indexes == None:
+				Utils.hide_busy()
+				return
+			if len(indexes) == 0:
+				Utils.hide_busy()
+				return
+			file1 = open(magnet_list, "w")
+			file1.write("\n")
+			file1.close()
+			idx = 0
+			for line in lines:
+				try: 
+					new_line = eval(line)
+				except: 
+					continue
+				if idx in indexes:
+					idx = idx + 1
+					continue
+					#xbmc.log(str(line)+'indexes===>OPENINFO', level=xbmc.LOGINFO)
+				else:
+					xbmc.log(str(str('%s | %s | %s' % (new_line['download_type'].upper(), unquote(new_line['file_name']), unquote(new_line['release_title']))))+str(idx+1)+'_KEEP_DOWNLOAD===>OPENINFO', level=xbmc.LOGINFO)
+					file1 = open(magnet_list, "a") 
+					file1.write(str(line))
+					file1.write("\n")
+					file1.close()
+					idx = idx + 1
+			Utils.hide_busy()
+
+
 		elif info == 'patch_fen_light':
 			Utils.show_busy()
 			file_path = os.path.join(os.path.join(Utils.ADDON_PATH.replace(addon_ID(),'plugin.video.fenlight'), 'resources','lib','modules') , 'sources.py')

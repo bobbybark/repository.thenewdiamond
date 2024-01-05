@@ -327,7 +327,7 @@ def get_tmdb_window(window_type):
 			return info
 
 		def onClick(self, control_id):
-			xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
+			#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 			#xbmc.log('%s,%s,%s,%s,' % (control_id,self.focus_id,self.position,self.listitems[self.position].getProperty('tmdb_id'))+'===>OPENINFO', level=xbmc.LOGINFO)
 			if (self.search_str == 'Trakt Episodes/Movies in progress' or self.search_str == 'Trakt Calendar Episodes') and xbmc.getInfoLabel('listitem.DBTYPE') == 'episode':
 				try: wm.open_tvshow_info(prev_window=self, tmdb_id=self.listitem.getProperty('tmdb_id'), dbid=self.listitem.getProperty('dbid'))
@@ -499,6 +499,8 @@ def get_tmdb_window(window_type):
 			else:
 				dbid = 0
 			item_id = self.listitem.getProperty('id')
+			if xbmc.getInfoLabel('listitem.DBTYPE') == 'episode':
+				item_id = self.listitems[self.position].getProperty('tmdb_id')
 			self_type = 'tv'
 			if xbmc.getInfoLabel('listitem.DBTYPE') == 'movie':
 				self_type = 'movie'
@@ -603,6 +605,8 @@ def get_tmdb_window(window_type):
 				if DBTYPE == 'episode':
 					response = get_trakt_playback('tv')
 					item_id = self.listitem.getProperty('tmdb_id')
+					#try: item_id = self.listitem.getProperty('tmdb_id')
+					#except: item_id = self.listitems[self.position].getProperty('tmdb_id')
 					episode = str(xbmc.getInfoLabel('listitem.Episode'))
 					season = str(xbmc.getInfoLabel('listitem.Season'))
 				else:
@@ -677,16 +681,32 @@ def get_tmdb_window(window_type):
 				PLAYER.play_from_button(url, listitem=None, window=self, dbid=0)
 
 			if selection_text == 'Search item':
+				
+				#xbmc.log(str(self.listitems[self.position].getProperty('TVShowTitle'))+'Search===>OPENINFO', level=xbmc.LOGINFO)
+				#xbmc.log(str(self.listitems[self.position].getProperty('Title'))+'Search===>OPENINFO', level=xbmc.LOGINFO)
+				
 				item_title = self.listitem.getProperty('TVShowTitle') or self.listitem.getProperty('Title')
 				self.close()
 				xbmc.executebuiltin('RunScript('+str(addon_ID())+',info=search_string,str=%s)' % item_title)
 
 			if selection_text == 'Trailer':
+				from resources.lib import YouTube
+				item_title = self.listitem.getProperty('TVShowTitle') or self.listitem.getProperty('Title')
+				search_str = item_title + ' Trailer'
+				results = YouTube.search_youtube(search_str, limit = 1)
+				try: youtube_id = results['listitems'][0]['youtube_id']
+				except: youtube_id = None
+				#xbmc.log(str(results)+'===>OPENINFO', level=xbmc.LOGINFO)
+				#PLAYER.playtube(results['listitem'][0]['youtube_id']), listitem=results['listitem'][0], window=self)
 				if self.listitem.getProperty('TVShowTitle') or self_type == 'tv':
 					url = 'plugin://'+str(addon_ID())+'?info=playtvtrailer&&id=' + str(item_id)
 				else:
 					url = 'plugin://'+str(addon_ID())+'?info=playtrailer&&id=' + str(item_id)
-				PLAYER.play(url, listitem=None, window=self)
+				#PLAYER.play(url, listitem=None, window=self)
+				if youtube_id:
+					PLAYER.playtube(results['listitems'][0]['youtube_id'], listitem=None, window=self)
+				else:
+					PLAYER.play(url, listitem=None, window=self)
 			if selection_text == 'TMDBHelper Context':
 				if self_type == 'tv':
 					xbmc.executebuiltin('RunScript(plugin.video.themoviedb.helper,sync_trakt,tmdb_type=tv,tmdb_id='+str(item_id))
@@ -1437,7 +1457,7 @@ def get_tmdb_window(window_type):
 			wm.window_stack_empty()
 
 		def fetch_data(self, force=False):
-			xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
+			#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 			addon = xbmcaddon.Addon()
 			addon_path = addon.getAddonInfo('path')
 			addonID = addon.getAddonInfo('id')
@@ -1445,7 +1465,7 @@ def get_tmdb_window(window_type):
 			Utils.show_busy()
 
 			if wm.pop_video_list == True:
-				xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
+				#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 				self.page = int(wm.prev_window['params']['page'])
 
 				self.sort = wm.prev_window['params']['sort']
@@ -1457,7 +1477,7 @@ def get_tmdb_window(window_type):
 				self.search_str =wm.prev_window['params']['search_str']
 
 				if self.search_str == 'Trakt Episodes/Movies in progress':
-					xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
+					#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 					response = get_trakt_playback('tv')
 					listitems1 = []
 					for i in response:

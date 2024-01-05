@@ -1091,6 +1091,8 @@ def extended_episode_info(tvshow_id, season, episode, cache_time=7):
 	ep[0]['poster'] = 'https://image.tmdb.org/t/p/w342' + tvshow['poster_path']
 	ep[0]['thumb'] = 'https://image.tmdb.org/t/p/w342' + tvshow['poster_path']
 	ep[0]['fanart'] = ep[0]['still_original']
+	ep[0]['TVShowTitle'] = TVShowTitle
+	ep[0]['status'] = tvshow['status']
 	#xbmc.log(str(response)+'===>get_trakt_playback', level=xbmc.LOGINFO)
 	#xbmc.log(str(tvshow)+'===>get_trakt_playback', level=xbmc.LOGINFO)
 	if ep[0]['episode'] == '':

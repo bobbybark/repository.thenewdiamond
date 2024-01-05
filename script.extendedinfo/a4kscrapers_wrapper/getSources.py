@@ -2017,10 +2017,12 @@ def download_cached_movie(rd_api, download_path, curr_download, torr_id, torr_in
 	
 	tools.download_progressbar(download_link, download_path)
 	#info = get_subtitles(curr_download, download_path)
+	
+	download_folder1 = os.path.dirname(download_path)
 
-	sub_path1 = os.path.join(download_folder,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.srt')))
-	sub_path2 = os.path.join(download_folder,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.eng.FORCED.srt')))
-	sub_path3 = os.path.join(download_folder,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.eng.srt')))
+	sub_path1 = os.path.join(download_folder1,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.srt')))
+	sub_path2 = os.path.join(download_folder1,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.eng.FORCED.srt')))
+	sub_path3 = os.path.join(download_folder1,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.eng.srt')))
 
 	#sub_path1 = os.path.join(download_folder, str(curr_download['filename_without_ext'].replace(':','') + '.srt'))
 	#sub_path2 = os.path.join(download_folder, str(curr_download['filename_without_ext'].replace(':','') + '.eng.FORCED.srt'))
@@ -2120,9 +2122,10 @@ def download_cached_episode(rd_api, download_path, curr_download, torr_id, torr_
 			#shutil.copyfile(tools.SUB_FILE, sub_path)
 			
 			#tools.log(curr_download)
-			sub_path1 = os.path.join(download_folder,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.srt'))).replace(':','')
-			sub_path2 = os.path.join(download_folder,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.eng.FORCED.srt'))).replace(':','')
-			sub_path3 = os.path.join(download_folder,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.eng.srt'))).replace(':','')
+			download_folder1 = os.path.dirname(download_path)
+			sub_path1 = os.path.join(download_folder1,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.srt'))).replace(':','')
+			sub_path2 = os.path.join(download_folder1,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.eng.FORCED.srt'))).replace(':','')
+			sub_path3 = os.path.join(download_folder1,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.eng.srt'))).replace(':','')
 
 			#sub_path1 = os.path.join(download_folder, str(curr_download['filename_without_ext'].replace(':','') + '.srt'))
 			#sub_path2 = os.path.join(download_folder, str(curr_download['filename_without_ext'].replace(':','') + '.eng.FORCED.srt'))
@@ -2154,7 +2157,7 @@ def download_cached_episode(rd_api, download_path, curr_download, torr_id, torr_
 				for i in subs_list:
 					#os.rename(i, os.path.join(download_folder, os.path.basename(i)))
 					#tools.log(i, os.path.join(download_folder, os.path.basename(i)))
-					out_path = os.path.join(download_folder, os.path.basename(i))
+					out_path = os.path.join(download_folder1, os.path.basename(i))
 					shutil.copyfile(i, out_path)
 					tools.log(out_path)
 
@@ -2204,9 +2207,10 @@ def download_cached_magnet_pack(rd_api, download_path, curr_download, torr_id, t
 			os.makedirs(download_folder)
 		tools.download_progressbar(download_link, download_path)
 
-		sub_path1 = os.path.join(download_folder,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.srt'))).replace(':','')
-		sub_path2 = os.path.join(download_folder,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.eng.FORCED.srt'))).replace(':','')
-		sub_path3 = os.path.join(download_folder,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.eng.srt'))).replace(':','')
+		download_folder1 = os.path.dirname(download_path)
+		sub_path1 = os.path.join(download_folder1,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.srt'))).replace(':','')
+		sub_path2 = os.path.join(download_folder1,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.eng.FORCED.srt'))).replace(':','')
+		sub_path3 = os.path.join(download_folder1,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.eng.srt'))).replace(':','')
 
 		#sub_path1 = os.path.join(download_folder, str(curr_download['filename_without_ext'].replace(':','') + '.srt'))
 		#sub_path2 = os.path.join(download_folder, str(curr_download['filename_without_ext'].replace(':','') + '.eng.FORCED.srt'))
@@ -2237,7 +2241,7 @@ def download_cached_magnet_pack(rd_api, download_path, curr_download, torr_id, t
 			for i in subs_list:
 				#os.rename(i, os.path.join(download_folder, os.path.basename(i)))
 				#tools.log(i, os.path.join(download_folder, os.path.basename(i)))
-				out_path = os.path.join(download_folder, os.path.basename(i))
+				out_path = os.path.join(download_folder1, os.path.basename(i))
 				shutil.copyfile(i, out_path)
 				tools.log(out_path)
 

@@ -49,6 +49,8 @@ ServiceStop = ''
 #xbmc.executebuiltin('RunScript('+str(addon_ID())+',info=service2)')
 Utils.hide_busy()
 
+from resources.lib import YouTube
+YouTube.patch_youtube()
 
 def restart_service_monitor():
 	if ServiceStarted == 'True':

@@ -557,7 +557,36 @@
 
 	</category>
 
+	<category label="DOWNLOADS">
 
+
+		<setting id="magnet_list"                type="text"   label="magnet_list" default="/home/osmc/.kodi/userdata/addon_data/script.diamondinfo/magnet_list.txt"
+                 enable="false"
+                 visible="false"/>
+
+        <setting id="magnet_list"                type="action" label="magnet_list"
+                 action="RunScript(script.diamondinfo,info=setmagnet_list)"/>
+
+		<setting id="download_path"                type="text"   label="download_path" default="/home/osmc/Movies"
+                 enable="false"
+                 visible="false"/>
+
+		<setting id="DOWNLOAD_FOLDER"                type="text"   label="DOWNLOAD_FOLDER" default="/home/osmc/Movies"
+                 enable="false"
+                 visible="false"/>
+        <setting id="DOWNLOAD_FOLDER"                type="action" label="DOWNLOAD_FOLDER"
+                 action="RunScript(script.diamondinfo,info=setDownloadLocation)"/>
+
+		<setting label="stop_downloader" type="action" action="RunScript(script.diamondinfo,info=stop_downloader)"/>
+		<setting label="run_downloader" type="action" action="RunScript(script.diamondinfo,info=run_downloader)"/>
+		<setting label="manage_download_list" type="action" action="RunScript(script.diamondinfo,info=manage_download_list)"/>
+
+
+
+
+
+	</category>
+	
 	<category label="RSS Manager">
 		<!---setting id="rss.timeout" type="slider" label="Rss Auto Update Time (in hours)" default="24" range="1,24" option="int" /--->
 		

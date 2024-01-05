@@ -2,20 +2,75 @@ from resources.lib import Utils
 from resources.lib.library import addon_ID
 from resources.lib.library import main_file_path
 import xbmcaddon, xbmc
+import os
 from pathlib import Path
 import html
 from random import choice
 
 #API_key = 'AIzaSyA-7-vxSFjNqfcOyCG33rwzRB0UZW30Pic'
-API_key = xbmcaddon.Addon('plugin.video.youtube').getSetting('youtube.api.key')
+try: API_key = xbmcaddon.Addon('plugin.video.youtube').getSetting('youtube.api.key')
+except: API_key = ''
 #https://github.com/umbrellaplug/umbrellaplug.github.io/blob/77057a7cf63ab8a628246c986197d3ff88cf0fbf/nexus/plugin.video.youtube/resources/lib/youtube_plugin/__init__.py#L11
 if len(API_key) != 39:
 	#xbmcaddon.Addon('plugin.video.youtube').setSetting('youtube.api.key','ODYxNTU2NzA4NDU0LWQ2ZGxtM2xoMDVpZGQ4bnBlazE4azZiZThiYTNvYzY4')
 	#xbmcaddon.Addon('plugin.video.youtube').setSetting('youtube.api.id','QUl6YVN5QzZmdlpTSkhBN1Z6NWo4akNpS1J0N3RVSU9xakUyTjNn')
 	#xbmcaddon.Addon('plugin.video.youtube').setSetting('youtube.api.secret','U2JvVmhvRzlzMHJOYWZpeENTR0dLWEFU')
 	#API_key = xbmcaddon.Addon('plugin.video.youtube').getSetting('youtube.api.key')
-	API_key = choice(['AIzaSyA0LiS7G-KlrlfmREcCAXjyGqa_h_zfrSE', 'AIzaSyBOXZVC-xzrdXSAmau5UM3rG7rc8eFIuFw'])
+	#API_key = choice(['AIzaSyA0LiS7G-KlrlfmREcCAXjyGqa_h_zfrSE', 'AIzaSyBOXZVC-xzrdXSAmau5UM3rG7rc8eFIuFw'])
 	#API_key = 'AIzaSyA0LiS7G-KlrlfmREcCAXjyGqa_h_zfrSE'
+	API_key = 'AIzaSyDCJJcBtvDsTH5f-7xJWeV10ZnoRZB_E50'
+
+
+xbmc.log(str(API_key)+'===>OPENINFO', level=xbmc.LOGINFO)
+
+def patch_youtube():
+	file_path = os.path.join(os.path.join(Utils.ADDON_PATH.replace(addon_ID(),'plugin.video.youtube'), 'resources','lib','youtube_plugin', 'youtube', 'client') , 'youtube.py')
+	xbmc.log(str(file_path)+'===>OPENINFO', level=xbmc.LOGINFO)
+	if os.path.exists(file_path) == False:
+		return
+
+	import json
+	file1 = open(file_path, 'r')
+	lines = file1.readlines()
+	new_file = ''
+	update_flag = False
+	line_original = '_ = requests.get(url, params=params, headers=headers, verify=self._verify, allow_redirects=True)'
+	line_update = '''            try: _ = requests.get(url, params=params, headers=headers, verify=self._verify, allow_redirects=True)  ## PATCH
+            except: pass  ## PATCH
+'''
+	for idx, line in enumerate(lines):
+		if '## PATCH' in str(line):
+			update_flag = False
+			xbmc.log('ALREADY_PATCHED_YOUTUBE_===>OPENINFO', level=xbmc.LOGINFO)
+			break
+		try: test_var = lines[idx+1]
+		except: test_var = ''
+		if line_original in str(line):
+			new_file = new_file + line_update
+			update_flag = True
+		else:
+			new_file = new_file + line
+	file1.close()
+	if update_flag:
+		file1 = open(file_path, 'w')
+		file1.writelines(new_file)
+		file1.close()
+		xbmc.log(str(file_path)+'_PATCH_YOUTUBE===>OPENINFO', level=xbmc.LOGINFO)
+
+		addon_name = 'plugin.video.youtube'
+
+		kodi_params = ('{"jsonrpc":"2.0","method":"Addons.SetAddonEnabled","id":8,"params":{"addonid":"%s","enabled":false}}' % (addon_name))
+		json_result = xbmc.executeJSONRPC(kodi_params)
+		json_object  = json.loads(json_result)
+		xbmc.log(str(json_object)+'_PATCH_YOUTUBE===>OPENINFO', level=xbmc.LOGINFO)
+		
+		kodi_params = ('{"jsonrpc":"2.0","method":"Addons.SetAddonEnabled","id":8,"params":{"addonid":"%s","enabled":true}}' % (addon_name))
+		json_result = xbmc.executeJSONRPC(kodi_params)
+		json_object  = json.loads(json_result)
+		xbmc.log(str(json_object)+'_PATCH_YOUTUBE===>OPENINFO', level=xbmc.LOGINFO)
+
+
+
 
 
 

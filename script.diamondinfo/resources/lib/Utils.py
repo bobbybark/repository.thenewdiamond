@@ -428,7 +428,7 @@ def set_window_props(name, data, prefix='', debug=False):
 def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=None):
 	from resources.lib.TheMovieDB import extended_season_info
 	from pathlib import Path
-	tools.log('create_listitems',str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+	#tools.log('create_listitems',str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 
 	addon = xbmcaddon.Addon()
 	addon_path = addon.getAddonInfo('path')
