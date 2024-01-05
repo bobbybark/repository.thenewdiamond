@@ -2055,7 +2055,7 @@ def download_cached_movie(rd_api, download_path, curr_download, torr_id, torr_in
 		for i in subs_list:
 			#os.rename(i, os.path.join(download_folder, os.path.basename(i)))
 			#tools.log(i, os.path.join(download_folder, os.path.basename(i)))
-			out_path = os.path.join(download_folder, os.path.basename(i))
+			out_path = os.path.join(download_folder1, os.path.basename(i))
 			shutil.copyfile(i, out_path)
 			tools.log(out_path)
 	tmdb_api = tools.get_setting('tmdb_api')
@@ -2064,9 +2064,9 @@ def download_cached_movie(rd_api, download_path, curr_download, torr_id, torr_in
 	meta_info = requests.get(tmdb_url).json()
 	movie_poster = 'https://image.tmdb.org/t/p/original' + meta_info['poster_path']
 	if '.png' in movie_poster:
-		poster_path = os.path.join(download_folder, 'poster.png')
+		poster_path = os.path.join(download_folder1, 'poster.png')
 	elif '.jpg' in movie_poster:
-		poster_path = os.path.join(download_folder,'poster.jpg')
+		poster_path = os.path.join(download_folder1,'poster.jpg')
 	tools.download_progressbar(movie_poster, poster_path)
 	#sub_out = os.path.basename(tools.SUB_FILE)
 	#sub_path = os.path.join(download_folder, sub_out)

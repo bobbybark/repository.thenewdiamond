@@ -579,6 +579,10 @@ def start_info_actions(infos, params):
 				xbmc.log(str({'rd_bluray_player2_path_in': rd_bluray_player2_path_in, 'rd_bluray_player2_path_out': rd_bluray_player2_path_out})+'player_path===>OPENINFO', level=xbmc.LOGINFO)
 			Utils.hide_busy()
 
+		elif info == 'open_settings':
+			xbmc.executebuiltin('Addon.OpenSettings(%s)' % addon_ID())
+			Utils.hide_busy()
+
 		elif info == 'setup_fen_light_players':
 			Utils.show_busy()
 			from pathlib import Path
