@@ -2049,6 +2049,7 @@ def download_cached_movie(rd_api, download_path, curr_download, torr_id, torr_in
 				sub = Path(i)
 				try: clean_file.clean_file(sub)
 				except: tools.log('EXCEPTION', i)
+			tools.sub_cleaner_log_clean()
 			clean_file.files_handled = []
 
 		for i in subs_list:
@@ -2152,6 +2153,7 @@ def download_cached_episode(rd_api, download_path, curr_download, torr_id, torr_
 						sub = Path(i)
 						try: clean_file.clean_file(sub)
 						except: tools.log('EXCEPTION', i)
+					tools.sub_cleaner_log_clean()
 					clean_file.files_handled = []
 
 				for i in subs_list:
@@ -2236,6 +2238,7 @@ def download_cached_magnet_pack(rd_api, download_path, curr_download, torr_id, t
 					sub = Path(i)
 					try: clean_file.clean_file(sub)
 					except: tools.log('EXCEPTION', i)
+				tools.sub_cleaner_log_clean()
 				clean_file.files_handled = []
 
 			for i in subs_list:

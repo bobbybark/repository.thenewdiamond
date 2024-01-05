@@ -1,7 +1,11 @@
 #!/usr/bin/python3
 
+
 import os
 os.chdir('/home/osmc/repository.thenewdiamond')
+
+if os.path.exists('/home/osmc/.kodi/addons/script.extendedinfo/subcleaner/settings/logs/subcleaner.log'):
+	os.remove('/home/osmc/.kodi/addons/script.extendedinfo/subcleaner/settings/logs/subcleaner.log') 
 
 import prepare_zips
 prepare_zips.prepare_zips()

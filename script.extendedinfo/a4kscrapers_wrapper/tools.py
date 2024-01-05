@@ -64,6 +64,7 @@ try:
 	diamond = True
 
 except:
+	ADDON_PATH = folder.replace('a4kscrapers_wrapper','')
 	ADDON_USERDATA_PATH = os.path.join(folder, 'user_data')
 	ADDON_USERDATA_PATH_1 = ADDON_USERDATA_PATH
 	if not os.path.exists(ADDON_USERDATA_PATH):
@@ -397,6 +398,17 @@ def auto_clean_cache(days=None):
 					#print(os.path.join(root, name), filetime.days)
 					log(str(os.path.join(root, name))+'===>DELETE')
 					os.remove(os.path.join(root, name))
+
+def sub_cleaner_log_clean():
+	try:
+		from resources.lib import Utils
+		subcleaner_log = os.path.join(Utils.ADDON_PATH, 'subcleaner', 'settings', 'logs', 'subcleaner.log')
+		if os.path.exists(subcleaner_log):
+			os.remove(subcleaner_log)
+	except:
+		subcleaner_log = os.path.join(ADDON_PATH, 'subcleaner', 'settings', 'logs', 'subcleaner.log')
+		if os.path.exists(subcleaner_log):
+			os.remove(subcleaner_log)
 
 def get_download_line(file_path):
 	try: lines = read_all_text(file_path).split('\n')
