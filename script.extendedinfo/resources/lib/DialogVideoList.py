@@ -1464,6 +1464,7 @@ def get_tmdb_window(window_type):
 						ep = extended_episode_info(i['show']['ids']['tmdb'], i['episode']['season'], i['episode']['number'])
 						ep[0]['tmdb_id'] = ep[1]['tvshow_id']
 						ep[0]['PercentPlayed'] = int(i['progress'])
+						#xbmc.log(str(ep)+'===>OPENINFO', level=xbmc.LOGINFO)
 						listitems1.append(ep[0])
 					response = get_trakt_playback('movie')
 					for i in response:

@@ -1088,7 +1088,11 @@ def extended_episode_info(tvshow_id, season, episode, cache_time=7):
 		}
 	#response = {'status_code': 7, 'status_message': 'Invalid API key: You must be granted a valid key.', 'success': False}
 	ep = (handle_tmdb_episodes([response])[0], answer)
-	#xbmc.log(str(ep)+'===>get_trakt_playback', level=xbmc.LOGINFO)
+	ep[0]['poster'] = 'https://image.tmdb.org/t/p/w342' + tvshow['poster_path']
+	ep[0]['thumb'] = 'https://image.tmdb.org/t/p/w342' + tvshow['poster_path']
+	ep[0]['fanart'] = ep[0]['still_original']
+	#xbmc.log(str(response)+'===>get_trakt_playback', level=xbmc.LOGINFO)
+	#xbmc.log(str(tvshow)+'===>get_trakt_playback', level=xbmc.LOGINFO)
 	if ep[0]['episode'] == '':
 		season_dict = extended_season_info(tvshow_id, season)
 		ep[1]['actors'] = season_dict[1]['actors']
@@ -1108,6 +1112,7 @@ def extended_episode_info(tvshow_id, season, episode, cache_time=7):
 		ep[0]['still_original'] = season_dict[1]['episodes'][int(episode)-1]['still_original'] 
 		ep[0]['still_small'] = season_dict[1]['episodes'][int(episode)-1]['still_small'] 
 		ep[0]['thumb'] = season_dict[1]['episodes'][int(episode)-1]['thumb'] 
+		ep[0]['poster'] = 'https://image.tmdb.org/t/p/w342/' + tvshow['poster_path']
 		ep[1]['images'] = []
 		ep[1]['images'].append({'aspectratio': 1.778,
 			'iso_639_1': None,

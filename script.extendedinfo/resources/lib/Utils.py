@@ -606,6 +606,7 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 			result['clearlogo'] = clearlogo
 			result['logo'] = clearlogo
 
+		#tools.log(result)
 		for (key, value) in result.items():
 			if not value:
 				continue
@@ -637,8 +638,8 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 			elif key.lower() in ['thumb']:
 				#listitem.setThumbnailImage(value)
 				listitem.setArt({key.lower(): value})
-				if mediatype == 'episode':
-					listitem.setProperty('Fanart_small', value)
+				#if mediatype == 'episode':
+				#	listitem.setProperty('Fanart_small', value)
 			elif key.lower() in ['icon']:
 				listitem.setIconImage(value)
 				listitem.setArt({key.lower(): value})
@@ -667,7 +668,8 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 				listitem.setPath(path=value)
 			elif key.lower() in ['poster', 'banner', 'fanart', 'clearart', 'clearlogo', 'landscape', 'discart', 'characterart', 'tvshow.fanart', 'tvshow.poster', 'tvshow.banner', 'tvshow.clearart', 'tvshow.characterart']:
 				listitem.setArt({key.lower(): value})
-
+				if mediatype == 'episode':
+					listitem.setProperty('Fanart_small', value)
 			elif key.lower() in INT_INFOLABELS:
 				try:
 					

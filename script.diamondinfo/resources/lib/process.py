@@ -227,6 +227,15 @@ def start_info_actions(infos, params):
 			wm.window_stack_empty()
 			return wm.open_video_list(search_str=search_str, mode='search')
 
+
+		elif info == 'ep_movie_progress':
+			search_str = 'Trakt Episodes/Movies in progress'
+			#type = 'movie'
+			wm.window_stack_empty()
+			return wm.open_video_list(search_str=search_str, mode='filter')
+
+
+
 		elif info == 'reopen_window':
 			reopen_window()
 

@@ -495,10 +495,30 @@ def run_tv_search():
 				torrent_choices_test.append(i)
 	for i in torrent_choices_test:
 		torrent_choices.pop(i)
+	sources_list.append({'provider_name_override': 'UNCACHED', 'hash': 'UNCACHED', 'package': 'UNCACHED', 'release_title': 'UNCACHED', 'size': 0, 'seeds': 0, 'magnet': 'UNCACHED', 'type': 'UNCACHED', 'provider_name': 'UNCACHED', 'info': {'UNCACHED'}, 'quality': 'UNCACHED', 'pack_size': 0, 'provider': 'UNCACHED', 'debrid_provider': 'UNCACHED'})
 	torrent = choose_torrent(sources_list)
 	if not torrent:
 		tools.log('EXIT')
 		return
+
+	if torrent['provider_name_override'] == 'UNCACHED':
+		torrent_choices = {
+	'Add to downloader list (whole pack)': 4,
+	'Add to downloader list (episode)': 5,
+	'Add to downloader list (whole pack + subtitles)': 6,
+	'Add to downloader list (episode + subtitles)': 7,
+	'(Uncached) Add to RD (whole pack) ': 8,
+	'(Uncached) Add to RD (individual files) ': 9
+}
+
+		tools.log('UNCACHED_NO_CACHED TORENTS FOUND!!')
+		sources_list = uncached
+
+		sources_list = tools.SourceSorter(item_information).sort_sources(sources_list)
+		torrent = choose_torrent(sources_list)
+		if torrent == None:
+			return
+
 	result = tools.selectFromDict(torrent_choices, 'Torrent')
 	if not result:
 		tools.log('EXIT')
@@ -564,9 +584,20 @@ def run_tv_search():
 		#sorted_torr_info = sorted(torr_info['files_links'], key=lambda x: x['pack_path'])
 		for i in torr_info['files']:
 			unrestrict_link = i
-			result = input('Unrestrict %s:  ' % i['file'])
-			if result and result.strip() != '':
+			#try: result = input('Unrestrict %s:  ' % i['file'])
+			#except: result = input('Unrestrict %s:  ' % i['path'])
+			try: print('Unrestrict %s:  ' % i['file'])
+			except: print('Unrestrict %s:  ' % i['path'])
+			if 1==1:
 				response = rd_api.torrent_select(torr_id, i['id'])
+				response = rd_api.add_magnet(torrent['magnet'])
+				torr_id = response['id']
+				torr_info = rd_api.torrent_info(torr_id)
+		#response = rd_api.add_magnet(torrent['magnet'])
+		#tools.log(response)
+		torr_id = response['id']
+		response = rd_api.torrent_select_all(torr_id)
+		#torr_info = rd_api.torrent_info(torr_id)
 	elif result == 4:#'Add to downloader list (whole pack)': 4,
 
 		tools.log(torrent)
@@ -772,6 +803,8 @@ def run_movie_search():
 	info = meta
 	uncached, sources_list, item_information= Sources(info).get_sources()
 	torrent_choices = tools.torrent_choices
+	torrent_choices_original = str(tools.torrent_choices)
+
 	magnet_list = tools.get_setting('magnet_list')
 	download_path = tools.get_setting('download_path')
 	
@@ -795,11 +828,25 @@ def run_movie_search():
 	for i in torrent_choices_test:
 		torrent_choices.pop(i)
 	sources_list = tools.SourceSorter(item_information).sort_sources(sources_list)
+	sources_list.append({'provider_name_override': 'UNCACHED', 'hash': 'UNCACHED', 'package': 'UNCACHED', 'release_title': 'UNCACHED', 'size': 0, 'seeds': 0, 'magnet': 'UNCACHED', 'type': 'UNCACHED', 'provider_name': 'UNCACHED', 'info': {'UNCACHED'}, 'quality': 'UNCACHED', 'pack_size': 0, 'provider': 'UNCACHED', 'debrid_provider': 'UNCACHED'})
 	torrent = choose_torrent(sources_list)
 	
 	if torrent == None:
 		return
-	
+
+	if torrent['provider_name_override'] == 'UNCACHED':
+		torrent_choices = {'Add to downloader list (whole pack)': 4,
+	'Add to downloader list (whole pack + subtitles)': 6,
+	'(Uncached) Add to RD (whole pack) ': 8,
+}
+		tools.log('UNCACHED_NO_CACHED TORENTS FOUND!!')
+		sources_list = uncached
+
+		sources_list = tools.SourceSorter(item_information).sort_sources(sources_list)
+		torrent = choose_torrent(sources_list)
+		if torrent == None:
+			return
+
 	result = tools.selectFromDict(torrent_choices, 'Torrent')
 	if result == None:
 		return
