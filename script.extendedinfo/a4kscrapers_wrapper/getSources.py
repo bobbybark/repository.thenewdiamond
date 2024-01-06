@@ -501,7 +501,7 @@ def run_tv_search():
 		tools.log('EXIT')
 		return
 
-	if torrent['provider_name_override'] == 'UNCACHED':
+	if torrent['release_title'] == 'UNCACHED':
 		torrent_choices = {
 	'Add to downloader list (whole pack)': 4,
 	'Add to downloader list (episode)': 5,
@@ -834,7 +834,7 @@ def run_movie_search():
 	if torrent == None:
 		return
 
-	if torrent['provider_name_override'] == 'UNCACHED':
+	if torrent['release_title'] == 'UNCACHED':
 		torrent_choices = {'Add to downloader list (whole pack)': 4,
 	'Add to downloader list (whole pack + subtitles)': 6,
 	'(Uncached) Add to RD (whole pack) ': 8,
@@ -2364,6 +2364,7 @@ getSources.setup_providers('https://bit.ly/a4kScrapers')
 	current_directory = folder.replace('a4kscrapers_wrapper','')
 	urls_json_path = os.path.join(tools.ADDON_USERDATA_PATH, 'providerModules','a4kScrapers', 'urls.json')
 
+	"""
 	rutor_path = os.path.join(current_directory, 'rutor.py')
 	new_rutor_path = os.path.join(tools.A4KPROVIDERS_PATH, 'a4kScrapers', 'en', 'torrent', 'rutor.py')
 
@@ -2381,7 +2382,8 @@ getSources.setup_providers('https://bit.ly/a4kScrapers')
 		#file_data['trackers']["mirrorbay"] = mirrorbay_urls_dict
 		file.seek(0)
 		json.dump(file_data, file, indent = 4)
-
+	"""
+	
 	tools.findReplace(tools.A4KPROVIDERS_PATH, "'providers.", "'providers2.", "*.py")
 	tools.findReplace(tools.A4KPROVIDERS_PATH, "from providers.a4kScrapers", "from providers2.a4kScrapers", "*.py")
 	providers_dict = get_providers_dict()
