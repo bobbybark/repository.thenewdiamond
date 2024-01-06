@@ -519,6 +519,7 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True):
 				for i in subs_list:
 					sub = Path(i)
 					clean_file.clean_file(sub)
+				tools.sub_cleaner_log_clean()
 				clean_file.files_handled = []
 	else:
 		subs_list = []
@@ -1165,6 +1166,7 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 				for i in subs_list:
 					sub = Path(i)
 					clean_file.clean_file(sub)
+				tools.sub_cleaner_log_clean()
 				clean_file.files_handled = []
 	else:
 		subs_list = []

@@ -80,7 +80,7 @@ def get_http(url, headers=False):
 
 def read_all_text(file_path):
 	try:
-		f = open(file_path, "r")
+		f = open(file_path, "r", encoding="utf-8") 
 		return f.read()
 	except IOError:
 		return None
@@ -181,7 +181,11 @@ def get_response_cache(url='', cache_days=7.0, folder=False, headers=False):
 	cache_seconds = int(cache_days * 86400.0)
 	path = os.path.join(cache_path, '%s.txt' % hashed_url)
 	if os.path.exists(path) and ((now - os.path.getmtime(path)) < cache_seconds):
-		results = read_all_text(path)
+		try: 
+			results = read_all_text(path)
+		except: 
+			tools.log(path)
+			results = read_all_text(path)
 		try: results = eval(results)
 		except: pass
 	else:
