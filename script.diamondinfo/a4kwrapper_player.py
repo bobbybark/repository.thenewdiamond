@@ -234,7 +234,11 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True):
 	def meta_process(meta):
 		show_title = meta['episode_meta']['info']['tvshowtitle']
 		show_season = int(meta['episode_meta']['info']['season'])
-		show_episode = int(meta['episode_meta']['info']['episode'])
+		try: 
+			show_episode = int(meta['episode_meta']['info']['episode'])
+		except ValueError: 
+			show_episode = 0
+			meta['episode_meta']['info']['episode'] = 0
 		for i in meta['tmdb_seasons']['episodes']:
 			if int(i['episode']) == int(show_episode) and int(i['season']) == int(show_season):
 				info1 = i
@@ -244,7 +248,10 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True):
 					if str(x['name']) in str(i.get('name')) or distance.jaro_similarity(str(x['name']),str(i.get('name'))) > 0.85:
 						tmdb_season = x['season']
 						tmdb_episode = x['episode']
-						if int(tmdb_episode) == int(show_episode) and int(tmdb_season) == int(show_season):
+						if int(tmdb_episode) == int(show_episode) and int(tmdb_season) == int(show_season) and show_episode != 0:
+							info2 = i
+							break
+						if show_episode == 0 and (str(x['name']) in str(i.get('name')) or distance.jaro_similarity(str(x['name']),str(i.get('name'))) > 0.85):
 							info2 = i
 							break
 			elif int(i['episode']) == int(show_episode) and int(i['season']) == int(show_season):

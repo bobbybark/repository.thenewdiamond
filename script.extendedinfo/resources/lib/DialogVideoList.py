@@ -578,7 +578,10 @@ def get_tmdb_window(window_type):
 					item_id = self.listitem.getProperty('tmdb_id')
 					episode = str(xbmc.getInfoLabel('listitem.Episode'))
 					season = str(xbmc.getInfoLabel('listitem.Season'))
+					if season.lower() == 'none' or season == None or season == '':
+						season = 0
 					url = 'plugin://plugin.video.themoviedb.helper?info=play&amp;type=episode&amp;tmdb_id=%s&amp;season=%s&amp;episode=%s' % (item_id, season, episode)
+					xbmc.log(str(url)+'===>PHIL', level=xbmc.LOGINFO)
 					xbmc.executebuiltin('Dialog.Close(busydialog)')
 					xbmc.executebuiltin('Dialog.Close(all,true)')
 					PLAYER.play_from_button(url, listitem=None, window=self, dbid=0)
@@ -1484,7 +1487,6 @@ def get_tmdb_window(window_type):
 						ep = extended_episode_info(i['show']['ids']['tmdb'], i['episode']['season'], i['episode']['number'])
 						ep[0]['tmdb_id'] = ep[1]['tvshow_id']
 						ep[0]['PercentPlayed'] = int(i['progress'])
-						#xbmc.log(str(ep)+'===>OPENINFO', level=xbmc.LOGINFO)
 						listitems1.append(ep[0])
 					response = get_trakt_playback('movie')
 					for i in response:

@@ -300,7 +300,28 @@ def start_info_actions(infos, params):
 			return items
 
 		elif info == 'eject_load_dvd':
-			json_result_test = xbmc.executeJSONRPC('{"jsonrpc": "2.0","method": "System.EjectOpticalDrive","params": {},"id": "1"}')
+			try:
+				import platform
+				if platform.system() == "Linux":
+					platform_var = 'Linux'
+
+			except:
+				platform_var = None
+				pass
+			if platform_var == None:
+				json_result_test = xbmc.executeJSONRPC('{"jsonrpc": "2.0","method": "System.EjectOpticalDrive","params": {},"id": "1"}')
+			else:
+				os.system('sudo mount -a')
+				#os.system('sudo umount /dev/sr0')
+				#os.system('sudo eject /dev/sr0')
+				os.system('sudo eject -T /dev/sr0')
+			indexes2 = xbmcgui.Dialog().yesno('Drive Tray', 'Insert Drive Tray', 'No', 'Yes') 
+			if indexes2 == True:
+				if platform_var == None:
+					json_result_test = xbmc.executeJSONRPC('{"jsonrpc": "2.0","method": "System.EjectOpticalDrive","params": {},"id": "1"}')
+				else:
+					os.system('sudo eject -T /dev/sr0')
+					os.system('sudo mount -a')
 			Utils.hide_busy()
 			return
 

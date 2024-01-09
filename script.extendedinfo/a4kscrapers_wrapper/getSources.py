@@ -1071,7 +1071,11 @@ def cloud_get_ep_season(rd_api, meta, torr_id, torr_info):
 				log('EXCEPTIUON__cloud_get_ep_season',i['name'], idx+1, meta['tvmaze_seasons']['episodes'][idx]['name'])
 				pass
 	#tools.log(tvmaze_adjusted_eps, simple_info)
-	original_ep_no = int(simple_info['episode_number'])
+	try: 
+		original_ep_no = int(simple_info['episode_number'])
+	except ValueError: 
+		original_ep_no = 0
+		simple_info['episode_number'] = 0
 	#tools.log(original_ep_no, 'original_ep_no')
 	#tools.log(result_dict['episode_numbers'], 'result_dict[episode_numbers]')
 	for i in result_dict['episode_numbers']:

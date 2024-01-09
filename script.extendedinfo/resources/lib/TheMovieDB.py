@@ -523,6 +523,10 @@ def get_tastedive_data_scrape(url='', query='', year='', limit=20, media_type=No
 		results_id = []
 		for i in response['similar']['results']:
 			#xbmc.log(str(i)+'query_get_tastedive_data_scrape===>OPENINFO', level=xbmc.LOGINFO)
+			#xbmc.log(str(i['title'])+'query_get_tastedive_data_scrape===>OPENINFO', level=xbmc.LOGINFO)
+			#xbmc.log(str(i.get('poster_path',''))+'query_get_tastedive_data_scrape===>OPENINFO', level=xbmc.LOGINFO)
+			if i.get('poster_path','') == '' or i.get('poster_path','') == None or i.get('poster_path','') == 'None':
+				continue
 			try: votes = i['Votes']
 			except: votes = i['vote_count']
 			if votes >= 100:
@@ -532,21 +536,29 @@ def get_tastedive_data_scrape(url='', query='', year='', limit=20, media_type=No
 				except: 
 					try: year = int(i['first_air_date'][0:4])
 					except: 
-						try: year = int(i['Premiered'][0:4])
-						except: year = int(i['release_date'][0:4])
+						try: 
+							year = int(i['Premiered'][0:4])
+						except: 
+							try: year = int(i['release_date'][0:4])
+							except: continue
 				if not i['id'] in results_id:
 					results.append({'name': title, 'year': year, 'media_type':  i['media_type'], 'item_id': i['id']})
 					results_id.append(i['id'])
 		for i in imdb_response:
 			#xbmc.log(str(i)+'query_get_tastedive_data_scrape===>OPENINFO', level=xbmc.LOGINFO)
+			if i.get('poster_path','') == '' or i.get('poster_path','') == None or i.get('poster_path','') == 'None':
+				continue
 			try: title = i['title']
 			except: title = i['name']
 			try: year = i['year']
 			except: 
 				try: year = int(i['first_air_date'][0:4])
 				except: 
-					try: year = int(i['Premiered'][0:4])
-					except: year = int(i['release_date'][0:4])
+					try: 
+						year = int(i['Premiered'][0:4])
+					except: 
+						try: year = int(i['release_date'][0:4])
+						except: continue
 			if not str("'item_id': %s" % (i['id'])) in str(results):
 				try: votes = i['Votes']
 				except: votes = i['vote_count']
@@ -1090,7 +1102,13 @@ def extended_episode_info(tvshow_id, season, episode, cache_time=7):
 	ep = (handle_tmdb_episodes([response])[0], answer)
 	ep[0]['poster'] = 'https://image.tmdb.org/t/p/w342' + tvshow['poster_path']
 	ep[0]['thumb'] = 'https://image.tmdb.org/t/p/w342' + tvshow['poster_path']
-	ep[0]['fanart'] = ep[0]['still_original']
+	try: 
+		ep[0]['fanart'] = ep[0]['still_original']
+	except: 
+		ep[0]['fanart'] = 'https://image.tmdb.org/t/p/w342' + tvshow['backdrop_path']
+		#xbmc.log(str(ep[0])+'===>PHIL', level=xbmc.LOGINFO)
+		#xbmc.log(str(tvshow)+'===>PHIL', level=xbmc.LOGINFO)
+		pass
 	ep[0]['TVShowTitle'] = TVShowTitle
 	ep[0]['status'] = tvshow['status']
 	#xbmc.log(str(response)+'===>get_trakt_playback', level=xbmc.LOGINFO)

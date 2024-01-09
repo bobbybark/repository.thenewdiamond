@@ -1271,7 +1271,8 @@ def taste_dive_movies(cache_days=None):
     for i in response:
         release_date = i['release_date'][:4]
         response2 = []
-        response2 = TheMovieDB.get_tastedive_data_scrape(query=i['title'], year=i['release_date'][:4], limit=50, media_type='movie',item_id=i['id'])
+        try: response2 = TheMovieDB.get_tastedive_data_scrape(query=i['title'], year=i['release_date'][:4], limit=50, media_type='movie',item_id=i['id'])
+        except: continue
     xbmc.log(str('library.taste_dive_movies()_finished')+'===>OPEN_INFO', level=xbmc.LOGINFO)
 
 def trakt_unwatched_tv_shows(cache_days=None):
