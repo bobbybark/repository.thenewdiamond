@@ -1,12 +1,19 @@
 # -*- coding: utf-8 -*-
 
+import tools
+#from inspect import currentframe, getframeinfo
+#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+
 __search_url = 'https://rest.opensubtitles.org/search/'
 __user_agent = 'TemporaryUserAgent'
 
 def __set_auth_header(core, service_name, request):
-    username = core.kodi.get_setting(service_name, 'username')
-    password = core.kodi.get_setting(service_name, 'password')
+    #username = core.kodi.get_setting(service_name, 'username')
+    username = tools.get_setting('open_subs_username')
+    password = tools.get_setting('open_subs_password')
+    #password = core.kodi.get_setting(service_name, 'password')
 
+    #tools.log(password)
     if username == '' or password == '':
         return
 
@@ -15,6 +22,7 @@ def __set_auth_header(core, service_name, request):
         token = token.encode('ascii')
 
     request['headers']['Authorization'] = 'Basic %s' % core.b64encode(token).decode('ascii')
+
 
 def build_search_requests(core, service_name, meta):
     if meta.is_tvshow:

@@ -51,6 +51,8 @@ Utils.hide_busy()
 
 from resources.lib import YouTube
 YouTube.patch_youtube()
+Utils.patch_urllib()
+
 
 def restart_service_monitor():
 	if ServiceStarted == 'True':
@@ -915,7 +917,13 @@ class PlayerMonitor(xbmc.Player):
 			self.player_meta['trakt_tmdb_id'] = self.player_meta['tmdb_id']
 		elif self.type == 'movie' and (self.player_meta['tmdb_id'] == None or str(self.player_meta['tmdb_id']) == ''):
 			response = TheMovieDB.get_tmdb_data('search/movie?query=%s&language=en-US&year=%s&include_adult=%s&' % (self.player_meta['movie_title'], str(self.player_meta['movie_year']), xbmcaddon.Addon().getSetting('include_adults')), 30)
-			self.player_meta['tmdb_id'] = response['results'][0]['id']
+			try: 
+				self.player_meta['tmdb_id'] = response['results'][0]['id']
+			except: 
+				self.player_meta['movie_title'] = PTN_info.get('title','')
+				self.player_meta['movie_year'] = PTN_info.get('year','')
+				response = TheMovieDB.get_tmdb_data('search/movie?query=%s&language=en-US&year=%s&include_adult=%s&' % (self.player_meta['movie_title'], str(self.player_meta['movie_year']), xbmcaddon.Addon().getSetting('include_adults')), 30)
+				self.player_meta['tmdb_id'] = response['results'][0]['id']
 			self.player_meta['trakt_tmdb_id'] = self.player_meta['tmdb_id']
 
 		if not 'tt' in str(self.player_meta['imdb_id']) and (str(self.player_meta['tmdb_id']) != '' or self.player_meta['tmdb_id'] != None):

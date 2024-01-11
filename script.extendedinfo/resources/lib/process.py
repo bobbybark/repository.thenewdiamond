@@ -1234,6 +1234,11 @@ def start_info_actions(infos, params):
 			Utils.hide_busy()
 
 
+		elif info == 'patch_urllib3':
+			Utils.show_busy()
+			Utils.patch_urllib()
+			Utils.hide_busy()
+
 		elif info == 'patch_fen_light':
 			Utils.show_busy()
 			file_path = os.path.join(os.path.join(Utils.ADDON_PATH.replace(addon_ID(),'plugin.video.fenlight'), 'resources','lib','modules') , 'sources.py')

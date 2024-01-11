@@ -22,54 +22,11 @@ import distance
 
 META = None
 
-import struct
+import struct, os
+#import urllib
 __64k = 65536
 __longlong_format_char = 'q'
 __byte_size = struct.calcsize(__longlong_format_char)
-
-def sum_64k_bytes(file, filehash):
-	range_value = __64k / __byte_size
-	from a4kSubtitles.lib import utils
-	if utils.py3:
-		range_value = round(range_value)
-
-	for _ in range(range_value):
-		try: chunk = file.readBytes(__byte_size)
-		except: chunk = file.read(__byte_size)
-		(value,) = struct.unpack(__longlong_format_char, chunk)
-		filehash += value
-		filehash &= 0xFFFFFFFFFFFFFFFF
-		return filehash
-
-def set_size_and_hash(meta, filepath):
-	if meta == None and META != None:
-		meta = META
-	#f = xbmcvfs.File(filepath)
-	if 'http' in str(filepath):
-		meta = set_size_and_hash_url(meta=meta, file_path=filepath)
-		return meta
-	f = open(filepath, 'rb')
-	try:
-		#filesize = f.size()
-		filesize = os.path.getsize(filepath)
-		meta['filesize'] = filesize
-
-		if filesize < __64k * 2:
-			return
-
-		# ref: https://trac.opensubtitles.org/projects/opensubtitles/wiki/HashSourceCodes
-		# filehash = filesize + 64bit sum of the first and last 64k of the file
-		filehash = lambda: None
-		filehash = filesize
-
-		filehash = sum_64k_bytes(f, filehash)
-		f.seek(filesize - __64k, os.SEEK_SET)
-		filehash = sum_64k_bytes(f, filehash)
-
-		meta['filehash'] = "%016x" % filehash
-	finally:
-		f.close()
-	return meta
 
 
 def temp_file():
@@ -77,82 +34,144 @@ def temp_file():
 	file = tempfile.NamedTemporaryFile()
 	filename = file.name
 	return filename
+	
+def is_local(_str):
+	from urllib.parse import urlparse
+	if os.path.exists(_str):
+		return True
+	elif urlparse(_str).scheme in ['','file']:
+		return True
+	return False
+
+def hashFile_url(filepath): 
+	#https://trac.opensubtitles.org/projects/opensubtitles/wiki/HashSourceCodes
+	#filehash = filesize + 64bit sum of the first and last 64k of the file
+	name = filepath
+	if is_local(filepath):
+		local_file = True
+	else:
+		local_file = False
+
+	if local_file == False:
+		from urllib import request
+		f = None
+		url = name
+		request.urlcleanup()
+
+		f = request.urlopen(url)
+
+		filesize = int(f.headers['Content-Length'])
+		if filesize < __64k * 2:
+			try: filesize = int(str(f.headers['Content-Range']).split('/')[1])
+			except: pass
+
+		first_64kb = temp_file()
+		last_64kb = temp_file()
+
+		#import urllib3_2 as urllib3
+		#import requests2 as requests
+		import requests
+		#tools.log(urllib3.__file__)
+		headers = {"Range": 'bytes=0-%s' % (str(__64k))}
+		r = requests.get(url, headers=headers)
+		with open(first_64kb, 'wb') as f:
+			for chunk in r.iter_content(chunk_size=1024): 
+				if chunk: # filter out keep-alive new chunks
+					f.write(chunk)
+
+		if filesize > 0:
+			headers = {"Range": 'bytes=%s-%s' % (filesize - __64k, filesize)}
+		else:
+			f.close()
+			os.remove(first_64kb)
+			return "SizeError", 0
+
+		try:
+			r = requests.get(url, headers=headers, stream=True)
+			with open(last_64kb, 'wb') as f:
+				for chunk in r.iter_content(chunk_size=1024): 
+					if chunk: # filter out keep-alive new chunks
+						f.write(chunk)
+		except:
+			f.close()
+			if os.path.exists(last_64kb):
+				os.remove(last_64kb)
+			if os.path.exists(first_64kb):
+				os.remove(first_64kb)
+			return 'IOError', 0
+
+		f = open(first_64kb, 'rb')
+
+	try:
+		longlongformat = '<q'  # little-endian long long
+		bytesize = struct.calcsize(longlongformat) 
+
+		if local_file:
+			f = open(name, "rb") 
+			filesize = os.path.getsize(name) 
+		hash = filesize 
+
+		if filesize < __64k * 2: 
+			f.close()
+			if local_file == False:
+				os.remove(last_64kb)
+				os.remove(first_64kb)
+			return "SizeError", 0
+
+		range_value = __64k / __byte_size
+		range_value = round(range_value)
+
+		for x in range(range_value): 
+			buffer = f.read(bytesize) 
+			(l_value,)= struct.unpack(longlongformat, buffer)  
+			hash += l_value 
+			hash = hash & 0xFFFFFFFFFFFFFFFF #to remain as 64bit number  
+
+		if local_file:
+			f.seek(max(0,filesize-__64k),0) 
+		else:
+			f.close() 
+			f = open(last_64kb, 'rb')
+		for x in range(range_value): 
+			buffer = f.read(bytesize) 
+			(l_value,)= struct.unpack(longlongformat, buffer)  
+			hash += l_value 
+			hash = hash & 0xFFFFFFFFFFFFFFFF 
+		
+		f.close() 
+		if local_file == False:
+			os.remove(last_64kb)
+			os.remove(first_64kb)
+		returnedhash =  "%016x" % hash 
+		return returnedhash, filesize
+
+	except(IOError): 
+		if local_file == False:
+			os.remove(last_64kb)
+			os.remove(first_64kb)
+		return 'IOError', 0
 
 def set_size_and_hash_url(meta, filepath):
 	if meta == None and META != None:
 		meta = META
-	import urllib
-	from urllib import request
-	f = None
-	opener = None
-	url = filepath
-	request.urlcleanup()
-	
-	f = request.urlopen(url)
-
-	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
-	#tools.log(f.headers)
-
-	filesize = int(f.headers['Content-Length'])
-	if filesize < __64k * 2:
-		try: filesize = int(str(f.headers['Content-Range']).split('/')[1])
-		except: pass
-
-	opener = request.build_opener()
-	#opener.addheaders = [('Range', 'bytes=%s-%s' % (0, __64k-1))]
-	opener.addheaders = [('Range','bytes=0-65535')]
-
-	first_64kb = temp_file()
-	last_64kb = temp_file()
-	request.install_opener(opener)
-	#tools.log('first_64kb',first_64kb,'last_64kb',last_64kb)
-	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
-	request.urlretrieve(url, first_64kb)
-	opener = request.build_opener()
-
-	if filesize > 0:
-		opener.addheaders = [('Range', 'bytes=%s-%s' % (filesize - __64k, 0))]
-		#tools.log(str('bytes=%s-%s' % (1+filesize - __64k, 0)))
-	else:
-		opener.addheaders = [('Range','bytes=-65535-0')]
-	request.install_opener(opener)
-	request.urlretrieve(url, last_64kb)
-
 	#f = xbmcvfs.File(filepath)
-	f = open(first_64kb, 'rb')
-
-	#try:
-	if 1==1:
-		#filesize = f.size()
-		meta['filesize'] = filesize
-		
-		if filesize < __64k * 2:
-			f.close()
-			meta['filehash'] = ''
-			tools.delete_file(first_64kb)
-			tools.delete_file(last_64kb)
-			#del request
-			return meta
-
-		# ref: https://trac.opensubtitles.org/projects/opensubtitles/wiki/HashSourceCodes
-		# filehash = filesize + 64bit sum of the first and last 64k of the file
-		filehash = lambda: None
-		filehash = filesize
-		filehash = sum_64k_bytes(f, filehash)
-		#f.seek(filesize - __64k, os.SEEK_SET)
-		#tools.log(first_64kb, 'size='+str(os.path.getsize(first_64kb)),'set_size_and_hash_url')
-		f.close()
-		f = open(last_64kb, 'rb')
-		filehash = sum_64k_bytes(f, filehash)
-		#tools.log(last_64kb, 'size='+str(os.path.getsize(last_64kb)),'set_size_and_hash_url')
-		meta['filehash'] = "%016x" % filehash
-		
-	#finally:
-		f.close()
-		tools.delete_file(first_64kb)
-		tools.delete_file(last_64kb)
-	#del request
+	#https://trac.opensubtitles.org/projects/opensubtitles/wiki/HashSourceCodes
+	#filehash = filesize + 64bit sum of the first and last 64k of the file
+	#tools.log(hashFile_url('https://static.opensubtitles.org/addons/avi/breakdance.avi'))
+	returnedhash, filesize = hashFile_url(filepath)
+	meta['filehash'] = returnedhash
+	meta['filesize'] = filesize
 	return meta
+
+def set_size_and_hash(meta, filepath):
+	if meta == None and META != None:
+		meta = META
+	#f = xbmcvfs.File(filepath)
+	returnedhash, filesize = hashFile_url(filepath)
+	meta['filehash'] = returnedhash
+	meta['filesize'] = filesize
+	return meta
+
 
 def get_subtitles_meta(VIDEO_META, file_path):
 	"""
