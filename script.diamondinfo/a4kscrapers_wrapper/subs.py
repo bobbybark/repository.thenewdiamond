@@ -412,7 +412,7 @@ getSources.get_subtitles(info , '')
 	if VIDEO_META.get('tvshowtitle','') != '':
 		if (VIDEO_META['tvshowtitle'] in VIDEO_META['aliases']) == False:
 			VIDEO_META['aliases'].append(VIDEO_META['tvshowtitle'])
-			VIDEO_META['aliases'] = VIDEO_META['aliases'][::-1]
+		VIDEO_META['aliases'] = VIDEO_META['aliases'][::-1]
 	#tools.VIDEO_META['SUB_FILE'] = tools.SUB_FILE
 	#json_data = json.dumps(VIDEO_META, indent=2)
 	#curr_meta = os.path.join(tools.ADDON_USERDATA_PATH, 'curr_meta.json')
