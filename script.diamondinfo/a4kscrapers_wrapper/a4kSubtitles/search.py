@@ -23,7 +23,7 @@ def __query_service(core, service_name, meta, request, results):
 
 		results.extend(service_results)
 
-		core.logger.debug(lambda: core.json.dumps({
+		core.logger.error(lambda: core.json.dumps({
 			'url': request['url'],
 			'count': len(service_results),
 			'status_code': response.status_code if response else 'N/A'
@@ -176,7 +176,7 @@ def __search(core, service_name, meta, results):
 		meta = core.utils.DictAsObject(core.params.get('VIDEO_META'))
 	#tools.log('tools.VIDEO_META', tools.VIDEO_META, 'meta', meta)
 	requests = service.build_search_requests(core, service_name, meta)
-	core.logger.debug(lambda: '%s - %s' % (service_name, core.json.dumps(requests, default=lambda o: '', indent=2)))
+	core.logger.error(lambda: '%s - %s' % (service_name, core.json.dumps(requests, default=lambda o: '', indent=2)))
 
 	threads = []
 	for request in requests:
@@ -197,11 +197,11 @@ def search(core, params):
 
 	meta.languages = __parse_languages(core, core.utils.unquote(params['languages']).split(','))
 	meta.preferredlanguage = core.kodi.parse_language(params['preferredlanguage'])
-	core.logger.debug(lambda: core.json.dumps(meta, default=lambda o: '', indent=2))
+	core.logger.error(lambda: core.json.dumps(meta, default=lambda o: '', indent=2))
 
 	if meta.imdb_id == '':
 		core.logger.error('missing imdb id!')
-		core.kodi.notification('IMDB ID is not provided')
+		#core.kodi.notification('IMDB ID is not provided')
 		return
 
 	threads = []

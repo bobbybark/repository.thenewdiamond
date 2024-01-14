@@ -956,7 +956,8 @@ def download_progressbar(url, file_path):
 	stop_downloader = get_setting('magnet_list').replace('magnet_list.txt','stop_downloader')
 	if os.path.exists(stop_downloader):
 		delete_file(stop_downloader)
-		exit()
+		#exit()
+		return
 	
 	if not os.path.exists(os.path.dirname(file_path)):
 		from pathlib import Path
@@ -983,7 +984,8 @@ def download_progressbar(url, file_path):
 			delete_file(stop_downloader)
 			sys.stdout.write('\n')
 			sys.stdout.flush()
-			exit()
+			#exit()
+			return file_path
 	urlretrieve(url, file_path, reporthook=dlProgress)
 	return file_path
 

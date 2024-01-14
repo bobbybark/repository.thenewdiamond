@@ -25,6 +25,8 @@ def __set_fn_if_missing(service, fn_name, fn):
 		setattr(service, fn_name, fn)
 
 services = {}
+#tools.log(__all)
+__all = ['opensubtitles', 'subscene', 'addic7ed', 'bsplayer']
 for service_name in __all:
 	try:
 	#if 1==1:

@@ -639,5 +639,5 @@ def next_ep_play_movie(movie_year, movie_title, tmdb, menu):
 		
 		##xbmc.Player().play(item=PTN_download, listitem=li)
 		#xbmc.Player().play(playlist)
-		exit()
+		#exit()
 		#return

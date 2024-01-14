@@ -126,7 +126,7 @@ def download(core, params):
 	if new_VIDEO_META:
 		tools.VIDEO_META = new_VIDEO_META
 
-	core.logger.debug(lambda: core.json.dumps(params, indent=2))
+	#core.logger.debug(lambda: core.json.dumps(params, indent=2))
 
 	core.shutil.rmtree(core.utils.temp_dir, ignore_errors=True)
 	if not os.path.exists(core.utils.temp_dir):

@@ -951,7 +951,8 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True):
 			print_log({ 'poster': poster, 'fanart': fanart, 'banner': banner, 'clearlogo': clearlogo, 'landscape': landscape, 'thumb': thumb})
 			#print_log(next_ep_play_details,'next_ep_play_details')
 			print_log(str(infolabels)[:750].replace('\'','"'),'===>OPENINFO')
-			exit()
+			#exit()
+			return
 		if xbmc.Player().isPlaying():
 			playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 
@@ -990,7 +991,7 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True):
 			xbmc.Player().play(playlist)
 			#xbmc.executebuiltin('PlayMedia('+PTN_download+')')
 
-			exit()
+			#exit()
 			#return
 
 
@@ -1459,7 +1460,8 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 			#print_log(next_ep_play_details,'next_ep_play_details')
 			print_log(str(infolabels)[:750].replace('\'','"'),'===>OPENINFO')
 			xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
-			exit()
+			#exit()
+			return
 
 		playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 		current_action = xbmcgui.Window(10000).getProperty('Next_EP.TMDB_action')
@@ -1496,5 +1498,5 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 		json_result = xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"Addons.SetAddonEnabled","id":8,"params":{"addonid":"plugin.video.realizer","enabled":true}}')
 		print_log(str(json_result)+'plugin.video.realizer_ENABLED===>service.next_playlist2')
 		"""
-		exit()
+		#exit()
 		#return

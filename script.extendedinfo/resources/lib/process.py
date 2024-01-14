@@ -1234,9 +1234,181 @@ def start_info_actions(infos, params):
 			Utils.hide_busy()
 
 
+
+		elif info == 'test_urllib3':
+			import requests, tempfile
+			from urllib3 import PoolManager
+			#custom_pool_manager = PoolManager(enforce_content_length=False)
+
+			test_url = 'https://20.download.real-debrid.com/d/N4FV42TZDT5RU/Frasier.S03E23.1080p.BluRay.x265-RARBG.mp4'
+
+			__64k = 65536
+			response = requests.head(test_url)
+			filesize = int(response.headers['content-length'])
+
+
+			#if filesize < __64k * 2:
+			#	try: filesize = int(str(response.headers['content-range']).split('/')[1])
+			#	except: pass
+
+			xbmc.log(str('=======================')+'indexes===>OPENINFO', level=xbmc.LOGINFO)
+			#xbmc.log(str(filesize)+'indexes===>OPENINFO', level=xbmc.LOGINFO)
+			#xbmc.log(str(response.headers)+'indexes===>OPENINFO', level=xbmc.LOGINFO)
+			#headers = {"Range": 'bytes=0-%s' % (str(__64k))}; print(headers)
+			#r = requests.get(test_url, headers=headers)
+
+			session = requests.Session()
+			custom_pool_manager = PoolManager(enforce_content_length=False)
+			session.mount('https://', custom_pool_manager)
+			session.mount('http://', custom_pool_manager)
+
+
+			# Update the urllib3 default configuration
+			custom_pool_manager.connection_pool_kw['block'] = True
+
+
+			if filesize > 0:
+				headers = {"Range": 'bytes=%s-%s' % (filesize - __64k, filesize)}
+			#r = requests.get(test_url, headers=headers, enforce_content_length=False)
+			requests.sessions.DEFAULT_POOLMANAGER = custom_pool_manager
+
+			file = tempfile.NamedTemporaryFile()
+			last_64kb = file.name
+			# Make the request using the custom PoolManager
+
+			from urllib3.exceptions import IncompleteRead
+			with requests.Session() as session:
+				try:
+					response = session.get(test_url, headers=headers, stream=True)
+					# Ensure that the response was successful
+					response.raise_for_status()
+
+					# Read the last 64 KB of the content
+					content = response.content[-65536:]
+					with open(last_64kb, 'wb') as f:
+						for chunk in content.iter_content(chunk_size=1024): 
+							if chunk: # filter out keep-alive new chunks
+								f.write(chunk)
+				except IncompleteRead as e:
+					# Handle the incomplete read error
+					print(f"IncompleteRead error: {e}")
+
+
+			xbmc.log(str(headers)+'indexes===>OPENINFO', level=xbmc.LOGINFO)
+			#exit()
+			return
+
+			#import sys
+			#sys.path.insert(1, '/usr/lib/python3/dist-packages')
+			##__requires__= 'urllib3==1.26.5'
+			#import pkg_resources,importlib
+			#pkg_resources.require("urllib3==`1.26.5")
+			#import urllib3
+			#xbmc.log(str(urllib3.__file__)+'indexes===>OPENINFO', level=xbmc.LOGINFO)
+			#exit()
+			
+			#import subs
+			import requests, tempfile
+			test_url = 'https://20.download.real-debrid.com/d/N4FV42TZDT5RU/Frasier.S03E23.1080p.BluRay.x265-RARBG.mp4'
+			#test_url = 'https://samples.mplayerhq.hu/HDTV/Day_after_Tomorrow.ts'
+			#test = subs.hashFile_url(test_url)
+			#xbmc.log(str(test)+'indexes===>OPENINFO', level=xbmc.LOGINFO)
+			#exit()
+			#f = request.urlopen(url, verify=False)
+			__64k = 65536
+			response = requests.head(test_url)
+			filesize = int(response.headers['content-length'])
+
+			#filesize = int(f.headers['Content-Length'])
+			if filesize < __64k * 2:
+				#try: filesize = int(str(f.headers['Content-Range']).split('/')[1])
+				#except: pass
+				try: filesize = int(str(response.headers['content-range']).split('/')[1])
+				except: pass
+
+			file = tempfile.NamedTemporaryFile()
+			first_64kb = file.name
+			file = tempfile.NamedTemporaryFile()
+			last_64kb = file.name
+
+			headers = {"Range": 'bytes=0-%s' % (str(__64k))}
+			r = requests.get(test_url, headers=headers)
+			with open(first_64kb, 'wb') as f:
+				for chunk in r.iter_content(chunk_size=1024): 
+					if chunk: # filter out keep-alive new chunks
+						f.write(chunk)
+
+			if filesize > 0:
+				headers = {"Range": 'bytes=%s-%s' % (filesize - __64k, filesize)}
+
+			r = requests.get(test_url, headers=headers)
+			with open(last_64kb, 'wb') as f:
+				for chunk in r.iter_content(chunk_size=1024): 
+					if chunk: # filter out keep-alive new chunks
+						f.write(chunk)
+
+			xbmc.log(str(headers)+'indexes===>OPENINFO', level=xbmc.LOGINFO)
+			xbmc.log(str(test_url)+'indexes===>OPENINFO', level=xbmc.LOGINFO)
+			xbmc.log(str(last_64kb)+'indexes===>OPENINFO', level=xbmc.LOGINFO)
+
 		elif info == 'patch_urllib3':
 			Utils.show_busy()
 			Utils.patch_urllib()
+			Utils.hide_busy()
+
+		elif info == 'patch_seren_a4k':
+			Utils.show_busy()
+			patch_line_147 = '            response = None'
+			patch_update_147 = """            response = response_err ## PATCH
+"""
+
+			patch_line_150 = '                response = request(None)'
+			patch_update_150 = """                try: response = request(None) ## PATCH
+                except requests.exceptions.ConnectionError: return response ## PATCH
+"""
+
+			patch_line_154 = '                response_err = response'
+			patch_update_154 = """                if response: ## PATCH
+                    response_err = response ## PATCH
+                    self._verify_response(response) ## PATCH
+                else: ## PATCH
+                    self._verify_response(response_err) ## PATCH
+"""
+
+			if params.get('downloader','') == 'true':
+				#kodi-send --action="RunScript(script.extendedinfo,info=patch_seren_a4k,downloader=true)"
+				file_path = os.path.join(os.path.join(Utils.ADDON_DATA_PATH.replace(addonID,'plugin.video.seren_downloader'), 'providerModules', 'a4kScrapers') , 'request.py')
+			else:
+				#kodi-send --action="RunScript(script.extendedinfo,info=patch_seren_a4k)"
+				file_path = os.path.join(os.path.join(Utils.ADDON_DATA_PATH.replace(addonID,'plugin.video.seren'), 'providerModules', 'a4kScrapers') , 'request.py')
+			file1 = open(file_path, 'r')
+			lines = file1.readlines()
+			new_file = ''
+			update_flag = False
+			for idx, line in enumerate(lines):
+				if update_flag == 154:
+					update_flag = True
+					continue
+				if '## PATCH' in str(line):
+					update_flag = False
+					break
+				if idx == 147-1 and line == patch_line_147 or patch_line_147 in str(line):
+					new_file = new_file + patch_update_147
+					update_flag = True
+				elif idx == 150-1 and line == patch_line_150 or patch_line_150 in str(line):
+					new_file = new_file + patch_update_150
+					update_flag = True
+				elif idx == 154-1 and line == patch_line_154 or patch_line_154 in str(line):
+					new_file = new_file + patch_update_154
+					update_flag = 154
+				else:
+					new_file = new_file + line
+			file1.close()
+			if update_flag:
+				xbmc.log(str('patch_seren_a4k')+'_patch_seren_a4k===>OPENINFO', level=xbmc.LOGINFO)
+				file1 = open(file_path, 'w')
+				file1.writelines(new_file)
+				file1.close()
 			Utils.hide_busy()
 
 		elif info == 'patch_fen_light':
@@ -1407,6 +1579,8 @@ def get_log_error_flag(mode=None):
 			error_flag = True
 			return error_flag
 	if mode == 'seren':
+		if 'script successfully run' in str(lines) and '.seren_downloader' in str(lines):
+			return error_flag
 		if 'Exited Keep Alive' in str(lines) and 'SEREN' in str(lines):
 			error_flag = True
 			return error_flag

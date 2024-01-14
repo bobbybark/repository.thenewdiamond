@@ -28,6 +28,79 @@ __64k = 65536
 __longlong_format_char = 'q'
 __byte_size = struct.calcsize(__longlong_format_char)
 
+def first_last_64kb(url):
+	import requests
+	import tempfile
+	from urllib3.exceptions import IncompleteRead
+
+	def download_last_64kb(url):
+		# Create a temporary file to store the content
+		with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+			try:
+				# Make the request with the Range header to download the last 64 KB
+				headers = {'Range': 'bytes=%s' % str(__64k*-1)}
+				with requests.get(url, headers=headers, stream=True) as response:
+					response.raise_for_status()
+					# Write the content to the temporary file
+					for chunk in response.iter_content(chunk_size=1024):
+						temp_file.write(chunk)
+				# Return the path to the temporary file
+				return temp_file.name
+			except IncompleteRead as e:
+				# Handle the incomplete read error
+				print(f"IncompleteRead error: {e}")
+				if os.path.exists(temp_file.name):
+					os.remove(temp_file.name)
+
+	def download_last_64kb_2(url):
+		# Create a temporary file to store the content
+		with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+			try:
+				# Make the request with the Range header to download the last 64 KB
+				response = requests.head(url, verify=False)
+				filesize = int(response.headers['content-length'])
+				if filesize < __64k * 2:
+					try: filesize = int(str(response.headers['content-range']).split('/')[1])
+					except: pass
+				headers = {"Range": 'bytes=%s-%s' % (filesize - __64k, filesize)}
+				with requests.get(url, headers=headers, stream=True) as response:
+					response.raise_for_status()
+					# Write the content to the temporary file
+					for chunk in response.iter_content(chunk_size=1024):
+						temp_file.write(chunk)
+				# Return the path to the temporary file
+				return temp_file.name
+			except IncompleteRead as e:
+				# Handle the incomplete read error
+				print(f"IncompleteRead error: {e}")
+				if os.path.exists(temp_file.name):
+					os.remove(temp_file.name)
+
+	def download_first_64kb(url):
+		# Create a temporary file to store the content
+		with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+			try:
+				# Make the request with the Range header to download the last 64 KB
+				headers = {'Range': 'bytes=0-%s' % str(__64k)}
+				with requests.get(url, headers=headers, stream=True) as response:
+					response.raise_for_status()
+					# Write the content to the temporary file
+					for chunk in response.iter_content(chunk_size=1024):
+						temp_file.write(chunk)
+				# Return the path to the temporary file
+				return temp_file.name
+			except IncompleteRead as e:
+				# Handle the incomplete read error
+				print(f"IncompleteRead error: {e}")
+				if os.path.exists(temp_file.name):
+					os.remove(temp_file.name)
+	try: 
+		last_64kb = download_last_64kb(url)
+	except: 
+		last_64kb = download_last_64kb_2(url)
+	first_64kb = download_first_64kb(url)
+	return first_64kb, last_64kb
+
 
 def temp_file():
 	import tempfile
@@ -43,7 +116,7 @@ def is_local(_str):
 		return True
 	return False
 
-def hashFile_url(filepath): 
+def hashFile_url_old(filepath): 
 	#https://trac.opensubtitles.org/projects/opensubtitles/wiki/HashSourceCodes
 	#filehash = filesize + 64bit sum of the first and last 64k of the file
 	name = filepath
@@ -56,24 +129,32 @@ def hashFile_url(filepath):
 		from urllib import request
 		f = None
 		url = name
-		request.urlcleanup()
+		#url = 'https://drive.usercontent.google.com/open?id=0BwxFVkl63-lEY3l3ODJReDg3RzQ&authuser=0'
+		#request.urlcleanup()
+		import requests
+		
 
-		f = request.urlopen(url)
+		#f = request.urlopen(url)
+		response = requests.head(url, verify=False)
+		filesize = int(response.headers['content-length'])
 
-		filesize = int(f.headers['Content-Length'])
+		#filesize = int(f.headers['Content-Length'])
 		if filesize < __64k * 2:
-			try: filesize = int(str(f.headers['Content-Range']).split('/')[1])
+			#try: filesize = int(str(f.headers['Content-Range']).split('/')[1])
+			#except: pass
+			try: filesize = int(str(response.headers['content-range']).split('/')[1])
 			except: pass
 
+		#"""
 		first_64kb = temp_file()
 		last_64kb = temp_file()
 
 		#import urllib3_2 as urllib3
 		#import requests2 as requests
-		import requests
+		
 		#tools.log(urllib3.__file__)
 		headers = {"Range": 'bytes=0-%s' % (str(__64k))}
-		r = requests.get(url, headers=headers)
+		r = requests.get(url, headers=headers, verify=False)
 		with open(first_64kb, 'wb') as f:
 			for chunk in r.iter_content(chunk_size=1024): 
 				if chunk: # filter out keep-alive new chunks
@@ -87,7 +168,7 @@ def hashFile_url(filepath):
 			return "SizeError", 0
 
 		try:
-			r = requests.get(url, headers=headers, stream=True)
+			r = requests.get(url, headers=headers, verify=False)
 			with open(last_64kb, 'wb') as f:
 				for chunk in r.iter_content(chunk_size=1024): 
 					if chunk: # filter out keep-alive new chunks
@@ -99,7 +180,113 @@ def hashFile_url(filepath):
 			if os.path.exists(first_64kb):
 				os.remove(first_64kb)
 			return 'IOError', 0
+		#"""
+		#first_64kb, last_64kb = first_last_64kb(url)
+		f = open(first_64kb, 'rb')
 
+	try:
+		longlongformat = '<q'  # little-endian long long
+		bytesize = struct.calcsize(longlongformat) 
+
+		if local_file:
+			f = open(name, "rb") 
+			filesize = os.path.getsize(name) 
+		hash = filesize 
+
+		if filesize < __64k * 2: 
+			f.close()
+			if local_file == False:
+				os.remove(last_64kb)
+				os.remove(first_64kb)
+			return "SizeError", 0
+
+		range_value = __64k / __byte_size
+		range_value = round(range_value)
+
+		for x in range(range_value): 
+			buffer = f.read(bytesize) 
+			(l_value,)= struct.unpack(longlongformat, buffer)  
+			hash += l_value 
+			hash = hash & 0xFFFFFFFFFFFFFFFF #to remain as 64bit number  
+
+		if local_file:
+			f.seek(max(0,filesize-__64k),0) 
+		else:
+			f.close() 
+			f = open(last_64kb, 'rb')
+		for x in range(range_value): 
+			buffer = f.read(bytesize) 
+			(l_value,)= struct.unpack(longlongformat, buffer)  
+			hash += l_value 
+			hash = hash & 0xFFFFFFFFFFFFFFFF 
+		
+		f.close() 
+		#if local_file == False:
+		#	os.remove(last_64kb)
+		#	os.remove(first_64kb)
+		returnedhash =  "%016x" % hash 
+		return returnedhash, filesize
+
+	except(IOError): 
+		if local_file == False:
+			os.remove(last_64kb)
+			os.remove(first_64kb)
+		return 'IOError', 0
+
+def hashFile_url(filepath): 
+	#https://trac.opensubtitles.org/projects/opensubtitles/wiki/HashSourceCodes
+	#filehash = filesize + 64bit sum of the first and last 64k of the file
+	name = filepath
+	if is_local(filepath):
+		local_file = True
+	else:
+		local_file = False
+
+	if local_file == False:
+		f = None
+		url = name
+		#from urllib import request
+		#request.urlcleanup()
+		import requests
+
+		response = requests.head(url, verify=False)
+		filesize = int(response.headers['content-length'])
+
+		if filesize < __64k * 2:
+			try: filesize = int(str(response.headers['content-range']).split('/')[1])
+			except: pass
+
+
+		first_64kb = temp_file()
+		last_64kb = temp_file()
+
+		headers = {"Range": 'bytes=0-%s' % (str(__64k))}
+		r = requests.get(url, headers=headers, verify=False)
+		with open(first_64kb, 'wb') as f:
+			for chunk in r.iter_content(chunk_size=1024): 
+				if chunk: # filter out keep-alive new chunks
+					f.write(chunk)
+
+		if filesize > 0:
+			headers = {"Range": 'bytes=%s-%s' % (filesize - __64k, filesize)}
+		else:
+			f.close()
+			os.remove(first_64kb)
+			return "SizeError", 0
+
+		try:
+			r = requests.get(url, headers=headers, verify=False)
+			with open(last_64kb, 'wb') as f:
+				for chunk in r.iter_content(chunk_size=1024): 
+					if chunk: # filter out keep-alive new chunks
+						f.write(chunk)
+		except:
+			f.close()
+			if os.path.exists(last_64kb):
+				os.remove(last_64kb)
+			if os.path.exists(first_64kb):
+				os.remove(first_64kb)
+			return 'IOError', 0
 		f = open(first_64kb, 'rb')
 
 	try:
@@ -225,6 +412,7 @@ getSources.get_subtitles(info , '')
 	if VIDEO_META.get('tvshowtitle','') != '':
 		if (VIDEO_META['tvshowtitle'] in VIDEO_META['aliases']) == False:
 			VIDEO_META['aliases'].append(VIDEO_META['tvshowtitle'])
+			VIDEO_META['aliases'] = VIDEO_META['aliases'][::-1]
 	#tools.VIDEO_META['SUB_FILE'] = tools.SUB_FILE
 	#json_data = json.dumps(VIDEO_META, indent=2)
 	#curr_meta = os.path.join(tools.ADDON_USERDATA_PATH, 'curr_meta.json')
@@ -363,6 +551,7 @@ class SubtitleService(object):
 		for r in sources:
 			#self.base_request['VIDEO_META'] = self.VIDEO_META
 			result = r.search(self.base_request)
+			#tools.log(result)
 			if total_result > 66:
 				break
 			for i in result:
@@ -403,7 +592,12 @@ class SubtitleService(object):
 					source_list.append({'pack_title': i['name'], 'release_title': i['name'], 'filename': i['name'], 'pack_size': 999, 'size': 999, 'info': tools.get_info(i['name']), 'quality': tools.get_quality(i['name'])})
 		else:
 			input_guess = get_guess(self.VIDEO_META['file_name'])
+			if input_guess.get('episode_title','') == '':
+				input_guess['episode_title'] = self.VIDEO_META['originaltitle']
+			if input_guess.get('title','') == '':
+				input_guess['title'] = self.VIDEO_META['originaltitle']
 			for i in result_store:
+				#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 				guess = get_guess(i['name'])
 				try: ep_test = int(guess.get('episode',0))
 				except: ep_test = 0
@@ -415,15 +609,16 @@ class SubtitleService(object):
 					if i_quality != '4K' and i_quality != '1080p':
 						i_quality = '720p'
 				if input_guess.get('season','') == guess.get('season','') and input_guess.get('episode','') == guess.get('episode',''):
+					#tools.log(distance.jaro_similarity(input_guess.get('episode_title',''), guess.get('episode_title','')))
 					if distance.jaro_similarity(input_guess.get('episode_title',''), guess.get('episode_title','')) > 0.92:
-						source_list.append({'pack_title': i['name'], 'release_title': i['name'], 'filename': i['name'], 'pack_size': 999, 'size': 999, 'info': i_info, 'quality': i_quality})
+						source_list.append({'service': i['service'],'pack_title': i['name'], 'release_title': i['name'], 'filename': i['name'], 'pack_size': 999, 'size': 999, 'info': i_info, 'quality': i_quality})
 						continue
 				if input_guess.get('season','') == guess.get('season','') and input_guess.get('episode','') != guess.get('episode','') and ep_test > 0:
 					if distance.jaro_similarity(input_guess.get('episode_title',''), guess.get('episode_title','')) > 0.92:
-						source_list.append({'pack_title': i['name'], 'release_title': i['name'], 'filename': i['name'], 'pack_size': 999, 'size': 999, 'info': i_info, 'quality': i_quality})
+						source_list.append({'service': i['service'],'pack_title': i['name'], 'release_title': i['name'], 'filename': i['name'], 'pack_size': 999, 'size': 999, 'info': i_info, 'quality': i_quality})
 						continue
 				if distance.jaro_similarity(input_guess.get('episode_title',''), guess.get('episode_title','')) > 0.92:
-					source_list.append({'pack_title': i['name'], 'release_title': i['name'], 'filename': i['name'], 'pack_size': 999, 'size': 999, 'info': i_info, 'quality': i_quality})
+					source_list.append({'service': i['service'],'pack_title': i['name'], 'release_title': i['name'], 'filename': i['name'], 'pack_size': 999, 'size': 999, 'info': i_info, 'quality': i_quality})
 					continue
 				if (ep_test == 0 or ep_test == int(self.VIDEO_META['episode'])) and guess.get('episode_title','') == '' and season_test == int(self.VIDEO_META['season_number']) and guess.get('title') != None:
 					clean_guess_title = source_tools.clean_title(guess.get('title'))
@@ -446,13 +641,16 @@ class SubtitleService(object):
 							match = True
 							break
 					if match == True:
-						source_list.append({'pack_title': i['name'], 'release_title': i['name'], 'filename': i['name'], 'pack_size': 999, 'size': 999, 'info': i_info, 'quality': i_quality})
+						source_list.append({'service': i['service'],'pack_title': i['name'], 'release_title': i['name'], 'filename': i['name'], 'pack_size': 999, 'size': 999, 'info': i_info, 'quality': i_quality})
 						continue
 				elif guess.get('title') == None and ep_test == int(self.VIDEO_META['episode']) and season_test == int(self.VIDEO_META['season_number']):
-					source_list.append({'pack_title': i['name'], 'release_title': i['name'], 'filename': i['name'], 'pack_size': 999, 'size': 999, 'info': i_info, 'quality': i_quality})
+					source_list.append({'service': i['service'],'pack_title': i['name'], 'release_title': i['name'], 'filename': i['name'], 'pack_size': 999, 'size': 999, 'info': i_info, 'quality': i_quality})
 					continue
 				#tools.log(guess)
 		new_source_list = tools.SourceSorter(self.VIDEO_META).sort_sources(source_list)
+		tools.log('new_source_list_SUBTITLES_RESULTS')
+		for i in new_source_list:
+			tools.log(i['pack_title'], i['service'])
 		#tools.log('new_source_list',new_source_list)
 		#tools.log('result_store',result_store)
 		#tools.log(source_list)
@@ -520,6 +718,7 @@ class SubtitleService(object):
 		"""
 		sources = [A4kSubtitlesAdapter(self.VIDEO_META)]
 		#result_store[0]['VIDEO_META'] = self.VIDEO_META
+		#tools.log(result_store)
 		foreign_parts = []
 		normal_subs = []
 		foreign_parts_flag = False

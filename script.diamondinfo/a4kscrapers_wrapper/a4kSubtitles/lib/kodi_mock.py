@@ -46,6 +46,7 @@ def __log(msg, label):
 			tools.log(msg)
 		except:
 			print(msg, label)
+			print('msg, label')
 
 xbmc.log = __log
 xbmc.LOGDEBUG = 'debug'
