@@ -346,10 +346,14 @@ def patch_ak4_requests():
 def curr_percent(rd_api):
 	if rd_api.original_tot_bytes == 0:
 		return
-	curr_percent = (rd_api.remaining_tot_bytes/rd_api.original_tot_bytes) * 100
+	curr_percent = round((rd_api.remaining_tot_bytes/rd_api.original_tot_bytes) * 100,2)
+	if curr_percent < 0:
+		curr_percent = 0
 	os.environ['DOWNLOAD_CURR_PERCENT'] = str(int(curr_percent))
 	tools.log('\n\n'+str(curr_percent)+'% total remaining on file')
 	percent_done = 100 - curr_percent
+	if percent_done == 0:
+		return
 	time_running = time.time() - rd_api.original_start_time
 	seconds_per_percent = time_running / percent_done
 	seconds_remaining = int(curr_percent * seconds_per_percent)
@@ -398,6 +402,7 @@ def run_downloader(magnet_list, download_path):
 				except: continue
 		log('REMAINING_LINES_MAGNET_LIST =   '+str(num_lines))
 		rd_api.num_lines = num_lines
+		curr_percent(rd_api)
 
 		try: 
 			download_type = curr_download.get('download_type', None)
@@ -527,6 +532,9 @@ def run_downloader(magnet_list, download_path):
 		while not curr_download:
 			if sleep_count > 90:
 				break
+			if rd_api.remaining_tot_bytes < 0:
+				rd_api.remaining_tot_bytes = 0
+			curr_percent(rd_api)
 			tools.log('NO CONTENT SLEEP ' + str(100-sleep_count) + '  remaining')
 			time.sleep(10)
 			sleep_count = sleep_count + 10
@@ -1934,9 +1942,12 @@ def download_http_rd_link(rd_api, download_path, curr_download):
 
 	if not os.path.exists(download_folder):
 		os.makedirs(download_folder)
-	try: tools.download_progressbar(download_link, download_path2)
+	before_download = rd_api.remaining_tot_bytes
+	try: tools.download_progressbar(rd_api, download_link, download_path2)
 	except: tools.tools_stop_downloader = True
-	rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
+	#rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
+	if rd_api.remaining_tot_bytes == before_download:
+		rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
 
 
 def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr_info, processed_files, magnet_list, test_download):
@@ -1982,9 +1993,12 @@ def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr
 
 		if not os.path.exists(download_folder):
 			os.makedirs(download_folder)
-		try: tools.download_progressbar(download_link, download_path2)
+		before_download = rd_api.remaining_tot_bytes
+		try: tools.download_progressbar(rd_api, download_link, download_path2)
 		except: tools.tools_stop_downloader = True
-		rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
+		#rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
+		if rd_api.remaining_tot_bytes == before_download:
+			rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
 		curr_percent(rd_api)
 		#info = get_subtitles(info, download_path2)
 		#sub_out = os.path.basename(tools.SUB_FILE)
@@ -2010,9 +2024,12 @@ def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr
 
 		if not os.path.exists(download_folder):
 			os.makedirs(download_folder)
-		try: tools.download_progressbar(download_link, download_path2)
+		before_download = rd_api.remaining_tot_bytes
+		try: tools.download_progressbar(rd_api, download_link, download_path2)
 		except: tools.tools_stop_downloader = True
-		rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
+		#rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
+		if rd_api.remaining_tot_bytes == before_download:
+			rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
 		curr_percent(rd_api)
 		#info = get_subtitles(curr_download, download_path2)
 		#sub_out = os.path.basename(tools.SUB_FILE)
@@ -2036,9 +2053,12 @@ def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr
 		if not os.path.exists(download_folder):
 			os.makedirs(download_folder)
 		download_path2 = os.path.join(download_folder, file_name)
-		try: tools.download_progressbar(download_link, download_path2)
+		before_download = rd_api.remaining_tot_bytes
+		try: tools.download_progressbar(rd_api, download_link, download_path2)
 		except: tools.tools_stop_downloader = True
-		rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
+		#rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
+		if rd_api.remaining_tot_bytes == before_download:
+			rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
 		curr_percent(rd_api)
 
 	tot_streams = 0
@@ -2135,10 +2155,13 @@ def download_cached_movie(rd_api, download_path, curr_download, torr_id, torr_in
 	download_link = rd_api.resolve_hoster(unrestrict_link)
 	download_id = rd_api.UNRESTRICT_FILE_ID
 	log(download_link, download_id)
-	
-	try: tools.download_progressbar(download_link, download_path)
+
+	before_download = rd_api.remaining_tot_bytes
+	try: tools.download_progressbar(rd_api, download_link, download_path)
 	except: tools.tools_stop_downloader = True
-	rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
+	#rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
+	if rd_api.remaining_tot_bytes == before_download:
+		rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
 	#info = get_subtitles(curr_download, download_path)
 
 	if tools.tools_stop_downloader == True:
@@ -2193,7 +2216,7 @@ def download_cached_movie(rd_api, download_path, curr_download, torr_id, torr_in
 		poster_path = os.path.join(download_folder1, 'poster.png')
 	elif '.jpg' in movie_poster:
 		poster_path = os.path.join(download_folder1,'poster.jpg')
-	tools.download_progressbar(movie_poster, poster_path)
+	tools.download_progressbar(rd_api, movie_poster, poster_path)
 	#sub_out = os.path.basename(tools.SUB_FILE)
 	#sub_path = os.path.join(download_folder, sub_out)
 	#shutil.copyfile(tools.SUB_FILE, sub_path)
@@ -2245,9 +2268,12 @@ def download_cached_episode(rd_api, download_path, curr_download, torr_id, torr_
 			download_link = rd_api.resolve_hoster(unrestrict_link)
 			download_id = rd_api.UNRESTRICT_FILE_ID
 			log(download_link, download_id)
-			try: tools.download_progressbar(download_link, download_path)
+			before_download = rd_api.remaining_tot_bytes
+			try: tools.download_progressbar(rd_api, download_link, download_path)
 			except: tools.tools_stop_downloader = True
-			rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
+			#rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
+			if rd_api.remaining_tot_bytes == before_download:
+				rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
 
 			if tools.tools_stop_downloader == True:
 				return
@@ -2344,9 +2370,12 @@ def download_cached_magnet_pack(rd_api, download_path, curr_download, torr_id, t
 		log(download_link, download_id)
 		if not os.path.exists(download_folder):
 			os.makedirs(download_folder)
-		try: tools.download_progressbar(download_link, download_path)
+		before_download = rd_api.remaining_tot_bytes
+		try: tools.download_progressbar(rd_api, download_link, download_path)
 		except: tools.tools_stop_downloader = True
-		rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
+		#rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
+		if rd_api.remaining_tot_bytes == before_download:
+			rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
 
 		if tools.tools_stop_downloader == True:
 			return

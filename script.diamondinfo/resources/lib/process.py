@@ -1182,8 +1182,9 @@ def start_info_actions(infos, params):
 			minutes_remaining = xbmcgui.Window(10000).getProperty('minutes_remaining')
 			hours_remaining = xbmcgui.Window(10000).getProperty('hours_remaining')
 			num_lines_remaining = xbmcgui.Window(10000).getProperty('num_lines_remaining')
-			msg = 'File_num_lines_remaining = %s || percent_done = %s || hours_remaining = %s '
-			Utils.notify(header='downloader_progress', message=msg)
+			msg = 'File_num_lines_remaining = %s || percent_done = %s || hours_remaining = %s ' % (str(num_lines_remaining),str(percent_done),str(hours_remaining))
+			xbmcgui.Dialog().notification(heading='downloader_progress', message=msg, icon=xbmcaddon.Addon().getAddonInfo('icon'), time=5000, sound=True)
+			xbmc.log(str(msg), level=xbmc.LOGINFO)
 
 		elif info == 'run_downloader':
 			Utils.hide_busy()
@@ -1208,6 +1209,14 @@ def start_info_actions(infos, params):
 			magnet_list = xbmcaddon.Addon(addon_ID()).getSetting('magnet_list')
 			from a4kscrapers_wrapper.tools import read_all_text
 			lines = read_all_text(magnet_list).split('\n')
+			curr_percent = xbmcgui.Window(10000).getProperty('curr_percent')
+			percent_done = xbmcgui.Window(10000).getProperty('percent_done')
+			seconds_remaining = xbmcgui.Window(10000).getProperty('seconds_remaining')
+			minutes_remaining = xbmcgui.Window(10000).getProperty('minutes_remaining')
+			hours_remaining = xbmcgui.Window(10000).getProperty('hours_remaining')
+			num_lines_remaining = xbmcgui.Window(10000).getProperty('num_lines_remaining')
+			msg = 'File_num_lines_remaining = %s || percent_done = %s || hours_remaining = %s ' % (str(num_lines_remaining),str(percent_done),str(hours_remaining))
+			xbmcgui.Dialog().notification(heading='downloader_progress', message=msg, icon=xbmcaddon.Addon().getAddonInfo('icon'), time=5000, sound=True)
 			labels = []
 			for line in lines:
 				try: new_line = eval(line)
