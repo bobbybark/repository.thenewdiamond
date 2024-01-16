@@ -1236,6 +1236,8 @@ def start_info_actions(infos, params):
 
 
 		elif info == 'test_urllib3':
+			import subs_file_hash3
+			return
 			import requests, tempfile
 			from urllib3 import PoolManager
 			#custom_pool_manager = PoolManager(enforce_content_length=False)

@@ -116,123 +116,6 @@ def is_local(_str):
 		return True
 	return False
 
-def hashFile_url_old(filepath): 
-	#https://trac.opensubtitles.org/projects/opensubtitles/wiki/HashSourceCodes
-	#filehash = filesize + 64bit sum of the first and last 64k of the file
-	name = filepath
-	if is_local(filepath):
-		local_file = True
-	else:
-		local_file = False
-
-	if local_file == False:
-		from urllib import request
-		f = None
-		url = name
-		#url = 'https://drive.usercontent.google.com/open?id=0BwxFVkl63-lEY3l3ODJReDg3RzQ&authuser=0'
-		#request.urlcleanup()
-		import requests
-		
-
-		#f = request.urlopen(url)
-		response = requests.head(url, verify=False)
-		filesize = int(response.headers['content-length'])
-
-		#filesize = int(f.headers['Content-Length'])
-		if filesize < __64k * 2:
-			#try: filesize = int(str(f.headers['Content-Range']).split('/')[1])
-			#except: pass
-			try: filesize = int(str(response.headers['content-range']).split('/')[1])
-			except: pass
-
-		#"""
-		first_64kb = temp_file()
-		last_64kb = temp_file()
-
-		#import urllib3_2 as urllib3
-		#import requests2 as requests
-		
-		#tools.log(urllib3.__file__)
-		headers = {"Range": 'bytes=0-%s' % (str(__64k))}
-		r = requests.get(url, headers=headers, verify=False)
-		with open(first_64kb, 'wb') as f:
-			for chunk in r.iter_content(chunk_size=1024): 
-				if chunk: # filter out keep-alive new chunks
-					f.write(chunk)
-
-		if filesize > 0:
-			headers = {"Range": 'bytes=%s-%s' % (filesize - __64k, filesize)}
-		else:
-			f.close()
-			os.remove(first_64kb)
-			return "SizeError", 0
-
-		try:
-			r = requests.get(url, headers=headers, verify=False)
-			with open(last_64kb, 'wb') as f:
-				for chunk in r.iter_content(chunk_size=1024): 
-					if chunk: # filter out keep-alive new chunks
-						f.write(chunk)
-		except:
-			f.close()
-			if os.path.exists(last_64kb):
-				os.remove(last_64kb)
-			if os.path.exists(first_64kb):
-				os.remove(first_64kb)
-			return 'IOError', 0
-		#"""
-		#first_64kb, last_64kb = first_last_64kb(url)
-		f = open(first_64kb, 'rb')
-
-	try:
-		longlongformat = '<q'  # little-endian long long
-		bytesize = struct.calcsize(longlongformat) 
-
-		if local_file:
-			f = open(name, "rb") 
-			filesize = os.path.getsize(name) 
-		hash = filesize 
-
-		if filesize < __64k * 2: 
-			f.close()
-			if local_file == False:
-				os.remove(last_64kb)
-				os.remove(first_64kb)
-			return "SizeError", 0
-
-		range_value = __64k / __byte_size
-		range_value = round(range_value)
-
-		for x in range(range_value): 
-			buffer = f.read(bytesize) 
-			(l_value,)= struct.unpack(longlongformat, buffer)  
-			hash += l_value 
-			hash = hash & 0xFFFFFFFFFFFFFFFF #to remain as 64bit number  
-
-		if local_file:
-			f.seek(max(0,filesize-__64k),0) 
-		else:
-			f.close() 
-			f = open(last_64kb, 'rb')
-		for x in range(range_value): 
-			buffer = f.read(bytesize) 
-			(l_value,)= struct.unpack(longlongformat, buffer)  
-			hash += l_value 
-			hash = hash & 0xFFFFFFFFFFFFFFFF 
-		
-		f.close() 
-		#if local_file == False:
-		#	os.remove(last_64kb)
-		#	os.remove(first_64kb)
-		returnedhash =  "%016x" % hash 
-		return returnedhash, filesize
-
-	except(IOError): 
-		if local_file == False:
-			os.remove(last_64kb)
-			os.remove(first_64kb)
-		return 'IOError', 0
-
 def hashFile_url(filepath): 
 	#https://trac.opensubtitles.org/projects/opensubtitles/wiki/HashSourceCodes
 	#filehash = filesize + 64bit sum of the first and last 64k of the file
@@ -260,7 +143,8 @@ def hashFile_url(filepath):
 		first_64kb = temp_file()
 		last_64kb = temp_file()
 
-		headers = {"Range": 'bytes=0-%s' % (str(__64k))}
+		#headers = {"Range": 'bytes=0-%s' % (str(__64k))}
+		headers = {"Range": 'bytes=0-%s' % (str(__64k -1 ))}
 		r = requests.get(url, headers=headers, verify=False)
 		with open(first_64kb, 'wb') as f:
 			for chunk in r.iter_content(chunk_size=1024): 
@@ -268,7 +152,8 @@ def hashFile_url(filepath):
 					f.write(chunk)
 
 		if filesize > 0:
-			headers = {"Range": 'bytes=%s-%s' % (filesize - __64k, filesize)}
+			#headers = {"Range": 'bytes=%s-%s' % (filesize - __64k, filesize)}
+			headers = {"Range": 'bytes=%s-%s' % (filesize - __64k, filesize-1)}
 		else:
 			f.close()
 			os.remove(first_64kb)
@@ -650,7 +535,8 @@ class SubtitleService(object):
 		new_source_list = tools.SourceSorter(self.VIDEO_META).sort_sources(source_list)
 		tools.log('new_source_list_SUBTITLES_RESULTS')
 		for i in new_source_list:
-			tools.log(i['pack_title'], i['service'])
+			try: tools.log(i['pack_title'], i['service'])
+			except: continue
 		#tools.log('new_source_list',new_source_list)
 		#tools.log('result_store',result_store)
 		#tools.log(source_list)

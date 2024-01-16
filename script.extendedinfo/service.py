@@ -51,7 +51,7 @@ Utils.hide_busy()
 
 from resources.lib import YouTube
 YouTube.patch_youtube()
-Utils.patch_urllib()
+#Utils.patch_urllib()
 
 
 def restart_service_monitor():
@@ -205,6 +205,8 @@ class PlayerMonitor(xbmc.Player):
 			return '-1' 
 
 	def movie_populate_dbid(self):
+		if self.player_meta['imdb_id'] == None:
+			return
 		con = sqlite3.connect(self.player_meta['db_path'])
 		cur = con.cursor()
 		sql_result = cur.execute("SELECT idmovie from movie,uniqueid where uniqueid_id = movie.c09 and uniqueid.value= '"+str(self.player_meta['imdb_id'])+"'").fetchall()
@@ -220,6 +222,8 @@ class PlayerMonitor(xbmc.Player):
 		return self.player_meta['dbID']
 
 	def episode_populate_dbid(self):
+		if self.player_meta['tv_episode'] == None or self.player_meta['tv_season'] == None:
+			return
 		regex = re.compile('[^0-9a-zA-Z]')
 		con = sqlite3.connect(self.player_meta['db_path'])
 		cur = con.cursor()
@@ -342,6 +346,12 @@ class PlayerMonitor(xbmc.Player):
 		#	title = str(u''.join(response[0]['movie']['title']).encode('utf-8').strip())
 
 
+		try: 
+			test = str(year)+str(trakt)+'"'+slug+'"'+'"'+imdb+'"'+ +str(tmdb)+str(percent)
+		except:
+			response = None
+			return response
+		
 		values = """
 		  {
 			"movie": {
@@ -922,8 +932,21 @@ class PlayerMonitor(xbmc.Player):
 			except: 
 				self.player_meta['movie_title'] = PTN_info.get('title','')
 				self.player_meta['movie_year'] = PTN_info.get('year','')
-				response = TheMovieDB.get_tmdb_data('search/movie?query=%s&language=en-US&year=%s&include_adult=%s&' % (self.player_meta['movie_title'], str(self.player_meta['movie_year']), xbmcaddon.Addon().getSetting('include_adults')), 30)
-				self.player_meta['tmdb_id'] = response['results'][0]['id']
+				try: 
+					response = TheMovieDB.get_tmdb_data('search/movie?query=%s&language=en-US&year=%s&include_adult=%s&' % (self.player_meta['movie_title'], str(self.player_meta['movie_year']), xbmcaddon.Addon().getSetting('include_adults')), 30)
+					self.player_meta['tmdb_id'] = response['results'][0]['id']
+				except: 
+					response = get_trakt_data(url='https://api.trakt.tv/search/%s?query=%s' % ('movie,show', self.player_meta['movie_title']), cache_days=7)
+					tools.log(response, 'MOVIE_EXCEPTION_get_trakt_data')
+					for i in response:
+						curr_type = i['type']
+						if i[curr_type]['year'] == self.player_meta['movie_year']:
+							self.player_meta['imdb_id'] = i[curr_type]['ids']['imdb']
+							self.player_meta['tmdb_id'] = i[curr_type]['ids']['tmdb']
+							if curr_type == 'show':
+								self.type = 'episode'
+								self.player_meta['tv_title'] = self.player_meta['movie_title']
+					tools.log(self.player_meta)
 			self.player_meta['trakt_tmdb_id'] = self.player_meta['tmdb_id']
 
 		if not 'tt' in str(self.player_meta['imdb_id']) and (str(self.player_meta['tmdb_id']) != '' or self.player_meta['tmdb_id'] != None):
@@ -949,7 +972,8 @@ class PlayerMonitor(xbmc.Player):
 				xbmcgui.Dialog().notification(heading='get_imdb_language ERROR', message='you might want to restart HTTP error', icon=icon_path(),time=1000,sound=True)
 				languages = ['English']
 			else:
-				raise e
+				languages = ['English']
+				#pass
 		video_info = player.getVideoInfoTag()
 		player_subs_lang_fix = xbmcaddon.Addon(addon_ID()).getSetting('player_subs_lang_fix')
 		if player_subs_lang_fix == True or player_subs_lang_fix == 'true':
@@ -1466,6 +1490,7 @@ class CronJobMonitor(Thread):
 
 	def run(self):
 		self.next_time = 0
+		self.next_clean_time = 0
 		library_auto_sync = str(xbmcaddon.Addon(library.addon_ID()).getSetting('library_auto_sync'))
 		trakt_kodi_mode = str(xbmcaddon.Addon(library.addon_ID()).getSetting('trakt_kodi_mode'))
 		trakt_calendar_auto_sync = str(xbmcaddon.Addon(library.addon_ID()).getSetting('trakt_calendar_auto_sync')).lower()
@@ -1473,6 +1498,11 @@ class CronJobMonitor(Thread):
 			library_auto_sync = True
 		if library_auto_sync == 'false':
 			library_auto_sync = False
+		if  xbmcaddon.Addon(addon_ID()).getSetting('auto_clean_cache_bool') == 'true':
+			auto_clean_cache_bool = True
+		else:
+			auto_clean_cache_bool = False
+
 		Utils.hide_busy()
 		library.trakt_refresh_all()
 		self.xbmc_monitor.waitForAbort(5)  # Wait 10 minutes before doing updates to give boot time
@@ -1517,6 +1547,9 @@ class CronJobMonitor(Thread):
 					taste_dive_thread.start()
 				library_update_period = int(xbmcaddon.Addon(library.addon_ID()).getSetting('library_sync_hours'))
 				self.next_time = self.curr_time + library_update_period*60*60
+			if int(time.time()) > self.next_clean_time and auto_clean_cache_bool == True:
+				process.auto_clean_cache(days=30)
+				self.next_clean_time = self.curr_time + 24*60*60
 			log(str('self.xbmc_monitor.waitForAbort(self.poll_time)'))
 			log(str(self.poll_time))
 			self.xbmc_monitor.waitForAbort(self.poll_time)
