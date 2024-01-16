@@ -343,6 +343,30 @@ def patch_ak4_requests():
 		file1.writelines(new_file)
 		file1.close()
 
+def curr_percent(rd_api):
+	if rd_api.original_tot_bytes == 0:
+		return
+	curr_percent = (rd_api.remaining_tot_bytes/rd_api.original_tot_bytes) * 100
+	os.environ['DOWNLOAD_CURR_PERCENT'] = str(int(curr_percent))
+	tools.log('\n\n'+str(curr_percent)+'% total remaining on file')
+	percent_done = 100 - curr_percent
+	time_running = time.time() - rd_api.original_start_time
+	seconds_per_percent = time_running / percent_done
+	seconds_remaining = int(curr_percent * seconds_per_percent)
+	minutes_remaining = int((curr_percent * seconds_per_percent) / 60)
+	hours_remaining = round((curr_percent * seconds_per_percent) / (60*60),2)
+	tools.log('\n\n'+str(seconds_remaining)+' seconds_remaining')
+	tools.log('\n\n'+str(minutes_remaining)+' minutes_remaining')
+	tools.log('\n\n'+str(hours_remaining)+' hours_remaining')
+	tools.log('REMAINING_LINES_MAGNET_LIST =   '+str(rd_api.num_lines))
+	if rd_api.xbmc_gui:
+		import xbmcgui
+		xbmcgui.Window(10000).setProperty('curr_percent', str(curr_percent))
+		xbmcgui.Window(10000).setProperty('percent_done', str(percent_done))
+		xbmcgui.Window(10000).setProperty('seconds_remaining', str(seconds_remaining))
+		xbmcgui.Window(10000).setProperty('minutes_remaining', str(minutes_remaining))
+		xbmcgui.Window(10000).setProperty('hours_remaining', str(hours_remaining))
+		xbmcgui.Window(10000).setProperty('num_lines_remaining', str(rd_api.num_lines))
 
 def run_downloader(magnet_list, download_path):
 	rd_api = real_debrid.RealDebrid()
@@ -350,11 +374,30 @@ def run_downloader(magnet_list, download_path):
 	start_time = time.time()
 	active_magnets = []
 	processed_files = []
-	
+	rd_api.original_start_time = time.time()
+	try:
+		rd_api.xbmc_gui = True
+		import xbmcgui
+	except:
+		rd_api.xbmc_gui = False
+
+	tot_bytes = 0
+	with open(magnet_list, 'r') as fp:
+		for line in fp:
+			try: tot_bytes = tot_bytes + eval(line)['tot_bytes']
+			except: continue
+	original_tot_bytes = tot_bytes
+	rd_api.original_tot_bytes = original_tot_bytes
+	rd_api.remaining_tot_bytes = original_tot_bytes
 	while time.time() < start_time + 300 and curr_download:
+		tot_bytes = 0
 		with open(magnet_list, 'r') as fp:
 			num_lines = sum(1 for line in fp if line.rstrip())
+			for line in fp:
+				try: tot_bytes = tot_bytes + eval(line)['tot_bytes']
+				except: continue
 		log('REMAINING_LINES_MAGNET_LIST =   '+str(num_lines))
+		rd_api.num_lines = num_lines
 
 		try: 
 			download_type = curr_download.get('download_type', None)
@@ -387,7 +430,9 @@ def run_downloader(magnet_list, download_path):
 				#torr_info = rd_api.torrent_info(torr_id)
 				if torr_info['status'] == 'downloaded':
 					download_cached_magnet_pack(rd_api, download_path, curr_download, torr_id, torr_info)
-					
+					if tools.tools_stop_downloader == True:
+						tools.tools_stop_downloader = False
+						return
 					start_time = time.time()
 					curr_download = tools.get_download_line(magnet_list)
 					tools.delete_download_line(magnet_list, curr_download)
@@ -399,7 +444,9 @@ def run_downloader(magnet_list, download_path):
 				#torr_info = rd_api.torrent_info(torr_id)
 				if torr_info['status'] == 'downloaded':
 					download_cached_movie(rd_api, download_path, curr_download, torr_id, torr_info)
-					
+					if tools.tools_stop_downloader == True:
+						tools.tools_stop_downloader = False
+						return
 					start_time = time.time()
 					curr_download = tools.get_download_line(magnet_list)
 					tools.delete_download_line(magnet_list, curr_download)
@@ -411,6 +458,9 @@ def run_downloader(magnet_list, download_path):
 				#torr_info = rd_api.torrent_info(torr_id)
 				if torr_info['status'] == 'downloaded':
 					download_cached_episode(rd_api, download_path, curr_download, torr_id, torr_info)
+					if tools.tools_stop_downloader == True:
+						tools.tools_stop_downloader = False
+						return
 
 					start_time = time.time()
 					curr_download = tools.get_download_line(magnet_list)
@@ -418,16 +468,25 @@ def run_downloader(magnet_list, download_path):
 					curr_download = tools.get_download_line(magnet_list)
 			if download_type == 'uncached':
 				processed_files = download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr_info, processed_files, magnet_list, True)
+				if tools.tools_stop_downloader == True:
+					tools.tools_stop_downloader = False
+					return
 				start_time = time.time()
 				curr_download = tools.get_download_line(magnet_list)
 			elif torr_info['status'] != 'downloaded':
 				active_magnets.append(magnet)
 				processed_files = download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr_info, processed_files, magnet_list, False)
+				if tools.tools_stop_downloader == True:
+					tools.tools_stop_downloader = False
+					return
 				start_time = time.time()
 				curr_download = tools.get_download_line(magnet_list)
 		else:
 			if str(curr_download).strip()[:4] == 'http':
 				download_http_rd_link(rd_api, download_path, curr_download)
+				if tools.tools_stop_downloader == True:
+					tools.tools_stop_downloader = False
+					return
 				tools.delete_download_line(magnet_list, curr_download)
 				rd_api.delete_download(rd_api.UNRESTRICT_FILE_ID)
 				start_time = time.time()
@@ -439,16 +498,25 @@ def run_downloader(magnet_list, download_path):
 				torr_info = rd_api.torrent_info(torr_id)
 				if curr_download in active_magnets:
 					processed_files = download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr_info, processed_files, magnet_list, True)
+					if tools.tools_stop_downloader == True:
+						tools.tools_stop_downloader = False
+						return
 					start_time = time.time()
 					curr_download = tools.get_download_line(magnet_list)
 				elif torr_info['status'] != 'downloaded':
 					active_magnets.append(curr_download)
 					processed_files = download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr_info, processed_files, magnet_list, False)
+					if tools.tools_stop_downloader == True:
+						tools.tools_stop_downloader = False
+						return
 					start_time = time.time()
 					curr_download = tools.get_download_line(magnet_list)
 				elif torr_info['status'] == 'downloaded':
 					active_magnets.append(curr_download)
 					processed_files = download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr_info, processed_files, magnet_list, True)
+					if tools.tools_stop_downloader == True:
+						tools.tools_stop_downloader = False
+						return
 					start_time = time.time()
 					curr_download = tools.get_download_line(magnet_list)
 		tools.log(processed_files)
@@ -620,6 +688,7 @@ def run_tv_search():
 		#	download_id = rd_api.UNRESTRICT_FILE_ID
 		#	log(download_link, download_id)
 		download_link, new_meta = cloud_get_ep_season(rd_api, meta, torr_id, torr_info)
+
 			
 		stream_link = download_link
 		#file_name = unquote(stream_link).split('/')[-1]
@@ -628,6 +697,12 @@ def run_tv_search():
 		filename_without_ext = os.path.splitext(os.path.basename(stream_link))[0]
 		#file_name_ext = file_name.replace(filename_without_ext,'')
 		file_name_ext = os.path.splitext(os.path.basename(stream_link))[1]
+		tot_bytes = 0
+		for i in torr_info['files']:
+			if file_name_ext in i['path'] and i['selected'] == 1:
+				tot_bytes = tot_bytes + i['bytes']
+		meta['tot_bytes'] = tot_bytes
+
 		#if filename_without_ext == g.CURR_SOURCE['release_title'].lower() or filename_without_ext in g.CURR_SOURCE['release_title'].lower():
 		#	file_name = g.CURR_SOURCE['release_title'] + file_name_ext
 		#	filename_without_ext = g.CURR_SOURCE['release_title']
@@ -677,6 +752,12 @@ def run_tv_search():
 
 		stream_link = download_link
 		file_name = os.path.basename(stream_link)
+		tot_bytes = 0
+		for i in torr_info['files']:
+			if unquote(file_name) in unquote(i['path']) and i['selected'] == 1:
+				tot_bytes = tot_bytes + i['bytes']
+		meta['tot_bytes'] = tot_bytes
+
 		filename_without_ext = os.path.splitext(os.path.basename(stream_link))[0]
 		file_name_ext = os.path.splitext(os.path.basename(stream_link))[1]
 		subs_filename = filename_without_ext + '.srt'
@@ -724,6 +805,11 @@ def run_tv_search():
 
 			stream_link = download_link
 			file_name = os.path.basename(stream_link)
+			tot_bytes = 0
+			for i in torr_info['files']:
+				if unquote(file_name) in unquote(i['path']) and i['selected'] == 1:
+					tot_bytes = tot_bytes + i['bytes']
+			ep_meta['tot_bytes'] = tot_bytes
 			filename_without_ext = os.path.splitext(os.path.basename(stream_link))[0]
 			file_name_ext = os.path.splitext(os.path.basename(stream_link))[1]
 			subs_filename = filename_without_ext + '.srt'
@@ -768,6 +854,12 @@ def run_tv_search():
 
 		stream_link = download_link
 		file_name = os.path.basename(stream_link)
+		tot_bytes = 0
+		for i in torr_info['files']:
+			if unquote(file_name) in unquote(i['path']) and i['selected'] == 1:
+				tot_bytes = tot_bytes + i['bytes']
+		meta['tot_bytes'] = tot_bytes
+
 		filename_without_ext = os.path.splitext(os.path.basename(stream_link))[0]
 		file_name_ext = os.path.splitext(os.path.basename(stream_link))[1]
 		subs_filename = filename_without_ext + '.srt'
@@ -890,15 +982,22 @@ def run_movie_search():
 		torr_info = rd_api.torrent_info(torr_id)
 		#tools.log(torr_info)
 
+		tot_bytes = 0
 		for i in torr_info['links']:
 			unrestrict_link = i
 			download_link = rd_api.resolve_hoster(unrestrict_link)
 			download_id = rd_api.UNRESTRICT_FILE_ID
 			log(download_link, download_id)
-			
+			for i in torr_info['files']:
+				if i['selected'] == 1:
+					tot_bytes = tot_bytes + i['bytes']
+		meta['tot_bytes'] = tot_bytes
+
 		stream_link = download_link
 		#file_name = unquote(stream_link).split('/')[-1]
 		file_name = os.path.basename(stream_link)
+
+
 		#filename_without_ext = file_name.replace('.'+file_name.split('.')[-1],'')
 		filename_without_ext = os.path.splitext(os.path.basename(stream_link))[0]
 		#file_name_ext = file_name.replace(filename_without_ext,'')
@@ -944,12 +1043,16 @@ def run_movie_search():
 		torr_info = rd_api.torrent_info(torr_id)
 		#tools.log(torr_info)
 
+		tot_bytes = 0
 		for i in torr_info['links']:
 			unrestrict_link = i
 			download_link = rd_api.resolve_hoster(unrestrict_link)
 			download_id = rd_api.UNRESTRICT_FILE_ID
 			log(download_link, download_id)
-			
+			for i in torr_info['files']:
+				if i['selected'] == 1:
+					tot_bytes = tot_bytes + i['bytes']
+		meta['tot_bytes'] = tot_bytes
 		stream_link = download_link
 		#file_name = unquote(stream_link).split('/')[-1]
 		file_name = os.path.basename(stream_link)
@@ -1831,7 +1934,9 @@ def download_http_rd_link(rd_api, download_path, curr_download):
 
 	if not os.path.exists(download_folder):
 		os.makedirs(download_folder)
-	tools.download_progressbar(download_link, download_path2)
+	try: tools.download_progressbar(download_link, download_path2)
+	except: tools.tools_stop_downloader = True
+	rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
 
 
 def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr_info, processed_files, magnet_list, test_download):
@@ -1877,7 +1982,10 @@ def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr
 
 		if not os.path.exists(download_folder):
 			os.makedirs(download_folder)
-		tools.download_progressbar(download_link, download_path2)
+		try: tools.download_progressbar(download_link, download_path2)
+		except: tools.tools_stop_downloader = True
+		rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
+		curr_percent(rd_api)
 		#info = get_subtitles(info, download_path2)
 		#sub_out = os.path.basename(tools.SUB_FILE)
 		#sub_path = os.path.join(download_folder, sub_out)
@@ -1902,7 +2010,10 @@ def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr
 
 		if not os.path.exists(download_folder):
 			os.makedirs(download_folder)
-		tools.download_progressbar(download_link, download_path2)
+		try: tools.download_progressbar(download_link, download_path2)
+		except: tools.tools_stop_downloader = True
+		rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
+		curr_percent(rd_api)
 		#info = get_subtitles(curr_download, download_path2)
 		#sub_out = os.path.basename(tools.SUB_FILE)
 		#sub_path = os.path.join(download_folder, sub_out)
@@ -1925,7 +2036,10 @@ def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr
 		if not os.path.exists(download_folder):
 			os.makedirs(download_folder)
 		download_path2 = os.path.join(download_folder, file_name)
-		tools.download_progressbar(download_link, download_path2)
+		try: tools.download_progressbar(download_link, download_path2)
+		except: tools.tools_stop_downloader = True
+		rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
+		curr_percent(rd_api)
 
 	tot_streams = 0
 	downloaded_streams = 0
@@ -1969,6 +2083,9 @@ def download_uncached_magnet(rd_api, download_path, curr_download, torr_id, torr
 				rd_api.delete_download(rd_api.UNRESTRICT_FILE_ID)
 				processed_files.append(pack_path)
 				downloaded_streams = downloaded_streams + 1
+				if tools.tools_stop_downloader == True:
+					tools.tools_stop_downloader = False
+					return
 			if torr_info['status'] != 'downloaded':
 				log('Added ' + str(pack_path))
 
@@ -2019,9 +2136,14 @@ def download_cached_movie(rd_api, download_path, curr_download, torr_id, torr_in
 	download_id = rd_api.UNRESTRICT_FILE_ID
 	log(download_link, download_id)
 	
-	tools.download_progressbar(download_link, download_path)
+	try: tools.download_progressbar(download_link, download_path)
+	except: tools.tools_stop_downloader = True
+	rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
 	#info = get_subtitles(curr_download, download_path)
-	
+
+	if tools.tools_stop_downloader == True:
+		return
+
 	download_folder1 = os.path.dirname(download_path)
 
 	sub_path1 = os.path.join(download_folder1,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.srt')))
@@ -2077,6 +2199,7 @@ def download_cached_movie(rd_api, download_path, curr_download, torr_id, torr_in
 	#shutil.copyfile(tools.SUB_FILE, sub_path)
 	#log(sub_path)
 
+	curr_percent(rd_api)
 	rd_api.delete_torrent(torr_id)
 	rd_api.delete_download(rd_api.UNRESTRICT_FILE_ID)
 
@@ -2105,6 +2228,8 @@ def download_cached_episode(rd_api, download_path, curr_download, torr_id, torr_
 	#curr_download = info2
 	info2['aliases'].append(info2['tvshowtitle'])
 
+	curr_download['file_name'] = unquote(curr_download['file_name'])
+	curr_download['filename'] = unquote(curr_download['filename'])
 	show_folder = os.path.join(download_path, str(curr_download['episode_meta']['tvshow']) + ' (' + str(curr_download['episode_meta']['tvshow_year'] + ')')).replace(':','')
 	if not os.path.exists(show_folder):
 		os.makedirs(show_folder)
@@ -2120,7 +2245,13 @@ def download_cached_episode(rd_api, download_path, curr_download, torr_id, torr_
 			download_link = rd_api.resolve_hoster(unrestrict_link)
 			download_id = rd_api.UNRESTRICT_FILE_ID
 			log(download_link, download_id)
-			tools.download_progressbar(download_link, download_path)
+			try: tools.download_progressbar(download_link, download_path)
+			except: tools.tools_stop_downloader = True
+			rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
+
+			if tools.tools_stop_downloader == True:
+				return
+
 			#info = get_subtitles(info, download_path)
 			#sub_out = os.path.basename(tools.SUB_FILE)
 			#sub_path = os.path.join(download_folder, sub_out)
@@ -2167,7 +2298,9 @@ def download_cached_episode(rd_api, download_path, curr_download, torr_id, torr_
 					shutil.copyfile(i, out_path)
 					tools.log(out_path)
 
+			curr_percent(rd_api)
 			rd_api.delete_download(rd_api.UNRESTRICT_FILE_ID)
+
 	#log(sub_path)
 
 	rd_api.delete_torrent(torr_id)
@@ -2211,7 +2344,12 @@ def download_cached_magnet_pack(rd_api, download_path, curr_download, torr_id, t
 		log(download_link, download_id)
 		if not os.path.exists(download_folder):
 			os.makedirs(download_folder)
-		tools.download_progressbar(download_link, download_path)
+		try: tools.download_progressbar(download_link, download_path)
+		except: tools.tools_stop_downloader = True
+		rd_api.remaining_tot_bytes = rd_api.remaining_tot_bytes - rd_api.UNRESTRICT_FILE_SIZE
+
+		if tools.tools_stop_downloader == True:
+			return
 
 		download_folder1 = os.path.dirname(download_path)
 		sub_path1 = os.path.join(download_folder1,unquote(str(os.path.splitext(os.path.basename(download_link))[0] + '.srt'))).replace(':','')
@@ -2251,8 +2389,11 @@ def download_cached_magnet_pack(rd_api, download_path, curr_download, torr_id, t
 				out_path = os.path.join(download_folder1, os.path.basename(i))
 				shutil.copyfile(i, out_path)
 				tools.log(out_path)
+		if tools.tools_stop_downloader == True:
+			tools.tools_stop_downloader = False
+			return
 
-
+		curr_percent(rd_api)
 		rd_api.delete_download(rd_api.UNRESTRICT_FILE_ID)
 		#log(sub_path)
 

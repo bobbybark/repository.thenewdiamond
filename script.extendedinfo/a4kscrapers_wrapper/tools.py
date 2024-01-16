@@ -42,7 +42,7 @@ BROWSER_AGENTS = [
 	"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:15.0) Gecko/20100101 Firefox/15.0.1",
 ]
 
-
+tools_stop_downloader = None
 
 #ADDON_USERDATA_PATH = './user_data'
 try:
@@ -157,6 +157,7 @@ class global_var:
 	
 	def __init__(self):
 		self.VIDEO_META = None
+		self.tools_stop_downloader = None
 
 
 def findReplace(directory, find, replace, filePattern):
@@ -956,6 +957,7 @@ def download_progressbar(url, file_path):
 	stop_downloader = get_setting('magnet_list').replace('magnet_list.txt','stop_downloader')
 	if os.path.exists(stop_downloader):
 		delete_file(stop_downloader)
+		tools_stop_downloader = True
 		#exit()
 		return
 	
@@ -984,7 +986,9 @@ def download_progressbar(url, file_path):
 			delete_file(stop_downloader)
 			sys.stdout.write('\n')
 			sys.stdout.flush()
+			tools_stop_downloader = True
 			#exit()
+			raise DownloadError
 			return file_path
 	urlretrieve(url, file_path, reporthook=dlProgress)
 	return file_path

@@ -1174,6 +1174,17 @@ def start_info_actions(infos, params):
 			Utils.hide_busy()
 			
 
+		elif info == 'downloader_progress':
+			Utils.hide_busy()
+			curr_percent = xbmcgui.Window(10000).getProperty('curr_percent')
+			percent_done = xbmcgui.Window(10000).getProperty('percent_done')
+			seconds_remaining = xbmcgui.Window(10000).getProperty('seconds_remaining')
+			minutes_remaining = xbmcgui.Window(10000).getProperty('minutes_remaining')
+			hours_remaining = xbmcgui.Window(10000).getProperty('hours_remaining')
+			num_lines_remaining = xbmcgui.Window(10000).getProperty('num_lines_remaining')
+			msg = 'File_num_lines_remaining = %s || percent_done = %s || hours_remaining = %s '
+			Utils.notify(header='downloader_progress', message=msg)
+
 		elif info == 'run_downloader':
 			Utils.hide_busy()
 			try:
