@@ -9,7 +9,8 @@ def __get_debug_logenabled():
 		return False
 
 	try:
-		return get_kodi_setting("debug.showloginfo", log_error=False)
+		#return get_kodi_setting("debug.showloginfo", log_error=False)
+		return False
 	except:
 		__get_debug_logenabled_err = True
 
@@ -29,6 +30,14 @@ def __log(message, level):
 		message = message()
 
 	xbmc.log('{0}: {1}'.format(addon_id, message), level)
+
+try:
+	notice_type = xbmc.LOGNOTICE
+except:
+	notice_type = xbmc.LOGINFO
+
+def notice(message):
+	__log(message, notice_type)
 
 def error(message):
 	__log(message, xbmc.LOGERROR)

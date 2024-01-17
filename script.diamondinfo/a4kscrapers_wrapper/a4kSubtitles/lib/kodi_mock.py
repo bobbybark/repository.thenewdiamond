@@ -5,7 +5,7 @@ import os
 import shutil
 
 from zipfile import ZipFile
-from xml.etree import ElementTree
+#from xml.etree import ElementTree
 from .third_party import iso639
 
 try:  # pragma: no cover
@@ -40,7 +40,15 @@ __monitor.waitForAbort = lambda _: False
 xbmc.Monitor = lambda: __monitor
 
 def __log(msg, label):
-	print(msg)
+	if os.getenv('A4KSCRAPERS_TEST_TOTAL') != '1':
+		try:
+			#import xbmc
+			#xbmc.log(str(msg)+'===>PHIL', level=xbmc.LOGINFO)
+			from a4kscrapers_wrapper import tools
+			tools.log(msg)
+		except:
+			print(msg, label)
+			print('msg, label')
 xbmc.log = __log
 xbmc.LOGDEBUG = 'debug'
 xbmc.LOGINFO = 'info'
@@ -56,9 +64,10 @@ def __get_addon_info(name):
 	elif name == 'name':
 		return 'a4ksubtitles'
 	elif name == 'version':
-		tree = ElementTree.parse(os.path.join(os.path.dirname(__file__), '..', '..', 'addon.xml'))
-		root = tree.getroot()
-		return root.get('version')
+		#tree = ElementTree.parse(os.path.join(os.path.dirname(__file__), '..', '..', 'addon.xml'))
+		#root = tree.getroot()
+		#return root.get('version')
+		return 1.0
 	elif name == 'profile':
 		return os.path.join(os.path.dirname(__file__), '../../tmp')
 __addon.getAddonInfo = __get_addon_info

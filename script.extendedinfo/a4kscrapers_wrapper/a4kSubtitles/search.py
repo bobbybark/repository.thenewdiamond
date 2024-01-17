@@ -1,6 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import tools
+import os, json
+from inspect import currentframe, getframeinfo
+#print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+
 def __auth_service(core, service_name, request):
+	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 	service = core.services[service_name]
 	response = core.request.execute(core, request)
 	if response.status_code == 200 and response.text:
@@ -14,13 +20,17 @@ def __query_service(core, service_name, meta, request, results):
 		response = core.request.execute(core, request)
 
 		if response and response.status_code == 200 and response.text:
+			#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 			service_results = service.parse_search_response(core, service_name, meta, response)
 		else:
+			#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 			service_results = []
 
+		#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		results.extend(service_results)
+		#tools.log(response.json())
 
-		core.logger.debug(lambda: core.json.dumps({
+		core.logger.error(lambda: core.json.dumps({
 			'url': request['url'],
 			'count': len(service_results),
 			'status_code': response.status_code if response else 'N/A'
@@ -30,6 +40,7 @@ def __query_service(core, service_name, meta, request, results):
 		core.kodi.update_progress(core)
 
 def __add_results(core, results):  # pragma: no cover
+	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 	for item in results:
 		listitem = core.kodi.create_listitem(item)
 
@@ -44,9 +55,11 @@ def __add_results(core, results):  # pragma: no cover
 		)
 
 def __has_results(service_name, results):
+	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 	return any(map(lambda r: r['service_name'] == service_name, results))
 
 def __save_results(core, meta, results):
+	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 	try:
 		if len(results) == 0:
 			return
@@ -89,6 +102,13 @@ def __sanitize_results(core, meta, results):
 
 	for result in results:
 		temp_dict[result['action_args']['url']] = result
+
+		try:
+			if result['sync'] == 'true':
+				ext = core.os.path.splitext(result['name'])[1]
+				result['name'] = '%s%s' % (meta.filename_without_ext, ext)
+		except: pass
+
 		result['name'] = core.utils.unquote(result['name'])
 
 	return list(temp_dict.values())
@@ -97,7 +117,8 @@ def __apply_language_filter(meta, results):
 	return list(filter(lambda x: x and x['lang'] in meta.languages, results))
 
 def __apply_limit(core, all_results, meta):
-	limit = core.kodi.get_int_setting('general.results_limit')
+	#limit = core.kodi.get_int_setting('general.results_limit')
+	limit = 99
 	lang_limit = int(limit / len(meta.languages))
 	if lang_limit * len(meta.languages) < limit:
 		lang_limit += 1
@@ -286,25 +307,42 @@ def __complete_search(core, results):
 
 def __search(core, service_name, meta, results):
 	service = core.services[service_name]
+	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+	if meta == None:
+		meta = core.utils.DictAsObject(core.params.get('VIDEO_META'))
+	#tools.log('tools.VIDEO_META', tools.VIDEO_META, 'meta', meta)
+	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 	requests = service.build_search_requests(core, service_name, meta)
-	core.logger.debug(lambda: '%s - %s' % (service_name, core.json.dumps(requests, default=lambda o: '', indent=2)))
+	core.logger.error(lambda: '%s - %s' % (service_name, core.json.dumps(requests, default=lambda o: '', indent=2)))
 
+	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 	threads = []
 	for request in requests:
+		#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		thread = core.threading.Thread(target=__query_service, args=(core, service_name, meta, request, results))
 		threads.append(thread)
 
 	core.utils.wait_threads(threads)
 
 def search(core, params):
-	meta = core.video.get_meta(core)
+	#meta = core.video.get_meta(core)
+	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+	#tools.log('tools.VIDEO_META', tools.VIDEO_META, 'meta', params.get('VIDEO_META'))
+	core.params = params
+	tools.VIDEO_META = core.params.get('VIDEO_META')
+	#tools.log('core.params', core.params)
+	try: meta = core.video.get_meta(core)
+	except: meta = core.utils.DictAsObject(params.get('VIDEO_META'))
+
 	meta.languages = __parse_languages(core, core.utils.unquote(params['languages']).split(','))
 	meta.preferredlanguage = core.kodi.parse_language(params['preferredlanguage'])
-	core.logger.debug(lambda: core.json.dumps(meta, default=lambda o: '', indent=2))
+	core.logger.error(lambda: core.json.dumps(meta, default=lambda o: '', indent=2))
 
 	if meta.imdb_id == '':
-		core.logger.error('missing imdb id!')
-		core.kodi.notification('IMDB ID is not provided')
+		#core.logger.error('missing imdb id!')
+		#core.kodi.notification('IMDB ID is not provided')
+		#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+		tools.log('missing imdb id!')
 		return
 
 	threads = []
@@ -313,22 +351,28 @@ def search(core, params):
 		if len(results) > 0 and (__has_results(service_name, results) or service_name not in force_search):
 			continue
 
-		if not core.kodi.get_bool_setting(service_name, 'enabled'):
-			continue
+		#if not core.kodi.get_bool_setting(service_name, 'enabled'):
+		#	continue
 
 		service = core.services[service_name]
 		core.progress_text += service.display_name + '|'
 
 		auth_thread = None
+		#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+		
 		auth_request = service.build_auth_request(core, service_name)
+		#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		if auth_request:
 			auth_thread = core.threading.Thread(target=__auth_service, args=(core, service_name, auth_request))
 
+		#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		search_thread = core.threading.Thread(target=__search, args=(core, service_name, meta, results))
 
+		#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		threads.append((auth_thread, search_thread))
 
 	if len(threads) == 0:
+		#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		return __complete_search(core, results)
 
 	core.progress_text = core.progress_text[:-1]

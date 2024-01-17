@@ -44,6 +44,7 @@ from .data import data
 def main(handle, paramstring):  # pragma: no cover
 	core.api_mode_enabled = False
 	core.handle = handle
+	core.params = None
 
 	params = dict(utils.parse_qsl(paramstring))
 	if params['action'] == 'manualsearch':
