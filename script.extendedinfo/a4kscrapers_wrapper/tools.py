@@ -1028,6 +1028,8 @@ def download_progressbar(rd_api, url, file_path):
 	if final_remaining_tot_bytes < rd_api.remaining_tot_bytes:
 		rd_api.remaining_tot_bytes = final_remaining_tot_bytes
 	rd_api.UNRESTRICT_FILE_SIZE = 0
+	sys.stdout.write('\n')
+	sys.stdout.flush()
 	return file_path
 
 def progressbar(it, prefix="", size=60, out=sys.stdout): # Python3.3+

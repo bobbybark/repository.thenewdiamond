@@ -533,10 +533,12 @@ class SubtitleService(object):
 					continue
 				#tools.log(guess)
 		new_source_list = tools.SourceSorter(self.VIDEO_META).sort_sources(source_list)
-		tools.log('new_source_list_SUBTITLES_RESULTS')
-		for i in new_source_list:
-			try: tools.log(i['pack_title'], i['service'])
-			except: continue
+
+		#tools.log('new_source_list_SUBTITLES_RESULTS')
+		#for i in new_source_list:
+		#	try: tools.log(i['pack_title'], i['service'])
+		#	except: continue
+
 		#tools.log('new_source_list',new_source_list)
 		#tools.log('result_store',result_store)
 		#tools.log(source_list)
@@ -622,7 +624,7 @@ class SubtitleService(object):
 				os.mkdir(utils.temp_dir2)
 			for r in sources:
 				sub_result = r.download(foreign_parts[0])
-				tools.log(foreign_parts[0]['name'])
+				tools.log(foreign_parts[0]['name'], foreign_parts[0]['service'])
 				break
 			#result_foreign = os.path.splitext(sub_result)[0] + '.FOREIGN.PARTS' +os.path.splitext(sub_result)[1]
 			result_foreign = os.path.splitext(sub_result)[0] + '.FORCED' +os.path.splitext(sub_result)[1]
@@ -634,7 +636,7 @@ class SubtitleService(object):
 		for r in sources:
 			try: 
 				sub_result = r.download(normal_subs[0])
-				tools.log(normal_subs[0]['name'])
+				tools.log(normal_subs[0]['name'], normal_subs[0]['service'])
 			except Exception as e: 
 				if 'zipfile.BadZipFile' in str(e):
 					pass
@@ -660,6 +662,7 @@ class SubtitleService(object):
 				self.VIDEO_META['SUB_FILE_FORCED'] = ''
 		#tools.VIDEO_META['SUB_FILE_FORCED'] = result_foreign
 		tools.VIDEO_META = self.VIDEO_META
+		#tools.log(self.VIDEO_META)
 		#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		#tools.log('self.VIDEO_META',self.VIDEO_META,'result_foreign',result_foreign,'result',sub_result)
 		tools.log('result_foreign',result_foreign,'result',sub_result)#

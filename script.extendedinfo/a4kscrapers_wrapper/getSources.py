@@ -529,12 +529,14 @@ def run_downloader(magnet_list, download_path):
 		time.sleep(10)
 		curr_download = tools.get_download_line(magnet_list)
 		sleep_count = 0
-		while not curr_download:
-			if sleep_count > 90:
-				break
+		if not curr_download:
+			rd_api.num_lines = 0
 			if rd_api.remaining_tot_bytes < 0:
 				rd_api.remaining_tot_bytes = 0
 			curr_percent(rd_api)
+		while not curr_download:
+			if sleep_count > 90:
+				break
 			tools.log('NO CONTENT SLEEP ' + str(100-sleep_count) + '  remaining')
 			time.sleep(10)
 			sleep_count = sleep_count + 10
@@ -892,15 +894,26 @@ def run_tv_search():
 
 	return
 
-def run_movie_search():
-	try: 
-		movie_title = input('Enter Movie Title:  ')
-	except:
-		tools.log('EXIT')
-		return
+def run_keyword_search():
+	info = {'mediatype': 'movie', 'download_type': 'movie', 'episode': '', 'imdb_id': None, 'is_movie': False, 'is_tvshow': False, 'media_type': 'movie', 'season': '', 'title': None, 'tmdb_id': None, 'tvshow': '', 'tvshow_year': '', 'year': '', 'info': {'mediatype': 'movie', 'episode': '', 'imdb_id': None, 'is_movie': False, 'is_tvshow': False, 'media_type': 'movie', 'season': '', 'title': None, 'tmdb_id': None, 'tvshow': '', 'tvshow_year': '', 'year': ''}}
+	movie_title = input('Enter Search Term:  ')
+	info['title'] = movie_title
+	info['info']['title'] = movie_title
+	run_movie_search(info)
 
-	meta = get_meta.get_movie_meta(movie_name=movie_title,year=None, interactive=True)
-	info = meta
+def run_movie_search(info=None):
+	if info == None:
+		try: 
+			movie_title = input('Enter Movie Title:  ')
+		except:
+			tools.log('EXIT')
+			return
+
+		meta = get_meta.get_movie_meta(movie_name=movie_title,year=None, interactive=True)
+		info = meta
+	else:
+		meta = info
+
 	uncached, sources_list, item_information= Sources(info).get_sources()
 	torrent_choices = tools.torrent_choices
 	torrent_choices_original = str(tools.torrent_choices)
