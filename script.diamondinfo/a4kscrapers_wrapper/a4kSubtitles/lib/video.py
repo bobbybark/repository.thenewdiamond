@@ -10,12 +10,6 @@ import threading
 from .kodi import xbmc, xbmcvfs, get_bool_setting
 from . import logger, cache, utils, request
 
-import tools
-#from resources.lib.modules.globals import g
-
-from inspect import currentframe, getframeinfo
-#print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
-
 __64k = 65536
 __longlong_format_char = 'q'
 __byte_size = struct.calcsize(__longlong_format_char)
@@ -301,41 +295,41 @@ def __update_info_from_imdb(core, meta, pagination_token=''):
 def __get_basic_info():
 	meta = utils.DictAsObject({})
 
-	#meta.year = xbmc.getInfoLabel('VideoPlayer.Year')
-	#meta.season = xbmc.getInfoLabel('VideoPlayer.Season')
-	#meta.episode = xbmc.getInfoLabel('VideoPlayer.Episode')
-	#meta.tvshow = xbmc.getInfoLabel('VideoPlayer.TVShowTitle')
+	meta.year = xbmc.getInfoLabel('VideoPlayer.Year')
+	meta.season = xbmc.getInfoLabel('VideoPlayer.Season')
+	meta.episode = xbmc.getInfoLabel('VideoPlayer.Episode')
+	meta.tvshow = xbmc.getInfoLabel('VideoPlayer.TVShowTitle')
 	meta.tvshow_year = ''
 
-	#meta.title = xbmc.getInfoLabel('VideoPlayer.OriginalTitle')
-	#if meta.title == '':
-	#	meta.title = xbmc.getInfoLabel('VideoPlayer.Title')
+	meta.title = xbmc.getInfoLabel('VideoPlayer.OriginalTitle')
+	if meta.title == '':
+		meta.title = xbmc.getInfoLabel('VideoPlayer.Title')
 
-	#meta.filename = __get_filename(meta.title)
-	#meta.filename_without_ext = meta.filename
-	#meta.imdb_id = xbmc.getInfoLabel('VideoPlayer.IMDBNumber')
+	meta.filename = __get_filename(meta.title)
+	meta.filename_without_ext = meta.filename
+	meta.imdb_id = xbmc.getInfoLabel('VideoPlayer.IMDBNumber')
 
-	#filename_and_path = xbmc.getInfoLabel('Player.FilenameAndPath')
-	#if meta.imdb_id == '':
-	#	regex_result = re.search(r'.*(tt\d{7,}).*', filename_and_path, re.IGNORECASE)
-	#	if regex_result:
-	#		meta.imdb_id = regex_result.group(1)
+	filename_and_path = xbmc.getInfoLabel('Player.FilenameAndPath')
+	if meta.imdb_id == '':
+		regex_result = re.search(r'.*(tt\d{7,}).*', filename_and_path, re.IGNORECASE)
+		if regex_result:
+			meta.imdb_id = regex_result.group(1)
 
-	#if meta.season == '':
-	#	regex_result = re.search(r'.*season=(\d{1,}).*', filename_and_path, re.IGNORECASE)
-	#	if regex_result:
-	#		meta.season = regex_result.group(1)
+	if meta.season == '':
+		regex_result = re.search(r'.*season=(\d{1,}).*', filename_and_path, re.IGNORECASE)
+		if regex_result:
+			meta.season = regex_result.group(1)
 
-	#if meta.episode == '':
-	#	regex_result = re.search(r'.*episode=(\d{1,}).*', filename_and_path, re.IGNORECASE)
-	#	if regex_result:
-	#		meta.episode = regex_result.group(1)
+	if meta.episode == '':
+		regex_result = re.search(r'.*episode=(\d{1,}).*', filename_and_path, re.IGNORECASE)
+		if regex_result:
+			meta.episode = regex_result.group(1)
 
 	return meta
 
 def get_meta(core):
 	meta = __get_basic_info()
-	"""
+
 	if meta.imdb_id == '':
 		cache_key = cache.hash_data(meta)
 		imdb_id_cache = cache.get_imdb_id_cache()
@@ -360,33 +354,22 @@ def get_meta(core):
 	if meta.imdb_id != '' and meta_cache.imdb_id == meta.imdb_id and meta_cache.filename == meta.filename:
 		meta = meta_cache
 	else:
-	"""
-	if 1==1:
 		meta.filesize = ''
 		meta.filehash = ''
 
-		#xbmc.log(str(g.VIDEO_META)+'search.py_meta===>A4KSUBTITLES', level=xbmc.LOGINFO)
-		#try:
-		#	filepath = xbmc.Player().getPlayingFile()
-		#	__set_size_and_hash(core, meta, filepath)
-		#except:
-		#	import traceback
-		#	traceback.print_exc()
+		try:
+			filepath = xbmc.Player().getPlayingFile()
+			__set_size_and_hash(core, meta, filepath)
+		except:
+			import traceback
+			traceback.print_exc()
 
-		#try:
-		#	meta.filename_without_ext = os.path.splitext(meta.filename)[0]
-		#except: pass
-		#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
-		#VIDEO_META = json.loads(tools.read_all_text(os.path.join(tools.ADDON_USERDATA_PATH, 'curr_meta.json')))
+		try:
+			meta.filename_without_ext = os.path.splitext(meta.filename)[0]
+		except: pass
 
-		#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
-		#tools.log('tools.VIDEO_META', tools.VIDEO_META)
-		meta_json = json.dumps(tools.VIDEO_META, indent=2)
-		logger.error(meta_json)
-
-		#meta_json = json.dumps(VIDEO_META, indent=2)
-		#print(meta_json)
-		#logger.debug(meta_json)
+		meta_json = json.dumps(meta, indent=2)
+		logger.debug(meta_json)
 
 		meta = json.loads(meta_json)
 		meta = utils.DictAsObject(meta)

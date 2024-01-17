@@ -9,20 +9,10 @@ import importlib
 kodi = sys.modules[__name__]
 api_mode = os.getenv('A4KSUBTITLES_API_MODE')
 
-try:
-	import tools
-except:
-	from a4kscrapers_wrapper import tools
-
-from inspect import currentframe, getframeinfo
-#print(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
-
 if api_mode:
 	try: api_mode = json.loads(api_mode)
 	except: api_mode = None
 
-api_mode = {}
-api_mode['kodi'] = True
 if api_mode:
 	if api_mode.get('kodi', False):
 		from .kodi_mock import xbmc, xbmcaddon, xbmcplugin, xbmcgui, xbmcvfs
@@ -50,12 +40,10 @@ addon_id = addon.getAddonInfo('id')
 addon_name = addon.getAddonInfo('name')
 addon_version = addon.getAddonInfo('version')
 addon_icon = addon.getAddonInfo('icon')
-addon_profile = tools.ADDON_USERDATA_PATH
-addon_profile = temp_dir = os.path.abspath(addon_profile)
-#try:
-#	addon_profile = xbmcvfs.translatePath(addon.getAddonInfo('profile'))
-#except:
-#	addon_profile = xbmc.translatePath(addon.getAddonInfo('profile'))
+try:
+	addon_profile = xbmcvfs.translatePath(addon.getAddonInfo('profile'))
+except:
+	addon_profile = xbmc.translatePath(addon.getAddonInfo('profile'))
 
 def json_rpc(method, params, log_error=True):  # pragma: no cover
 	try:
@@ -79,8 +67,6 @@ def json_rpc(method, params, log_error=True):  # pragma: no cover
 		return None
 
 def get_kodi_setting(setting, log_error=True):  # pragma: no cover
-	print('get_kodi_setting', setting)
-	#tools.get_setting(setting, 'string')
 	return json_rpc('Settings.GetSettingValue', {"setting": setting}, log_error)
 
 def get_kodi_player_subtitles(log_error=True):  # pragma: no cover
@@ -140,15 +126,11 @@ def parse_language(language):  # pragma: no cover
 	elif language == 'none':
 		return None
 	elif language == 'forced_only':
-		#return parse_language(get_kodi_setting("locale.audiolanguage"))
-		return 'English'
+		return parse_language(get_kodi_setting("locale.audiolanguage"))
 	else:
 		return language
 
 def create_listitem(item):  # pragma: no cover
-	if item['lang'] == 'Brazilian':
-		item['lang'] = 'Portuguese (Brazil)'
-
 	(item_name, item_ext) = os.path.splitext(item['name'])
 	item_name = item_name.replace('.', ' ')
 	item_ext = item_ext.upper()[1:]

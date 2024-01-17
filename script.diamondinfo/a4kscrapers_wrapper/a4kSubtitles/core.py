@@ -18,13 +18,13 @@ from xml.etree import ElementTree
 from io import BytesIO
 
 from .lib import (
-    cache,
-    kodi,
-    logger,
-    num2ordinal,
-    request,
-    utils,
-    video,
+	cache,
+	kodi,
+	logger,
+	num2ordinal,
+	request,
+	utils,
+	video,
 )
 
 core = sys.modules[__name__]
@@ -42,25 +42,24 @@ from .download import download
 from .data import data
 
 def main(handle, paramstring):  # pragma: no cover
-    core.api_mode_enabled = False
-    core.handle = handle
-    core.params = None
+	core.api_mode_enabled = False
+	core.handle = handle
 
-    params = dict(utils.parse_qsl(paramstring))
-    if params['action'] == 'manualsearch':
-        kodi.notification('Manual search is not supported')
-    elif params['action'] == 'search':
-        core.progress_text = ''
-        core.progress_dialog = kodi.get_progress_dialog()
+	params = dict(utils.parse_qsl(paramstring))
+	if params['action'] == 'manualsearch':
+		kodi.notification('Manual search is not supported')
+	elif params['action'] == 'search':
+		core.progress_text = ''
+		core.progress_dialog = kodi.get_progress_dialog()
 
-        try:
-            search(core, params)
-        finally:
-            core.progress_dialog.close()
-            core.progress_dialog = None
+		try:
+			search(core, params)
+		finally:
+			core.progress_dialog.close()
+			core.progress_dialog = None
 
-    elif params['action'] == 'download':
-        params['action_args'] = json.loads(params['action_args'])
-        download(core, params)
+	elif params['action'] == 'download':
+		params['action_args'] = json.loads(params['action_args'])
+		download(core, params)
 
-    kodi.xbmcplugin.endOfDirectory(handle)
+	kodi.xbmcplugin.endOfDirectory(handle)

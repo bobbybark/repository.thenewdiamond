@@ -11,10 +11,6 @@ from . import logger
 from requests import adapters
 from .third_party.cloudscraper import cloudscraper
 
-import tools
-from inspect import currentframe, getframeinfo
-##tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
-
 class TLSAdapter(adapters.HTTPAdapter):
 	def init_poolmanager(self, connections, maxsize, block=False):
 		ctx = ssl.create_default_context()
@@ -66,10 +62,8 @@ def execute(core, request, progress=True, session=None):
 	if next:
 		request.pop('stream', None)
 
-	logger.error('%s ^ - %s, %s' % (request['method'], request['url'], core.json.dumps(request.get('params', {}))))
-	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+	logger.debug('%s ^ - %s, %s' % (request['method'], request['url'], core.json.dumps(request.get('params', {}))))
 	try:
-		#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		if cfscrape:
 			request.pop('cfscrape', None)
 			if not session:
@@ -81,7 +75,6 @@ def execute(core, request, progress=True, session=None):
 			response = session.request(**request)
 		exc = ''
 	except:  # pragma: no cover
-		#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		try:
 			if cfscrape:
 				if not session:
@@ -91,7 +84,6 @@ def execute(core, request, progress=True, session=None):
 				response = requests.request(verify=False, **request)
 			exc = ''
 		except:  # pragma: no cover
-			#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 			exc = traceback.format_exc()
 			response = lambda: None
 			response.text = ''
@@ -99,9 +91,6 @@ def execute(core, request, progress=True, session=None):
 			response.status_code = 500
 	logger.debug('%s $ - %s - %s, %s' % (request['method'], request['url'], response.status_code, exc))
 
-	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
-	#tools.log(response)
-	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 	alt_request = validate(response)
 	if alt_request:
 		return execute(core, alt_request, progress)

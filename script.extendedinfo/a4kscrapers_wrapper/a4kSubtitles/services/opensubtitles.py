@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import tools
-from inspect import currentframe, getframeinfo
-#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
-
 __api_host = 'api.opensubtitles.com'
 __api_url = 'https://%s/api/v1'
 __api_key = '7IQ4FYAepMynq20VYYHyj5mVHtx3qvKa'
@@ -12,7 +8,6 @@ __content_type = 'application/json'
 __date_format = '%Y-%m-%d %H:%M:%S'
 
 def __set_api_headers(core, service_name, request, token_cache=None):
-	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 	if token_cache is None:
 		cache = core.cache.get_tokens_cache()
 		token_cache = cache.get(service_name, None)
@@ -32,31 +27,23 @@ def __set_api_headers(core, service_name, request, token_cache=None):
 		request['headers']['Authorization'] = 'Bearer %s' % token_cache['token']
 
 def build_auth_request(core, service_name):
-	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 	cache = core.cache.get_tokens_cache()
 	token_cache = cache.get(service_name, None)
-	token_cache = None
 	if token_cache is not None and 'ttl' in token_cache:
 		token_ttl = core.datetime.fromtimestamp(core.time.mktime(core.time.strptime(token_cache['ttl'], __date_format)))
 		if token_ttl > core.datetime.now():
-			#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 			return
-	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 
 	cache.pop(service_name, None)
 	core.cache.save_tokens_cache(cache)
 
-	#username = core.kodi.get_setting(service_name, 'username')
-	#password = core.kodi.get_setting(service_name, 'password')
-	username = tools.get_setting('open_subs_username')
-	password = tools.get_setting('open_subs_password')
-	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+	username = core.kodi.get_setting(service_name, 'username')
+	password = core.kodi.get_setting(service_name, 'password')
+
 	if username == '' or password == '':
 		core.kodi.notification('OpenSubtitles now requires authentication! Enter username/password in the addon Settings->Accounts or disable the service.')
 		return
 
-	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
-	
 	request = {
 		'method': 'POST',
 		'url': __api_url + '/login',
@@ -76,17 +63,12 @@ def parse_auth_response(core, service_name, response):
 	base_url = response.get('base_url', __api_host)
 	allowed_downloads = response.get('user', {}).get('allowed_downloads', 0)
 
-	#tools.log(response)
-	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
-
 	if token is None:
-		#core.kodi.notification('OpenSubtitles authentication failed!')
-		tools.log('OpenSubtitles authentication failed!')
+		core.kodi.notification('OpenSubtitles authentication failed!')
 		return
 
 	if allowed_downloads == 0:
-		#core.kodi.notification('OpenSubtitles failed! No downloads left for today.')
-		tools.log('OpenSubtitles failed! No downloads left for today.')
+		core.kodi.notification('OpenSubtitles failed! No downloads left for today.')
 		return
 
 	token_cache = {
@@ -95,18 +77,14 @@ def parse_auth_response(core, service_name, response):
 		'ttl': (core.datetime.now() + core.timedelta(days=7)).strftime(__date_format),
 	}
 
-	#tools.log(token_cache)
 	cache = core.cache.get_tokens_cache()
 	cache[service_name] = token_cache
 	core.cache.save_tokens_cache(cache)
 
 def build_search_requests(core, service_name, meta):
-	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
-	
 	cache = core.cache.get_tokens_cache()
 	token_cache = cache.get(service_name, None)
 	if token_cache is None:
-		#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		return []
 
 	if meta.is_tvshow:
@@ -145,19 +123,13 @@ def build_search_requests(core, service_name, meta):
 	}
 
 	__set_api_headers(core, service_name, request, token_cache)
-	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
-	#tools.log(request)
+
 	return [request]
 
 def parse_search_response(core, service_name, meta, response):
-	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
-	
 	try:
-	#if 1==1:
 		results = core.json.loads(response.text)
-		#tools.log(results)
 	except Exception as exc:
-		#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 		core.logger.error('%s - %s' % (service_name, exc))
 		return []
 
@@ -166,13 +138,7 @@ def parse_search_response(core, service_name, meta, response):
 	def map_result(result):
 		result = result['attributes']
 		imdb_id = result.get('feature_details', {}).get('imdb_id', None)
-		#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
-		#tools.log(result['files'])
-		#tools.log(imdb_id)
-		#tools.log(meta.imdb_id_as_int)
-
-		if len(result['files']) == 0:# or imdb_id is not None and imdb_id != meta.imdb_id_as_int:
-			#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+		if len(result['files']) == 0 or imdb_id is not None and imdb_id != meta.imdb_id_as_int:
 			return None
 
 		filename = result['files'][0]['file_name']
@@ -195,8 +161,7 @@ def parse_search_response(core, service_name, meta, response):
 				'gzip': True,
 			}
 		}
-	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
-	#tools.log(list(map(map_result, results['data'])))
+
 	return list(map(map_result, results['data']))
 
 def build_download_request(core, service_name, args):
