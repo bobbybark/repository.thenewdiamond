@@ -1754,7 +1754,7 @@ def match_episodes_season_pack(meta, sorted_torr_info):
 				#tools.log(curr_episode_tvmaze,'')
 				simple_info = tools._build_simple_show_info(curr_episode_tvmaze)
 				test = run_show_filters(simple_info, release_title = i['pack_path'])
-				if test['get_filter_single_absolute_episode_fn'] == True or test['filter_check_episode_title_match'] == True or test['filter_single_special_episode'] == True or test['get_filter_single_episode_fn'] == True:
+				if test.get('get_filter_single_absolute_episode_fn',False) == True or test.get('filter_check_episode_title_match',False) == True or test.get('filter_single_special_episode',False) == True or test.get('get_filter_single_episode_fn',False) == True:
 					guess['episode'] = prev_episode
 					guess['title'] = curr_episode_tvmaze['tvshowtitle']
 					guess['episode_title'] = curr_episode_tvmaze['originaltitle']
@@ -1762,7 +1762,7 @@ def match_episodes_season_pack(meta, sorted_torr_info):
 				else:
 					simple_info = tools._build_simple_show_info(curr_episode_tmdb)
 					test = run_show_filters(simple_info, release_title = i['pack_path'])
-					if test['get_filter_single_absolute_episode_fn'] == True or test['filter_check_episode_title_match'] == True or test['filter_single_special_episode'] == True or test['get_filter_single_episode_fn'] == True:
+					if test.get('get_filter_single_absolute_episode_fn',False) == True or test.get('filter_check_episode_title_match',False) == True or test.get('filter_single_special_episode',False) == True or test.get('get_filter_single_episode_fn',False) == True:
 						guess['episode'] = prev_episode
 						guess['title'] = curr_episode_tvmaze['tvshowtitle']
 						guess['episode_title'] = curr_episode_tvmaze['originaltitle']
@@ -1859,7 +1859,6 @@ def match_episodes_season_pack(meta, sorted_torr_info):
 				except:
 					continue
 
-
 		for xdx, x in enumerate(meta[meta_source]['episodes']):
 			ep_title = x['name'].lower()
 			ep_title = re.sub("[\x00-\x2F\x3A-\x40\x5B-\x60\x7B-\x7F]+", " ", ep_title.lower())
@@ -1899,15 +1898,36 @@ def match_episodes_season_pack(meta, sorted_torr_info):
 					simple_info = tools._build_simple_show_info(meta[meta_source]['episodes'][int(i)-1])
 					part_number_title, part_number_release, part_match_title, part_match_release = parts_check(simple_info, pack_path)
 					if episode_title:
+						#tools.log(distance.jaro_similarity(ep_title, episode_title))
+						#tools.log(ep_title, episode_title)
+						try: ep_title_part_test = int(ep_title.split(' ')[-1].replace(')','').replace('(',''))
+						except: ep_title_part_test = 0
+						#tools.log(ep_title_part_test, 'ep_title_part_test')
+						if ep_title_part_test > 0:
+							ep_title2 = ep_title.replace(' '+ep_title.split(' ')[-1],'')
+						else:
+							ep_title2 = None
+						#tools.log(ep_title2, 'ep_title2')
 						if ep_title == episode_title or distance.jaro_similarity(ep_title, episode_title) > 0.925:
 							if guess_episode == i and guess_season == int(meta[meta_source]['episodes'][int(i)-1]['season']):
 								match = True
 							elif part_number_title == part_number_release:
 								match = True
+						elif ep_title2:
+							#tools.log(distance.jaro_similarity(ep_title2, episode_title))
+							#tools.log(ep_title2, 'ep_title2')
+							#tools.log(guess_episode, i)
+							if ep_title2 == episode_title or distance.jaro_similarity(ep_title2, episode_title) > 0.925:
+								if (guess_episode == i or max(guess_episode,i)-min(guess_episode,i)==1) and guess_season == int(meta[meta_source]['episodes'][int(i)-1]['season']):
+									match = True
+								elif part_number_title == part_number_release:
+									match = True
 					else:
 						if guess_episode == i and guess_season == int(meta[meta_source]['episodes'][int(i)-1]['season']):
 							match = True
 					if match == True and not i in result_dict['episode_numbers']:
+						#tools.log(ep_title, episode_title)
+						#tools.log(i,'i')
 						result_dict['episode_numbers'].append(i)
 						result_dict['alt_ep_num'].append(guess_episode)
 						result_dict['pack_paths'].append(pack_path)

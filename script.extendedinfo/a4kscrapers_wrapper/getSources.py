@@ -561,9 +561,13 @@ def run_tv_search():
 	magnet_list = tools.get_setting('magnet_list')
 	download_path = tools.get_setting('download_path')
 	torrent_choices_test = []
+	uncached_choice = {'provider_name_override': 'UNCACHED', 'hash': 'UNCACHED', 'package': 'UNCACHED', 'release_title': 'UNCACHED', 'size': 0, 'seeds': 0, 'magnet': 'UNCACHED', 'type': 'UNCACHED', 'provider_name': 'UNCACHED', 'info': {'UNCACHED'}, 'quality': 'UNCACHED', 'pack_size': 0, 'provider': 'UNCACHED', 'debrid_provider': 'UNCACHED'}
 	if len(sources_list) == 0:
 		tools.log('UNCACHED_NO_CACHED TORENTS FOUND!!')
-		sources_list = uncached
+		sources_list = []
+		sources_list.append(uncached_choice)
+		sources_list = sources_list + uncached
+		uncached_choice = None
 		for i in torrent_choices:
 			if not 'uncached' in str(i).lower():
 				torrent_choices_test.append(i)
@@ -573,7 +577,8 @@ def run_tv_search():
 				torrent_choices_test.append(i)
 	for i in torrent_choices_test:
 		torrent_choices.pop(i)
-	sources_list.append({'provider_name_override': 'UNCACHED', 'hash': 'UNCACHED', 'package': 'UNCACHED', 'release_title': 'UNCACHED', 'size': 0, 'seeds': 0, 'magnet': 'UNCACHED', 'type': 'UNCACHED', 'provider_name': 'UNCACHED', 'info': {'UNCACHED'}, 'quality': 'UNCACHED', 'pack_size': 0, 'provider': 'UNCACHED', 'debrid_provider': 'UNCACHED'})
+	if uncached_choice:
+		sources_list.append(uncached_choice)
 	torrent = choose_torrent(sources_list)
 	if not torrent:
 		tools.log('EXIT')
@@ -583,8 +588,8 @@ def run_tv_search():
 		torrent_choices = {
 	'Add to downloader list (whole pack)': 4,
 	'Add to downloader list (episode)': 5,
-	'Add to downloader list (whole pack + subtitles)': 6,
-	'Add to downloader list (episode + subtitles)': 7,
+	#'Add to downloader list (whole pack + subtitles)': 6,
+	#'Add to downloader list (episode + subtitles)': 7,
 	'(Uncached) Add to RD (whole pack) ': 8,
 	'(Uncached) Add to RD (individual files) ': 9
 }
@@ -605,7 +610,21 @@ def run_tv_search():
 
 	if result == 1 or result == 8:#'Add to RD Cache (whole pack)': 1,#'(Uncached) Add to RD (whole pack) ': 8,
 		tools.log(torrent)
-		response = rd_api.add_magnet(torrent['magnet'])
+		response = None
+		while response == None:
+			response = rd_api.add_magnet(torrent['magnet'])
+			for idx, i in enumerate(sources_list):
+				if i['hash'] == torrent['hash']:
+					break
+			sources_list.pop(idx)
+			if response.get('error',False):
+				tools.log(response)
+				torrent = choose_torrent(sources_list)
+				#result = tools.selectFromDict(torrent_choices, 'Torrent')
+				#if not result:
+				#	tools.log('EXIT')
+				#	return
+				response = None
 		tools.log(response)
 		torr_id = response['id']
 		response = rd_api.torrent_select_all(torr_id)
@@ -613,7 +632,22 @@ def run_tv_search():
 		tools.log(torr_info)
 	elif result == 2:#'Add to RD Cache + Unrestrict (whole pack)': 2,
 		tools.log(torrent)
-		response = rd_api.add_magnet(torrent['magnet'])
+		#response = rd_api.add_magnet(torrent['magnet'])
+		response = None
+		while response == None:
+			response = rd_api.add_magnet(torrent['magnet'])
+			for idx, i in enumerate(sources_list):
+				if i['hash'] == torrent['hash']:
+					break
+			sources_list.pop(idx)
+			if response.get('error',False):
+				tools.log(response)
+				torrent = choose_torrent(sources_list)
+				#result = tools.selectFromDict(torrent_choices, 'Torrent')
+				#if not result:
+				#	tools.log('EXIT')
+				#	return
+				response = None
 		tools.log(response)
 		torr_id = response['id']
 		response = rd_api.torrent_select_all(torr_id)
@@ -1142,12 +1176,31 @@ def cloud_get_ep_season(rd_api, meta, torr_id, torr_info):
 	tvmaze_adjusted_eps = []
 	jdx = 0
 	#if meta_source == 'tmdb_seasons' and len(meta['tmdb_seasons']['episodes']) < len(meta['tvmaze_seasons']['episodes']):
-	if meta_source == 'tmdb_seasons' and int(meta['tmdb_seasons']['episodes'][-1]['episode']) < int(meta['tvmaze_seasons']['episodes'][-1]['episode']):
+	#tools.log(meta_source)
+	#tools.log(meta['tmdb_seasons']['episodes'])
+	#tools.log(meta['tvmaze_seasons']['episodes'])
+	if meta_source == 'tmdb_seasons' and (int(meta['tmdb_seasons']['episodes'][-1]['episode']) < int(meta['tvmaze_seasons']['episodes'][-1]['episode']) or result_dict['alt_ep_num'][-1] < result_dict['episode_numbers'][-1]):
 		for idx, i in enumerate(meta['tvmaze_seasons']['episodes']):
 			try:
 				try: curr_tmdb_name = meta['tmdb_seasons']['episodes'][idx]['name']
 				except: curr_tmdb_name = ''
-				#tools.log(i['name'], curr_tmdb_name)
+
+				if result_dict['alt_ep_num'][-1] < result_dict['episode_numbers'][-1]:
+					i['name'] = i['name'].split(', Part ')[0]
+					#try: ep_title_part_test = int(curr_tmdb_name.split(' ')[-1].replace(')','').replace('(',''))
+					#except: ep_title_part_test = 0
+					#if ep_title_part_test > 0:
+					#	curr_tmdb_name = curr_tmdb_name.replace(' '+curr_tmdb_name.split(' ')[-1],'')
+					#try: ep_title_part_test = int(meta['tmdb_seasons']['episodes'][jdx]['name'].split(' ')[-1].replace(')','').replace('(',''))
+					#except: ep_title_part_test = 0
+					#if ep_title_part_test > 0:
+					#	meta['tmdb_seasons']['episodes'][jdx]['name'] = meta['tmdb_seasons']['episodes'][jdx]['name'].replace(' '+meta['tmdb_seasons']['episodes'][jdx]['name'].split(' ')[-1],'')
+				#tools.log(i['name'], 'i[name]')
+				#tools.log(curr_tmdb_name, 'curr_tmdb_name')
+				#tools.log(meta['tmdb_seasons']['episodes'][jdx]['name'], 'jdx_name')
+				#tools.log(distance.jaro_similarity(i['name'],meta['tmdb_seasons']['episodes'][jdx]['name']), curr_tmdb_name)
+
+
 				if i['name'] != curr_tmdb_name and not (str(i['name']) in str(curr_tmdb_name) or str(curr_tmdb_name) in str(i['name'])):
 					for jdx, ji in enumerate(meta['tmdb_seasons']['episodes']):
 						if i['name'] == meta['tmdb_seasons']['episodes'][jdx]['name'] or str(i['name']) in str(meta['tmdb_seasons']['episodes'][jdx]['name']) or str(meta['tmdb_seasons']['episodes'][jdx]['name']) in str(i['name']) :
@@ -1169,7 +1222,7 @@ def cloud_get_ep_season(rd_api, meta, torr_id, torr_info):
 							#log(guess1,guess2)
 							if guess1['episode_title'] == guess2['episode_title']:
 								tvmaze_adjusted_eps.append(jdx+1)
-								#log(i['name'], jdx+1,2a2a2a)
+								#log(i['name'], jdx+1,2323232)
 								#log(curr_tmdb_name)
 								break
 				elif i['name'] == curr_tmdb_name or str(i['name']) in str(curr_tmdb_name) or str(curr_tmdb_name) in str(i['name']):
@@ -1249,10 +1302,26 @@ def cloud_get_ep_season(rd_api, meta, torr_id, torr_info):
 			if int(ij) == int(test_ep):
 				if int(ij) != int(result_dict['episode_numbers'][ijx]):
 					messed_up_numbering_flag = True
-					new_info = meta[meta_source]['episodes'][int(result_dict['episode_numbers'][ijx])-1]
-					#tools.log(new_info)
+					new_info = meta[meta_source]['episodes'][int(result_dict['episode_numbers'][torr_ep_index])-1]
+					tools.log(new_info)
 					new_meta = get_meta.get_episode_meta(season=new_info['season'],episode=new_info['episode'],tmdb=new_info['tmdb'])
 					break
+			if result_dict['alt_ep_num'][ijx-1] == result_dict['alt_ep_num'][ijx] and int(test_ep) == result_dict['alt_ep_num'][ijx+1]:
+				if result_dict['alt_ep_num'][-1] < result_dict['episode_numbers'][-1]:
+					#torr_ep_index = torr_ep_index -1
+					if int(ij) != int(result_dict['episode_numbers'][ijx]):
+						messed_up_numbering_flag = True
+						new_info = meta[meta_source]['episodes'][int(result_dict['episode_numbers'][torr_ep_index])-1]
+						tools.log(new_info)
+						test_ep = int(ij)
+						new_meta = get_meta.get_episode_meta(season=new_info['season'],episode=new_info['episode'],tmdb=new_info['tmdb'])
+						break
+					#tools.log('ijx',result_dict['alt_ep_num'][ijx])
+					#tools.log('torr_ep_index',result_dict['alt_ep_num'][torr_ep_index])
+					#tools.log('simple_info',simple_info['episode_number'])
+					#tools.log('test_ep',test_ep)
+					#tools.log('ij',ij)
+					#tools.log('ijx',result_dict['episode_numbers'][ijx])
 
 
 	if messed_up_numbering_flag == True:
@@ -2467,6 +2536,100 @@ def cached_magnet(magnet_link, file_path, torr_id, download_folder):
 
 		remove_line_from_file(file_path, magnet_link)
 		log("All files downloaded. Removed magnet link from the file.")
+
+def rd_delete_dupes():
+	rd_api = real_debrid.RealDebrid()
+	i = 0
+	result = None
+	names = []
+	while result == None:
+		i = i + 1
+	#for i in range(1,99):
+		tools.log('PAGE_NUMBER', i)
+		result = rd_api.list_torrents_page(int(i))
+		for x in result:
+			#tools.log(x)
+			if x['status'] != 'downloaded' and x['status'] != 'downloading':
+				check_hash = rd_api.check_hash([x['hash']])
+				if len(x['links']) == 0:
+					tools.log('ERROR_DELETE=' + x['filename'])
+					#tools.log(check_hash)
+					delete_torrent = rd_api.delete_torrent(x['id'])
+					tools.log(delete_torrent)
+					break_flag = True
+			pass_count = 0
+			if x['status'] == 'downloading':
+				pass_count = 1
+			break_flag = False
+			if x['filename'] in names:
+				tools.log(x['filename'])
+				tools.log('DELETE_DUPLICATE=' + x['filename'])
+				delete_torrent = rd_api.delete_torrent(x['id'])
+				tools.log(delete_torrent)
+				break_flag = True
+			if break_flag == False:
+				for j in x['links']:
+					torr_link = rd_api.resolve_hoster(j)
+					torr_link = rd_api.test_download_link(torr_link,rar_test=False)
+					if torr_link:
+						pass_count = pass_count + 1
+				if pass_count == 0:
+					tools.log('DELETE_NO_LINKS=' + x['filename'])
+					delete_torrent = rd_api.delete_torrent(x['id'])
+					tools.log(delete_torrent)
+			if x['status'] != 'downloading':
+				names.append(x['filename'])
+		if type(result).__name__ == 'list':
+			result = None
+
+	try: continue_check = input('Check Downloads:  Y/y to continue\n')
+	except: continue_check = None
+	if continue_check and str(continue_check).lower() == 'y':
+		continue_check = True
+	else:
+		continue_check = False
+		return
+
+	i = 0
+	result = None
+	names = []
+	while result == None:
+		i = i + 1
+		tools.log('PAGE_NUMBER', i)
+		result = rd_api.list_downloads_page(int(i))
+		for x in result:
+			#PTN_link = x['download']
+			#PTN_link_pos = PTN_link.find('/d/')+3
+			#PTN_link_pos2 = PTN_link_pos+13
+			#PTN_link = PTN_link[0:PTN_link_pos2] + '/'
+			tools.log(str(x['download']).split('/')[-1])
+			#torr_link = rd_api.resolve_hoster(PTN_link)
+			if str(x['download']).split('/')[-1] in names:
+				RD_link = str(x['download']).split('/')[4]
+				delete_download = rd_api.delete_download(RD_link)
+				tools.log(delete_download)
+				tools.log('DELETE_DOWNLOAD_DUPLICATE' + x['filename'])
+				continue
+			torr_link = rd_api.test_download_link(x['download'],rar_test=False)
+			tools.log(torr_link)
+			if not torr_link:
+				RD_link = str(x['download']).split('/')[4]
+				delete_download = rd_api.delete_download(RD_link)
+				tools.log(delete_download)
+				tools.log('DELETE_DOWNLOAD_' + x['filename'])
+
+			names.append(str(x['download']).split('/')[-1])
+		if type(result).__name__ == 'list':
+			result = None
+			#try:
+			#	PTN_download = torr_link
+			#	RD_link = str(PTN_download).split('/')[4]
+			#	delete_download = rd_api.delete_download(RD_link)
+			#	tools.log('DELETE_DOWNLOAD_' + x['filename'])
+			#except:
+			#	RD_link = str(PTN_link).split('/')[4]
+			#	delete_download = rd_api.delete_download(RD_link)
+			#	tools.log('DELETE_DOWNLOAD_' + x['filename'])
 
 
 def rd_auth():

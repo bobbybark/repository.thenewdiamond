@@ -502,6 +502,17 @@ def start_info_actions(infos, params):
 
 
 		elif info == 'test_route':
+			#from resources.lib.library import trakt_collection_movies
+			#movies = trakt_collection_movies()
+			#for i in movies:
+			#	xbmc.log(str(i)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			#xbmc.log(str(movies)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			from resources.lib.library import trakt_uncollected_watched_movies
+			#from resources.lib.library import trakt_unwatched_collection_movies
+			movies = trakt_uncollected_watched_movies()
+			xbmc.log(str(movies)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+			Utils.hide_busy()
+			return
 			#from resources.lib.TheMovieDB import get_trakt_userlists
 			#from resources.lib.library import trak_auth
 			#trakt_data = get_trakt_userlists()

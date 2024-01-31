@@ -11,7 +11,7 @@ from inspect import currentframe, getframeinfo
 def __download(core, filepath, request):
 	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 	#tools.log(filepath)
-	request['stream'] = False
+	request['stream'] = True
 
 	with core.request.execute(core, request) as r:
 		with open(filepath, 'wb') as f:
@@ -163,7 +163,10 @@ def download(core, params):
 
 	if sub_ext_checked:
 		filename = filename.replace('.srt',sub_ext_checked)
-	archivepath = core.os.path.join(core.utils.temp_dir, 'sub.zip')
+	if actions_args.get('gzip', False):
+		archivepath = core.os.path.join(core.utils.temp_dir, 'sub.gzip')
+	else:
+		archivepath = core.os.path.join(core.utils.temp_dir, 'sub.zip')
 
 	service_name = params['service_name']
 	service = core.services[service_name]
@@ -180,10 +183,10 @@ def download(core, params):
 		download_filepath = __download(core, archivepath, request)
 		
 		if actions_args.get('gzip', False) or 'gzip' in download_filepath:
-			#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+			tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 			filepath = __extract_gzip(core, archivepath, filename)
 		else:
-			#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+			tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 			episodeid = actions_args.get('episodeid', '')
 			filepath = __extract_zip(core, archivepath, filename, episodeid)
 

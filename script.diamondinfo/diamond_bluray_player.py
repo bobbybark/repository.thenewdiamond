@@ -381,6 +381,25 @@ def next_ep_play_movie(movie_year, movie_title, tmdb, menu):
 	#	#con.commit()
 	#except:
 	#	pass
+	try:
+		file_name = BDMV.split('/')[-1]
+		sql_result = cur.execute("SELECT idfile,strFilename  from files where strFilename = '"+str(file_name)+"' ;").fetchall()
+		for i in sql_result:
+			id_file = i[0]
+			delete_result = cur.execute("DELETE FROM stacktimes WHERE idFile  = '"+str(id_file)+"' ;")
+			#delete_result = cur.execute("DELETE FROM movie WHERE idFile  = '"+str(id_file)+"' ;")
+			delete_result = cur.execute("DELETE FROM settings WHERE idFile  = '"+str(id_file)+"' ;")
+			#delete_result = cur.execute("DELETE FROM episode WHERE idFile  = '"+str(id_file)+"' ;")
+			delete_result = cur.execute("DELETE FROM bookmark WHERE idFile  = '"+str(id_file)+"' ;")
+			delete_result = cur.execute("DELETE FROM streamdetails WHERE idFile  = '"+str(id_file)+"' ;")
+			#delete_result = cur.execute("DELETE FROM musicvideo WHERE idFile  = '"+str(id_file)+"' ;")
+			delete_result = cur.execute("DELETE FROM files WHERE idFile  = '"+str(id_file)+"' ;")
+		con.commit()
+	except:
+		pass
+	cur.close()
+
+
 	cur.close()
 	con.close()
 

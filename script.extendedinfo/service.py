@@ -347,7 +347,7 @@ class PlayerMonitor(xbmc.Player):
 
 
 		try: 
-			test = str(year)+str(trakt)+'"'+slug+'"'+'"'+imdb+'"'+ +str(tmdb)+str(percent)
+			test = str(year)+str(trakt)+'"'+slug+'"'+'"'+imdb+'"'+str(tmdb)+str(percent)
 		except:
 			response = None
 			return response
@@ -837,7 +837,7 @@ class PlayerMonitor(xbmc.Player):
 		json_object  = json.loads(json_result)
 		self.player_meta['VideoPlayer.Year'] = str(json_object['result']['VideoPlayer.Year'])
 		self.player_meta['timestamp']= json_object['result']['VideoPlayer.Duration']
-		try: self.player_meta['resume_duration'] = functools.reduce(lambda x, y: x*60+y, [int(i) for i in (timestamp.replace(':',',')).split(',')])
+		try: self.player_meta['resume_duration'] = functools.reduce(lambda x, y: x*60+y, [int(i) for i in (self.player_meta['timestamp'].replace(':',',')).split(',')])
 		except: self.player_meta['resume_duration'] = 60
 
 		if ('trailer' in str(json_result).lower() and self.player_meta['resume_duration'] < 300) or 'plugin.video.youtube' in str(json_result).lower():
@@ -848,7 +848,10 @@ class PlayerMonitor(xbmc.Player):
 
 		tools.log(json_result)
 
-		PTN_info = get_guess(json_object['result']['Player.Filename'])
+		if 'index.bdmv' != json_object['result']['Player.Filename']:
+			PTN_info = get_guess(json_object['result']['Player.Filename'])
+		else:
+			PTN_info = {}
 
 		self.player_meta['VideoPlayer.Title'] = json_object['result']['VideoPlayer.Title']
 		if json_object['result']['VideoPlayer.TVShowTitle'] != '':
@@ -869,6 +872,7 @@ class PlayerMonitor(xbmc.Player):
 			if response.get('movie_results','') != '':
 				self.type = 'movie'
 				PTN_info['type'] = 'movie'
+				self.player_meta['global_movie_flag'] = True
 			elif response.get('tv_results','') != '':
 				self.type = 'episode'
 				PTN_info['type'] = 'episode'
@@ -913,6 +917,14 @@ class PlayerMonitor(xbmc.Player):
 		if 'tt' in str(self.player_meta['imdb_id']) and self.type == 'movie':
 			self.player_meta['tmdb_id'] = TheMovieDB.get_movie_tmdb_id(imdb_id=self.player_meta['imdb_id'])
 			self.player_meta['trakt_tmdb_id'] = self.player_meta['tmdb_id']
+			self.player_meta['global_movie_flag'] = True
+			if json_object['result'].get('VideoPlayer.Year',False):
+				self.player_meta['VideoPlayer.Year'] = str(json_object['result']['VideoPlayer.Year'])
+				self.player_meta['movie_year'] = str(json_object['result']['VideoPlayer.Year'])
+			if json_object['result'].get('VideoPlayer.Title',False):
+				self.player_meta['movie_title'] = str(json_object['result']['VideoPlayer.Title'])
+				self.player_meta['title'] = str(json_object['result']['VideoPlayer.Title'])
+
 
 		if 'tt' in str(self.player_meta['imdb_id']) and self.type == 'episode':
 			self.player_meta['tmdb_id'] = TheMovieDB.get_show_tmdb_id(imdb_id=self.player_meta['imdb_id'])
@@ -965,6 +977,7 @@ class PlayerMonitor(xbmc.Player):
 		self.playing_file = player.getPlayingFile()
 		self.player_meta['playing_file'] = self.playing_file
 
+		#tools.log(self.player_meta)
 		try: 
 			languages = TheMovieDB.get_imdb_language(self.player_meta['imdb_id'])
 		except Exception as e:

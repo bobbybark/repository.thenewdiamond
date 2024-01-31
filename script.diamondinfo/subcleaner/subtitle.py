@@ -258,13 +258,17 @@ class FileContentException(Exception):
 
 
 def read_file(file: Path) -> str:
-    file_content: str
+	file_content: str
 
-    try:
-        with file.open("r", encoding="utf-8-sig") as opened_file:
-            file_content = opened_file.read()
-    except UnicodeDecodeError:
-        with file.open("r", encoding="cp1252") as opened_file:
-            file_content = opened_file.read()
+	try:
+		with file.open("r", encoding="utf-8-sig") as opened_file:
+			file_content = opened_file.read()
+	except UnicodeDecodeError:
+		try:
+			with file.open("r", encoding="utf-16-le") as opened_file:
+				file_content = opened_file.read()
+		except UnicodeError:
+				with file.open("r", encoding="cp1252") as opened_file:
+					file_content = opened_file.read()
 
-    return file_content
+	return file_content

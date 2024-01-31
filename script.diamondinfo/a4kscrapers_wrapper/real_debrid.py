@@ -483,7 +483,7 @@ class RealDebrid:
 		self.UNRESTRICT_FILE_SIZE = filesize
 		return filesize
 
-	def test_download_link(self,download_link):
+	def test_download_link(self,download_link,rar_test=True):
 		if not download_link:
 			return None
 		try: 
@@ -493,7 +493,7 @@ class RealDebrid:
 			self.UNRESTRICT_FILE_ID = download_link.split('/')[4]
 			self.delete_download(self.UNRESTRICT_FILE_ID)
 			return None
-		if download_link[-4:] == '.rar':
+		if download_link[-4:] == '.rar' and rar_test:
 			self.UNRESTRICT_FILE_ID = download_link.split('/')[4]
 			self.delete_download(self.UNRESTRICT_FILE_ID)
 			return None

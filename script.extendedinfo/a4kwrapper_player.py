@@ -1173,6 +1173,7 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 				from pathlib import Path
 				for i in subs_list:
 					sub = Path(i)
+					tools.log('CLEANING',sub)
 					clean_file.clean_file(sub)
 				tools.sub_cleaner_log_clean()
 				clean_file.files_handled = []
