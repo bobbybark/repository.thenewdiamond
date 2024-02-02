@@ -1280,6 +1280,18 @@ def cloud_get_ep_season(rd_api, meta, torr_id, torr_info):
 		test_ep = int(simple_info['episode_number'])
 	#log(simple_info['episode_number'])
 
+	test_ep_adjust = 0
+	for ijx, ij in enumerate(result_dict['alt_ep_num']):
+		#tools.log(ij,'alt_ep_num')
+		if ijx > 0 and result_dict['alt_ep_num'][ijx-1] == ij:
+			test_ep_adjust = test_ep_adjust + 1 
+		if ij == test_ep:
+			break
+	test_ep = test_ep - test_ep_adjust
+	if test_ep_adjust > 0:
+		log('test_ep_adjust - %s, test_ep = %s' % (test_ep_adjust, test_ep))
+
+
 	for ijx, ij in enumerate(result_dict['alt_ep_num']):
 		torr_ep_index = ijx
 		if 'list' in str(type(ij)):
@@ -1306,24 +1318,24 @@ def cloud_get_ep_season(rd_api, meta, torr_id, torr_info):
 					tools.log(new_info)
 					new_meta = get_meta.get_episode_meta(season=new_info['season'],episode=new_info['episode'],tmdb=new_info['tmdb'])
 					break
-			if result_dict['alt_ep_num'][ijx-1] == result_dict['alt_ep_num'][ijx] and int(test_ep) == result_dict['alt_ep_num'][ijx+1]:
-				if result_dict['alt_ep_num'][-1] < result_dict['episode_numbers'][-1]:
-					#torr_ep_index = torr_ep_index -1
-					if int(ij) != int(result_dict['episode_numbers'][ijx]):
-						messed_up_numbering_flag = True
-						new_info = meta[meta_source]['episodes'][int(result_dict['episode_numbers'][torr_ep_index])-1]
-						tools.log(new_info)
-						test_ep = int(ij)
-						new_meta = get_meta.get_episode_meta(season=new_info['season'],episode=new_info['episode'],tmdb=new_info['tmdb'])
-						break
-					#tools.log('ijx',result_dict['alt_ep_num'][ijx])
-					#tools.log('torr_ep_index',result_dict['alt_ep_num'][torr_ep_index])
-					#tools.log('simple_info',simple_info['episode_number'])
-					#tools.log('test_ep',test_ep)
-					#tools.log('ij',ij)
-					#tools.log('ijx',result_dict['episode_numbers'][ijx])
+			#if result_dict['alt_ep_num'][ijx-1] == result_dict['alt_ep_num'][ijx] and int(test_ep) == result_dict['alt_ep_num'][ijx+1]:
+			#	if result_dict['alt_ep_num'][-1] < result_dict['episode_numbers'][-1]:
+			#		#torr_ep_index = torr_ep_index -1
+			#		if int(ij) != int(result_dict['episode_numbers'][ijx]):
+			#			messed_up_numbering_flag = True
+			#			new_info = meta[meta_source]['episodes'][int(result_dict['episode_numbers'][torr_ep_index])-1]
+			#			tools.log(new_info)
+			#			test_ep = int(ij)
+			#			new_meta = get_meta.get_episode_meta(season=new_info['season'],episode=new_info['episode'],tmdb=new_info['tmdb'])
+			#			break
+			#		#tools.log('ijx',result_dict['alt_ep_num'][ijx])
+			#		#tools.log('torr_ep_index',result_dict['alt_ep_num'][torr_ep_index])
+			#		#tools.log('simple_info',simple_info['episode_number'])
+			#		#tools.log('test_ep',test_ep)
+			#		#tools.log('ij',ij)
+			#		#tools.log('ijx',result_dict['episode_numbers'][ijx])
 
-
+	#tools.log('test_ep',test_ep)
 	if messed_up_numbering_flag == True:
 		for ijx, ij in enumerate(result_dict['alt_ep_num']):
 			try: 
