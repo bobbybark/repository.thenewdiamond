@@ -300,6 +300,7 @@ def __wait_threads(core, request_threads):
 	core.utils.wait_threads(threads)
 
 def __complete_search(core, results):
+	#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 	if core.api_mode_enabled:
 		return results
 

@@ -1859,6 +1859,7 @@ def match_episodes_season_pack(meta, sorted_torr_info):
 				except:
 					continue
 
+		#tools.log(matched_episodes,'matched_episodes')
 		for xdx, x in enumerate(meta[meta_source]['episodes']):
 			ep_title = x['name'].lower()
 			ep_title = re.sub("[\x00-\x2F\x3A-\x40\x5B-\x60\x7B-\x7F]+", " ", ep_title.lower())
@@ -1897,6 +1898,9 @@ def match_episodes_season_pack(meta, sorted_torr_info):
 					guess_episode = guess.get('episode') 
 					simple_info = tools._build_simple_show_info(meta[meta_source]['episodes'][int(i)-1])
 					part_number_title, part_number_release, part_match_title, part_match_release = parts_check(simple_info, pack_path)
+					#tools.log(simple_info,'simple_info')
+					#tools.log(pack_path,'pack_path')
+					#tools.log(part_number_title, part_number_release, part_match_title, part_match_release)
 					if episode_title:
 						#tools.log(distance.jaro_similarity(ep_title, episode_title))
 						#tools.log(ep_title, episode_title)
@@ -1922,6 +1926,18 @@ def match_episodes_season_pack(meta, sorted_torr_info):
 									match = True
 								elif part_number_title == part_number_release:
 									match = True
+						if match == False:
+							try:
+								if part_number_release[-1] == part_number_title[-1] and str(part_number_title[-1]) in str(part_match_release[-1]):
+									if ep_title == episode_title or distance.jaro_similarity(ep_title, episode_title) > 0.8:
+										match = True
+										#tools.log(simple_info,'simple_info,match = True')
+							except:
+								#tools.log(simple_info,'simple_info')
+								#tools.log(pack_path,'pack_path')
+								#tools.log(result_dict,'result_dict')
+								#tools.log(part_number_title, part_number_release, part_match_title, part_match_release)
+								match = False
 					else:
 						if guess_episode == i and guess_season == int(meta[meta_source]['episodes'][int(i)-1]['season']):
 							match = True
@@ -1954,6 +1970,8 @@ def match_episodes_season_pack(meta, sorted_torr_info):
 		result_dict_sorted['pack_paths'] = []
 		result_dict_sorted['alt_ep_num'] = []
 		result_dict_sorted['concat'] = []
+
+		#tools.log(result_dict)
 
 		for i in range(min(result_dict['episode_numbers']),max(result_dict['episode_numbers'])+1):
 			idx = result_dict['episode_numbers'].index(i)

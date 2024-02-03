@@ -437,17 +437,19 @@ class SubtitleService(object):
 			#self.base_request['VIDEO_META'] = self.VIDEO_META
 			result = r.search(self.base_request)
 			#tools.log(result)
-			if total_result > 66:
+			if total_result > 99:
 				break
 			for i in result:
 				i['VIDEO_META'] = self.VIDEO_META
 				if not "impaired': 'true" in str(i):
 					result_store.append(i)
 					total_result = total_result + 1
-				if total_result > 66:
+				if total_result > 99:
 					break
 
+		#tools.log(result_store)
 		download_type = self.VIDEO_META.get('download_type',False)
+		"""
 		#if download_type == 'movie':
 		#	simple_info = tools._build_simple_movie_info(self.VIDEO_META)
 		#	simple_info['imdb_id'] = self.VIDEO_META['imdb_id']
@@ -468,6 +470,8 @@ class SubtitleService(object):
 
 		#	if ': True' in str(test):
 		#		source_list.append({'pack_title': i['name'], 'release_title': i['name'], 'filename': i['name'], 'pack_size': 999, 'size': 999, 'info': tools.get_info(i['name']), 'quality': tools.get_quality(i['name'])})
+		
+		##################
 		source_list = []
 		if download_type == 'movie':
 			input_guess = get_guess(self.VIDEO_META['file_name'])
@@ -533,6 +537,8 @@ class SubtitleService(object):
 					continue
 				#tools.log(guess)
 		new_source_list = tools.SourceSorter(self.VIDEO_META).sort_sources(source_list)
+		##################
+
 
 		#tools.log('new_source_list_SUBTITLES_RESULTS')
 		#for i in new_source_list:
@@ -542,6 +548,7 @@ class SubtitleService(object):
 		#tools.log('new_source_list',new_source_list)
 		#tools.log('result_store',result_store)
 		#tools.log(source_list)
+		##################
 		result_store2 = result_store
 		result_store = []
 		for x in new_source_list:
@@ -556,6 +563,8 @@ class SubtitleService(object):
 		#tools.log(result_store)
 		#for i in result_store:
 		#	tools.log(i['name'])
+		##################
+		"""
 		"""
 		input_guess = get_guess(self.VIDEO_META['file_name'])
 		#tools.log(input_guess)
@@ -604,6 +613,7 @@ class SubtitleService(object):
 		#tools.log(result_store_sorted)
 		result_store = result_store_sorted
 		"""
+		##################
 		sources = [A4kSubtitlesAdapter(self.VIDEO_META)]
 		#result_store[0]['VIDEO_META'] = self.VIDEO_META
 		#tools.log(result_store)
@@ -624,7 +634,8 @@ class SubtitleService(object):
 				os.mkdir(utils.temp_dir2)
 			for r in sources:
 				sub_result = r.download(foreign_parts[0])
-				tools.log(foreign_parts[0]['name'], foreign_parts[0]['service'])
+				try: tools.log(foreign_parts[0]['action_args']['filename'], foreign_parts[0]['service'])
+				except: tools.log(foreign_parts[0]['name'], foreign_parts[0]['service'])
 				break
 			#result_foreign = os.path.splitext(sub_result)[0] + '.FOREIGN.PARTS' +os.path.splitext(sub_result)[1]
 			result_foreign = os.path.splitext(sub_result)[0] + '.FORCED' +os.path.splitext(sub_result)[1]
@@ -636,7 +647,8 @@ class SubtitleService(object):
 		for r in sources:
 			try: 
 				sub_result = r.download(normal_subs[0])
-				tools.log(normal_subs[0]['name'], normal_subs[0]['service'])
+				try: tools.log(normal_subs[0]['action_args']['filename'], normal_subs[0]['service'])
+				except: tools.log(normal_subs[0]['name'], normal_subs[0]['service'])
 			except Exception as e: 
 				if 'zipfile.BadZipFile' in str(e):
 					pass
