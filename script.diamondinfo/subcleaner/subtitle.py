@@ -110,6 +110,7 @@ class Subtitle:
                 e.file_line = line_lookup.get(lines[last_break + 1], None)
             logger.warning(str(e))
 
+        #logger.warning(lines)
         for i in range(start_index, len(lines)):
             line = lines[i]
             previous_line = lines[i-1]
@@ -256,10 +257,51 @@ class FileContentException(Exception):
     def __str__(self) -> str:
         return f"File {self.subtitle_file} is empty."
 
+import sys
+if int(sys.version[0]) != 3:
+    print('Aborted: Python 3.x required')
+    sys.exit(1)
+
+def bomType(file):
+    """
+    returns file encoding string for open() function
+
+    EXAMPLE:
+        bom = bomtype(file)
+        open(file, encoding=bom, errors='ignore')
+    """
+
+    f = open(file, 'rb')
+    b = f.read(4)
+    f.close()
+
+    if (b[0:3] == b'\xef\xbb\xbf'):
+        return "utf8"
+
+    # Python automatically detects endianess if utf-16 bom is present
+    # write endianess generally determined by endianess of CPU
+    if ((b[0:2] == b'\xfe\xff') or (b[0:2] == b'\xff\xfe')):
+        return "utf16"
+
+    if ((b[0:5] == b'\xfe\xff\x00\x00') 
+              or (b[0:5] == b'\x00\x00\xff\xfe')):
+        return "utf32"
+
+    # If BOM is not provided, then assume its the codepage
+    #     used by your operating system
+    return "cp1252"
+    # For the United States its: cp1252
+
+
+def OpenRead(file):
+    bom = bomType(file)
+    return open(file, 'r', encoding=bom, errors='ignore')
+
 
 def read_file(file: Path) -> str:
 	file_content: str
 
+	"""
 	try:
 		with file.open("r", encoding="utf-8-sig") as opened_file:
 			file_content = opened_file.read()
@@ -270,5 +312,12 @@ def read_file(file: Path) -> str:
 		except UnicodeError:
 				with file.open("r", encoding="cp1252") as opened_file:
 					file_content = opened_file.read()
-
+	"""
+	try:
+		opened_file = OpenRead(file)
+		file_content = opened_file.read()
+		opened_file.close()
+	except UnicodeDecodeError:
+		with file.open("r", encoding="utf-16-le") as opened_file:
+			file_content = opened_file.read()
 	return file_content

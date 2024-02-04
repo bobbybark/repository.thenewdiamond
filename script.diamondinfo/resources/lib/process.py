@@ -1265,125 +1265,6 @@ def start_info_actions(infos, params):
 			Utils.hide_busy()
 
 
-
-		elif info == 'test_urllib3':
-			import subs_file_hash3
-			return
-			import requests, tempfile
-			from urllib3 import PoolManager
-			#custom_pool_manager = PoolManager(enforce_content_length=False)
-
-			test_url = 'https://20.download.real-debrid.com/d/N4FV42TZDT5RU/Frasier.S03E23.1080p.BluRay.x265-RARBG.mp4'
-
-			__64k = 65536
-			response = requests.head(test_url)
-			filesize = int(response.headers['content-length'])
-
-
-			#if filesize < __64k * 2:
-			#	try: filesize = int(str(response.headers['content-range']).split('/')[1])
-			#	except: pass
-
-			xbmc.log(str('=======================')+'indexes===>OPENINFO', level=xbmc.LOGINFO)
-			#xbmc.log(str(filesize)+'indexes===>OPENINFO', level=xbmc.LOGINFO)
-			#xbmc.log(str(response.headers)+'indexes===>OPENINFO', level=xbmc.LOGINFO)
-			#headers = {"Range": 'bytes=0-%s' % (str(__64k))}; print(headers)
-			#r = requests.get(test_url, headers=headers)
-
-			session = requests.Session()
-			custom_pool_manager = PoolManager(enforce_content_length=False)
-			session.mount('https://', custom_pool_manager)
-			session.mount('http://', custom_pool_manager)
-
-
-			# Update the urllib3 default configuration
-			custom_pool_manager.connection_pool_kw['block'] = True
-
-
-			if filesize > 0:
-				headers = {"Range": 'bytes=%s-%s' % (filesize - __64k, filesize)}
-			#r = requests.get(test_url, headers=headers, enforce_content_length=False)
-			requests.sessions.DEFAULT_POOLMANAGER = custom_pool_manager
-
-			file = tempfile.NamedTemporaryFile()
-			last_64kb = file.name
-			# Make the request using the custom PoolManager
-
-			from urllib3.exceptions import IncompleteRead
-			with requests.Session() as session:
-				try:
-					response = session.get(test_url, headers=headers, stream=True)
-					# Ensure that the response was successful
-					response.raise_for_status()
-
-					# Read the last 64 KB of the content
-					content = response.content[-65536:]
-					with open(last_64kb, 'wb') as f:
-						for chunk in content.iter_content(chunk_size=1024): 
-							if chunk: # filter out keep-alive new chunks
-								f.write(chunk)
-				except IncompleteRead as e:
-					# Handle the incomplete read error
-					print(f"IncompleteRead error: {e}")
-
-
-			xbmc.log(str(headers)+'indexes===>OPENINFO', level=xbmc.LOGINFO)
-			#exit()
-			return
-
-			#import sys
-			#sys.path.insert(1, '/usr/lib/python3/dist-packages')
-			##__requires__= 'urllib3==1.26.5'
-			#import pkg_resources,importlib
-			#pkg_resources.require("urllib3==`1.26.5")
-			#import urllib3
-			#xbmc.log(str(urllib3.__file__)+'indexes===>OPENINFO', level=xbmc.LOGINFO)
-			#exit()
-			
-			#import subs
-			import requests, tempfile
-			test_url = 'https://20.download.real-debrid.com/d/N4FV42TZDT5RU/Frasier.S03E23.1080p.BluRay.x265-RARBG.mp4'
-			#test_url = 'https://samples.mplayerhq.hu/HDTV/Day_after_Tomorrow.ts'
-			#test = subs.hashFile_url(test_url)
-			#xbmc.log(str(test)+'indexes===>OPENINFO', level=xbmc.LOGINFO)
-			#exit()
-			#f = request.urlopen(url, verify=False)
-			__64k = 65536
-			response = requests.head(test_url)
-			filesize = int(response.headers['content-length'])
-
-			#filesize = int(f.headers['Content-Length'])
-			if filesize < __64k * 2:
-				#try: filesize = int(str(f.headers['Content-Range']).split('/')[1])
-				#except: pass
-				try: filesize = int(str(response.headers['content-range']).split('/')[1])
-				except: pass
-
-			file = tempfile.NamedTemporaryFile()
-			first_64kb = file.name
-			file = tempfile.NamedTemporaryFile()
-			last_64kb = file.name
-
-			headers = {"Range": 'bytes=0-%s' % (str(__64k))}
-			r = requests.get(test_url, headers=headers)
-			with open(first_64kb, 'wb') as f:
-				for chunk in r.iter_content(chunk_size=1024): 
-					if chunk: # filter out keep-alive new chunks
-						f.write(chunk)
-
-			if filesize > 0:
-				headers = {"Range": 'bytes=%s-%s' % (filesize - __64k, filesize)}
-
-			r = requests.get(test_url, headers=headers)
-			with open(last_64kb, 'wb') as f:
-				for chunk in r.iter_content(chunk_size=1024): 
-					if chunk: # filter out keep-alive new chunks
-						f.write(chunk)
-
-			xbmc.log(str(headers)+'indexes===>OPENINFO', level=xbmc.LOGINFO)
-			xbmc.log(str(test_url)+'indexes===>OPENINFO', level=xbmc.LOGINFO)
-			xbmc.log(str(last_64kb)+'indexes===>OPENINFO', level=xbmc.LOGINFO)
-
 		elif info == 'patch_urllib3':
 			Utils.show_busy()
 			Utils.patch_urllib()
@@ -1468,7 +1349,7 @@ def start_info_actions(infos, params):
 			xbmc.log(str(file_path)+'===>OPENINFO', level=xbmc.LOGINFO)
 			Utils.hide_busy()
 			return
-			#xbmc.log(str(fenlight_path)+'===>OPENINFO', level=xbmc.LOGINFO)
+
 			file1 = open(file_path, 'r')
 			lines = file1.readlines()
 			new_file = ''
@@ -1502,26 +1383,10 @@ def start_info_actions(infos, params):
 			file_path = os.path.join(os.path.join(Utils.ADDON_PATH.replace(addon_ID(),'plugin.video.themoviedb.helper'), 'resources', 'tmdbhelper','lib','player') , 'players.py')
 			if not os.path.exists(file_path):
 				file_path = os.path.join(os.path.join(Utils.ADDON_PATH.replace(addon_ID(),'plugin.video.themoviedb.helper'), 'resources', 'lib','player') , 'players.py')
-			#from distutils.dir_util import copy_tree
-			#skin_source = os.path.join(Utils.ADDON_PATH, 'resources' , 'skins', 'skin.estuary_fen_light')
-			#skin_dest = os.path.join(os.path.join(Utils.ADDON_PATH.replace(addon_ID(),'plugin.video.fenlight'), 'resources', 'skins'), 'Custom','skin.estuary')
 
 			themoviedb_helper_path = os.path.join(Utils.ADDON_PATH.replace(addon_ID(),'plugin.video.themoviedb.helper'))
-			#if os.path.exists(themoviedb_helper_path):
-			#	if not os.path.exists(skin_dest):
-			#		copy_tree(skin_source, skin_dest)
-			#		xbmc.log(str(skin_dest)+'_FENLIGHT_SKIN===>OPENINFO', level=xbmc.LOGINFO)
-			
-			#fen_path = os.path.join(Utils.ADDON_PATH.replace(addon_ID(),'plugin.video.fen'))
-			#skin_source = os.path.join(Utils.ADDON_PATH, 'resources' , 'skins', 'skin.estuary_fen')
-			#skin_dest = os.path.join(os.path.join(Utils.ADDON_PATH.replace(addon_ID(),'plugin.video.fen'), 'resources', 'skins'), 'Custom','skin.estuary')
-			#if os.path.exists(fen_path):
-			#	if not os.path.exists(skin_dest):
-			#		copy_tree(skin_source, skin_dest)
-			#		xbmc.log(str(skin_dest)+'_FEN_SKIN===>OPENINFO', level=xbmc.LOGINFO)
-
 			xbmc.log(str(file_path)+'===>OPENINFO', level=xbmc.LOGINFO)
-			#xbmc.log(str(fenlight_path)+'===>OPENINFO', level=xbmc.LOGINFO)
+
 			file1 = open(file_path, 'r')
 			lines = file1.readlines()
 			new_file = ''

@@ -132,27 +132,24 @@ def hashFile_url(filepath):
 		#request.urlcleanup()
 		import requests
 
-		response = requests.head(url, verify=False)
+		response = requests.head(url)#, verify=False)
 		filesize = int(response.headers['content-length'])
 
 		if filesize < __64k * 2:
 			try: filesize = int(str(response.headers['content-range']).split('/')[1])
 			except: pass
 
-
 		first_64kb = temp_file()
 		last_64kb = temp_file()
 
-		#headers = {"Range": 'bytes=0-%s' % (str(__64k))}
 		headers = {"Range": 'bytes=0-%s' % (str(__64k -1 ))}
-		r = requests.get(url, headers=headers, verify=False)
+		r = requests.get(url, headers=headers)#, verify=False)
 		with open(first_64kb, 'wb') as f:
 			for chunk in r.iter_content(chunk_size=1024): 
 				if chunk: # filter out keep-alive new chunks
 					f.write(chunk)
 
 		if filesize > 0:
-			#headers = {"Range": 'bytes=%s-%s' % (filesize - __64k, filesize)}
 			headers = {"Range": 'bytes=%s-%s' % (filesize - __64k, filesize-1)}
 		else:
 			f.close()
@@ -160,7 +157,7 @@ def hashFile_url(filepath):
 			return "SizeError", 0
 
 		try:
-			r = requests.get(url, headers=headers, verify=False)
+			r = requests.get(url, headers=headers)#, verify=False)
 			with open(last_64kb, 'wb') as f:
 				for chunk in r.iter_content(chunk_size=1024): 
 					if chunk: # filter out keep-alive new chunks
