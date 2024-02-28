@@ -292,6 +292,31 @@ except ImportError:
 	from imp import reload as reload_module
 
 
+def patch_ak4_core_find_url():
+
+	patch_line_434 = """if self.caller_name in ['anirena'"""
+	patch_update_434 = """        if self.caller_name in ['anirena', 'btdig', 'bt4g', 'btscene', 'glo', 'eztv', 'lime', 'rutor', 'torrentapi', 'torrentz2', 'showrss', 'scenerls', 'piratebay', 'magnetdl', 'torrentio', 'elfhosted']: ## PATCH
+"""
+	file_path = os.path.join(os.path.join(tools.ADDON_USERDATA_PATH, 'providerModules', 'a4kScrapers') , 'core.py')
+	file1 = open(file_path, 'r')
+	lines = file1.readlines()
+	new_file = ''
+	update_flag = False
+	for idx, line in enumerate(lines):
+		if '## PATCH' in str(line):
+			update_flag = False
+			break
+		if patch_line_434 in str(line):
+			new_file = new_file + patch_update_434
+			update_flag = True
+		else:
+			new_file = new_file + line
+	file1.close()
+	if update_flag:
+		file1 = open(file_path, 'w')
+		file1.writelines(new_file)
+		file1.close()
+
 
 def patch_ak4_requests():
 	#tools.log('NO_PATCH')
@@ -929,7 +954,7 @@ def run_tv_search():
 	return
 
 def run_keyword_search():
-	info = {'mediatype': 'movie', 'download_type': 'movie', 'episode': '', 'imdb_id': None, 'is_movie': False, 'is_tvshow': False, 'media_type': 'movie', 'season': '', 'title': None, 'tmdb_id': None, 'tvshow': '', 'tvshow_year': '', 'year': '', 'info': {'mediatype': 'movie', 'episode': '', 'imdb_id': None, 'is_movie': False, 'is_tvshow': False, 'media_type': 'movie', 'season': '', 'title': None, 'tmdb_id': None, 'tvshow': '', 'tvshow_year': '', 'year': ''}}
+	info = {'mediatype': 'movie', 'download_type': 'movie', 'episode': '', 'imdb_id': 'tt', 'is_movie': False, 'is_tvshow': False, 'media_type': 'movie', 'season': '', 'title': None, 'tmdb_id': None, 'tvshow': '', 'tvshow_year': '', 'year': '', 'info': {'mediatype': 'movie', 'episode': '', 'imdb_id': 'tt', 'is_movie': False, 'is_tvshow': False, 'media_type': 'movie', 'season': '', 'title': None, 'tmdb_id': None, 'tvshow': '', 'tvshow_year': '', 'year': ''}}
 	movie_title = input('Enter Search Term:  ')
 	info['title'] = movie_title
 	info['info']['title'] = movie_title
@@ -1164,6 +1189,26 @@ def cloud_get_ep_season(rd_api, meta, torr_id, torr_info):
 	info = meta['episode_meta']
 	simple_info = tools._build_simple_show_info(info)
 
+	daily_show_flag = False
+	if info['episode_air_date'][-2:] in info['title'] and info['episode_air_date'][:4] in info['title']:
+		import datetime
+		if datetime.datetime.strptime(info['episode_air_date'], '%Y-%m-%d').strftime('%B %d, %Y') in info['title']:
+			daily_show_flag = True
+		if datetime.datetime.strptime(info['episode_air_date'], '%Y-%m-%d').strftime('%Y.%m.%d') in info['title']:
+			daily_show_flag = True
+
+	if daily_show_flag:
+		info_keyword = {'mediatype': 'movie', 'download_type': 'movie', 'episode': '', 'imdb_id': 'tt', 'is_movie': False, 'is_tvshow': False, 'media_type': 'movie', 'season': '', 'title': None, 'tmdb_id': None, 'tvshow': '', 'tvshow_year': '', 'year': '', 'info': {'mediatype': 'movie', 'episode': '', 'imdb_id': 'tt', 'is_movie': False, 'is_tvshow': False, 'media_type': 'movie', 'season': '', 'title': None, 'tmdb_id': None, 'tvshow': '', 'tvshow_year': '', 'year': ''}}
+
+		info_keyword['title'] = '%s %s' % (info['tvshow'], info['episode_air_date'].replace('-','.'))
+		info_keyword['info']['title'] = info_keyword['title']
+		info['info']['title'] = info['info']['title'].replace(datetime.datetime.strptime(info['episode_air_date'], '%Y-%m-%d').strftime('%B %d, %Y'), datetime.datetime.strptime(info['episode_air_date'], '%Y-%m-%d').strftime('%Y.%m.%d'))
+		info['title'] = info['info']['title']
+		meta['episode_meta'] = info
+		simple_info['show_aliases'] = info['info']['show_aliases']
+		simple_info['episode_title'] = info['info']['title']
+		tools.log(meta['episode_meta'])
+
 	result_dict = source_tools.match_episodes_season_pack(meta, sorted_torr_info)
 
 	download_link = None
@@ -1281,10 +1326,17 @@ def cloud_get_ep_season(rd_api, meta, torr_id, torr_info):
 	#log(simple_info['episode_number'])
 
 	test_ep_adjust = 0
+	counted = []
 	for ijx, ij in enumerate(result_dict['alt_ep_num']):
 		#tools.log(ij,'alt_ep_num')
+		if ij in counted:
+			continue
 		if ijx > 0 and result_dict['alt_ep_num'][ijx-1] == ij:
 			test_ep_adjust = test_ep_adjust + 1 
+			counted.append(ij)
+		elif ijx == 0 and result_dict['alt_ep_num'][ijx+1] == ij:
+			test_ep_adjust = test_ep_adjust + 1 
+			counted.append(ij)
 		if ij == test_ep:
 			break
 	test_ep = test_ep - test_ep_adjust
@@ -1315,7 +1367,7 @@ def cloud_get_ep_season(rd_api, meta, torr_id, torr_info):
 				if int(ij) != int(result_dict['episode_numbers'][ijx]):
 					messed_up_numbering_flag = True
 					new_info = meta[meta_source]['episodes'][int(result_dict['episode_numbers'][torr_ep_index])-1]
-					tools.log(new_info)
+					#tools.log(new_info)
 					new_meta = get_meta.get_episode_meta(season=new_info['season'],episode=new_info['episode'],tmdb=new_info['tmdb'])
 					break
 			#if result_dict['alt_ep_num'][ijx-1] == result_dict['alt_ep_num'][ijx] and int(test_ep) == result_dict['alt_ep_num'][ijx+1]:
@@ -1460,9 +1512,19 @@ def auto_scrape_rd(meta):
 		info = meta
 		download_type = meta.get('download_type',False)
 		meta['episode_meta'] = {}
+		daily_show_flag = False
 	else:
 		info = meta['episode_meta']
 		download_type = meta.get('download_type',False)
+		daily_show_flag = False
+		if info['episode_air_date'][-2:] in info['title'] and info['episode_air_date'][:4] in info['title']:
+			import datetime
+			if datetime.datetime.strptime(info['episode_air_date'], '%Y-%m-%d').strftime('%B %d, %Y') in info['title']:
+				daily_show_flag = True
+			if datetime.datetime.strptime(info['episode_air_date'], '%Y-%m-%d').strftime('%Y.%m.%d') in info['title']:
+				daily_show_flag = True
+
+
 	special_flag = False
 	special_meta = None
 	if meta['episode_meta'].get('special',False) == True:
@@ -1472,7 +1534,22 @@ def auto_scrape_rd(meta):
 		if special_meta:
 			special_simple_info = tools._build_simple_movie_info(special_meta)
 
-	uncached, sources_list, item_information = Sources(info).get_sources()
+	#tools.log(meta)
+	#tools.log(info)
+	if daily_show_flag:
+		info_keyword = {'mediatype': 'movie', 'download_type': 'movie', 'episode': '', 'imdb_id': 'tt', 'is_movie': False, 'is_tvshow': False, 'media_type': 'movie', 'season': '', 'title': None, 'tmdb_id': None, 'tvshow': '', 'tvshow_year': '', 'year': '', 'info': {'mediatype': 'movie', 'episode': '', 'imdb_id': 'tt', 'is_movie': False, 'is_tvshow': False, 'media_type': 'movie', 'season': '', 'title': None, 'tmdb_id': None, 'tvshow': '', 'tvshow_year': '', 'year': ''}}
+
+		info_keyword['title'] = '%s %s' % (info['tvshow'], info['episode_air_date'].replace('-','.'))
+		info_keyword['info']['title'] = info_keyword['title']
+		info['info']['title'] = info['info']['title'].replace(datetime.datetime.strptime(info['episode_air_date'], '%Y-%m-%d').strftime('%B %d, %Y'), datetime.datetime.strptime(info['episode_air_date'], '%Y-%m-%d').strftime('%Y.%m.%d'))
+		info['title'] = info['info']['title']
+		meta['episode_meta'] = info
+		uncached, sources_list, item_information = Sources(info_keyword).get_sources()
+		tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+		#tools.log(meta['episode_meta'])
+		#tools.log(sources_list)
+	else:
+		uncached, sources_list, item_information = Sources(info).get_sources()
 	#sources_list = tools.SourceSorter(item_information).sort_sources(sources_list)
 	#uncached = tools.SourceSorter(info).sort_sources(uncached)
 	if meta.get('download_type',False) != 'movie':
@@ -1565,10 +1642,12 @@ def auto_scrape_rd(meta):
 		if download_link:
 			return download_link, meta
 		if download_type != 'movie':
+			#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 			download_link, new_meta = cloud_single_ep(rd_api, meta, torr_id, torr_info)
 		if download_link:
 			return download_link, new_meta
 		if download_type != 'movie':
+			#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 			download_link, new_meta = cloud_get_ep_season(rd_api, meta, torr_id, torr_info)
 		if download_link:
 			return download_link, new_meta
@@ -1731,6 +1810,26 @@ def cloud_single_ep(rd_api, meta, torr_id, torr_info):
 	simple_info = tools._build_simple_show_info(meta['episode_meta'])
 	info = meta['episode_meta']
 
+	daily_show_flag = False
+	if info['episode_air_date'][-2:] in info['title'] and info['episode_air_date'][:4] in info['title']:
+		import datetime
+		if datetime.datetime.strptime(info['episode_air_date'], '%Y-%m-%d').strftime('%B %d, %Y') in info['title']:
+			daily_show_flag = True
+		if datetime.datetime.strptime(info['episode_air_date'], '%Y-%m-%d').strftime('%Y.%m.%d') in info['title']:
+			daily_show_flag = True
+
+	if daily_show_flag:
+		info_keyword = {'mediatype': 'movie', 'download_type': 'movie', 'episode': '', 'imdb_id': 'tt', 'is_movie': False, 'is_tvshow': False, 'media_type': 'movie', 'season': '', 'title': None, 'tmdb_id': None, 'tvshow': '', 'tvshow_year': '', 'year': '', 'info': {'mediatype': 'movie', 'episode': '', 'imdb_id': 'tt', 'is_movie': False, 'is_tvshow': False, 'media_type': 'movie', 'season': '', 'title': None, 'tmdb_id': None, 'tvshow': '', 'tvshow_year': '', 'year': ''}}
+
+		info_keyword['title'] = '%s %s' % (info['tvshow'], info['episode_air_date'].replace('-','.'))
+		info_keyword['info']['title'] = info_keyword['title']
+		info['info']['title'] = info['info']['title'].replace(datetime.datetime.strptime(info['episode_air_date'], '%Y-%m-%d').strftime('%B %d, %Y'), datetime.datetime.strptime(info['episode_air_date'], '%Y-%m-%d').strftime('%Y.%m.%d'))
+		info['title'] = info['info']['title']
+		meta['episode_meta'] = info
+		simple_info['show_aliases'] = info['info']['show_aliases']
+		simple_info['episode_title'] = info['info']['title']
+		#tools.log(meta['episode_meta'])
+
 	unrestrict_link = None
 	download_link = None
 	for i in sorted_torr_info:
@@ -1787,12 +1886,35 @@ getSources.check_rd_cloud(meta)
 		if special_meta:
 			special_simple_info = tools._build_simple_movie_info(special_meta)
 			special_simple_info['imdb_id'] = special_meta['imdb_id']
-	#log(info)
+
 	if download_type == 'movie':
 		simple_info = tools._build_simple_movie_info(info)
 		simple_info['imdb_id'] = info['imdb_id']
+		daily_show_flag = False
 	else:
 		simple_info = tools._build_simple_show_info(info)
+
+		daily_show_flag = False
+		if info['episode_air_date'][-2:] in info['title'] and info['episode_air_date'][:4] in info['title']:
+			import datetime
+			if datetime.datetime.strptime(info['episode_air_date'], '%Y-%m-%d').strftime('%B %d, %Y') in info['title']:
+				daily_show_flag = True
+			if datetime.datetime.strptime(info['episode_air_date'], '%Y-%m-%d').strftime('%Y.%m.%d') in info['title']:
+				daily_show_flag = True
+
+	if daily_show_flag:
+		info_keyword = {'mediatype': 'movie', 'download_type': 'movie', 'episode': '', 'imdb_id': 'tt', 'is_movie': False, 'is_tvshow': False, 'media_type': 'movie', 'season': '', 'title': None, 'tmdb_id': None, 'tvshow': '', 'tvshow_year': '', 'year': '', 'info': {'mediatype': 'movie', 'episode': '', 'imdb_id': 'tt', 'is_movie': False, 'is_tvshow': False, 'media_type': 'movie', 'season': '', 'title': None, 'tmdb_id': None, 'tvshow': '', 'tvshow_year': '', 'year': ''}}
+
+		info_keyword['title'] = '%s %s' % (info['tvshow'], info['episode_air_date'].replace('-','.'))
+		info_keyword['info']['title'] = info_keyword['title']
+		info['info']['title'] = info['info']['title'].replace(datetime.datetime.strptime(info['episode_air_date'], '%Y-%m-%d').strftime('%B %d, %Y'), datetime.datetime.strptime(info['episode_air_date'], '%Y-%m-%d').strftime('%Y.%m.%d'))
+		info['title'] = info['info']['title']
+		meta['episode_meta'] = info
+		simple_info['show_aliases'] = info['info']['show_aliases']
+		simple_info['episode_title'] = info['info']['title']
+		#tools.log(meta['episode_meta'])
+		#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+		#tools.log(sources_list)
 
 	rd_api = real_debrid.RealDebrid()
 	for i in range(1,99):
@@ -1818,7 +1940,7 @@ getSources.check_rd_cloud(meta)
 					test = ': True'
 			else:
 				test = source_tools.run_show_filters(simple_info, release_title = x['filename'])
-			#tools.log(test)
+
 			if ': True' in str(test):
 				download_link = x['download']
 				download_link = rd_api.test_download_link(download_link)
@@ -1882,13 +2004,19 @@ getSources.check_rd_cloud(meta)
 				#test2 = source_tools.filter_movie_title(x['filename'], source_tools.clean_title(x['filename']), meta['title'], simple_info)
 				test2 = {}
 			else:
+				#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+				simple_info_original = simple_info
 				test = source_tools.run_show_filters(simple_info, pack_title = x['filename'])
+				simple_info = simple_info_original
 				if simple_info['episode_number'] == 'None' or simple_info['episode_number'] == None:
 					simple_info1 = simple_info
 					simple_info1['episode_number'] = '0'
+					#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 					test2 = source_tools.run_show_filters(simple_info1, release_title = x['filename'])
 				else:
+					#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 					test2 = source_tools.run_show_filters(simple_info, release_title = x['filename'])
+			#tools.log(test2, test)
 			if ': True' in str(test) or ': True' in str(test2):
 				torr_id = x['id']
 				torr_info = rd_api.torrent_info(torr_id)
@@ -1899,7 +2027,11 @@ getSources.check_rd_cloud(meta)
 						return download_link, meta
 
 				if download_type != 'movie':
-					download_link, new_meta = cloud_get_ep_season(rd_api, meta, torr_id, torr_info)
+					if daily_show_flag:
+						#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+						download_link, new_meta = cloud_single_ep(rd_api, meta, torr_id, torr_info)
+					else:
+						download_link, new_meta = cloud_get_ep_season(rd_api, meta, torr_id, torr_info)
 				if download_link:
 					tools.log('cloud_get_ep_season',download_link)
 					return download_link, new_meta
@@ -2585,6 +2717,8 @@ def rd_delete_dupes():
 					torr_link = rd_api.test_download_link(torr_link,rar_test=False)
 					if torr_link:
 						pass_count = pass_count + 1
+					UNRESTRICT_FILE_ID = torr_link.split('/')[4]
+					rd_api.delete_download(UNRESTRICT_FILE_ID)
 				if pass_count == 0:
 					tools.log('DELETE_NO_LINKS=' + x['filename'])
 					delete_torrent = rd_api.delete_torrent(x['id'])
@@ -2725,6 +2859,18 @@ getSources.setup_providers('https://bit.ly/a4kScrapers')
 	folder = str(os.path.split(str(getframeinfo(currentframe()).filename))[0])
 	current_directory = folder.replace('a4kscrapers_wrapper','')
 	urls_json_path = os.path.join(tools.ADDON_USERDATA_PATH, 'providerModules','a4kScrapers', 'urls.json')
+
+	elf_hosted_path = os.path.join(current_directory, 'elfhosted.py')
+	new_elf_hosted_path = os.path.join(tools.A4KPROVIDERS_PATH, 'a4kScrapers', 'en', 'torrent', 'elfhosted.py')
+	shutil.copy(elf_hosted_path, new_elf_hosted_path)
+	elf_hosted_urls_dict = { "search": "/stream/{{category}}/%s.json", "cat_movie": "movie", "cat_episode": "series", "domains": [ { "base": "https://torrentio.elfhosted.com" } ] }
+
+	with open(urls_json_path,'r+') as file:
+		file_data = json.load(file)
+		file_data['trackers']["elfhosted"] = elf_hosted_urls_dict
+		file.seek(0)
+		json.dump(file_data, file, indent = 4)
+	patch_ak4_core_find_url()
 
 	"""
 	rutor_path = os.path.join(current_directory, 'rutor.py')

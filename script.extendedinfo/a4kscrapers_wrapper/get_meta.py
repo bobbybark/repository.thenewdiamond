@@ -575,10 +575,23 @@ def get_episode_meta(season, episode,tmdb=None, show_name=None, year=None, inter
 		if tmdb:
 			url = 'tv/%s?language=en&append_to_response=external_ids,alternative_titles&' % (tmdb)
 			response = get_tmdb_data(url, cache_days=7)
+
 			alternative_titles = []
+			try:
+				from resources.lib.library import get_trakt_data
+				response2 = get_trakt_data(url='https://api.trakt.tv/shows/%s/aliases' % (response['external_ids']['imdb_id']), cache_days=7)
+
+				for i in response2:
+					if i['country'] in  ('us','uk','gb','au'):
+						if not i['title'] in alternative_titles:
+							alternative_titles.append(i['title'])
+			except:
+				pass
+
 			for i in response['alternative_titles']['results']:
 				if i['iso_3166_1'] in ('US','UK','GB','AU'):
-					alternative_titles.append(i['title'])
+					if not i['title'] in alternative_titles:
+						alternative_titles.append(i['title'])
 
 			imdb = response['external_ids']['imdb_id']
 			tvdb = response['external_ids']['tvdb_id']
@@ -592,6 +605,7 @@ def get_episode_meta(season, episode,tmdb=None, show_name=None, year=None, inter
 			except: backdrop_path = None
 			episode_run_time = response['episode_run_time']
 			first_air_date = response['first_air_date']
+			
 			tot_episode_count = 0
 			for i in response['seasons']:
 				if i['season_number'] == season:
@@ -626,6 +640,7 @@ def get_episode_meta(season, episode,tmdb=None, show_name=None, year=None, inter
 					runtime_list.append(int(i['runtime']))
 				else:
 					runtime_list.append(0.001)
+
 				curr_episode = {'S_E': s_e, 'episode_number': i['episode_number'], 'season': i['season_number'], 'name': i['name'],'runtime': i['runtime'], 'tvshow': show_name, 'imdb': imdb, 'tvdb': tvdb, 'tmdb': tmdb, 'aliases': alternative_titles, 'originaltitle': i['name'],'tvshowtitle': show_name, 'download_type': 'episode', 'episode': i['episode_number'], 'imdb_id': imdb, 'imdbnumber': imdb,'air_date': i['air_date'],'episode_type': i['episode_type'],'season_number': i['season_number'],'show_id': i['show_id'],'still_path': still_path, 'vote_average': i['vote_average'], 'info': 
 				{'aliases': alternative_titles, 'originaltitle': i['name'], 'tvshowtitle': show_name, 'episode': i['episode_number'], 'imdb_id': imdb, 'imdbnumber': imdb, 'mediatype': 'episode', 'season': i['season_number'], 'title': i['name'], 'tmdb_id': tmdb, 'tmdb_show_id': tmdb, 'tvdb_id': tvdb, 'tvdb_show_id': tvdb, 'tvshow': show_name, 'tvshow.imdb_id': imdb, 'tvshow.tmdb_id': tmdb, 'tvshow.tvdb_id': tvdb, 'tvshow.year': str(first_air_date[:4]), 'tvshowtitle': show_name, 'year': str(i['air_date'][:4])}
 				, 'is_airing': is_airing, 'is_movie': False, 'is_tvshow': True, 'media_type': 'episode', 'mediatype': 'episode', 'title': i['name'], 'tmdb_id': tmdb, 'tvshow': show_name, 'tvshow_year': first_air_date[:4], 'year': i['air_date'][:4]}
@@ -633,6 +648,7 @@ def get_episode_meta(season, episode,tmdb=None, show_name=None, year=None, inter
 				if i['episode_number'] == episode:
 					episode_title = i['name']
 					episode_year = i['air_date'][:4]
+					episode_air_date = i['air_date']
 				if i['episode_number'] == 1:
 					curr_episode['absoluteNumber'] = absolute_tmdb_ep_1
 				else:
@@ -698,7 +714,8 @@ def get_episode_meta(season, episode,tmdb=None, show_name=None, year=None, inter
 					except: still_path = None
 					try: runtime_list.append(int(i['runtime']))
 					except: runtime_list.append(0)
-					curr_episode = {'aliases': alternative_titles,'originaltitle': i['name'], 'tvshowtitle': show_name, 'tvshow': show_name, 'download_type': 'episode', 'episode': i_number, 'air_date': i['airdate'],'episode_number': i_number,'episode_type': i['type'],'name': i['name'],'runtime': i['runtime'],'season_number': i.get('season',-1),'show_id': show['tvmaze_show_id'],'still_path': still_path,
+
+					curr_episode = {'aliases': alternative_titles,'originaltitle': i['name'], 'tvshowtitle': show_name, 'tvshow': show_name, 'download_type': 'episode', 'episode': i_number, 'air_date': i['airdate'], 'episode_air_date': i['airdate'],'episode_number': i_number,'episode_type': i['type'],'name': i['name'],'runtime': i['runtime'],'season_number': i.get('season',-1),'show_id': show['tvmaze_show_id'],'still_path': still_path,
 					'vote_average': i['rating']['average'], 'tmdb': tmdb, 'imdb': imdb, 'tvdb': tvdb, 'imdb_id': imdb,'imdbnumber': imdb, 'is_airing': is_airing, 'is_movie': False, 'is_tvshow': True, 'media_type': 'episode','mediatype': 'episode', 'season': i.get('season',-1), 'title':  i['name'], 'tmdb_id': tmdb, 'tvshow': show_name, 'tvshow_year': first_air_date[:4], 'year': i['airdate'][:4], 'tvmaze_ep_id': i['id'],
 					'info': {'aliases': alternative_titles, 'originaltitle': i['name'], 'tvshowtitle': show_name, 'episode': i_number,'imdb_id': imdb,'imdbnumber': imdb,'mediatype': 'episode','season': i.get('season',-1),'title': i['name'],'tmdb_id': tmdb,'tmdb_show_id': tmdb,'tvdb_id': tvdb,'tvdb_show_id': tvdb,'tvshow': show_name,'tvshow.imdb_id': imdb,'tvshow.tmdb_id': tmdb,'tvshow.tvdb_id': tvdb,'tvshow.year': str(first_air_date[:4]),'tvshowtitle': show_name, 'tvmaze_ep_id': i['id'], 'year': str(i['airdate'][:4])},
 					}
@@ -706,6 +723,7 @@ def get_episode_meta(season, episode,tmdb=None, show_name=None, year=None, inter
 
 				if int(i.get('season',-1)) == int(season) and int(i_number) == int(episode):
 					absolute_tvmaze = tot_episode_count
+					episode_air_date = i['airdate']
 				if int(i.get('season',-1))== int(season):
 					curr_episode['absoluteNumber'] = tot_episode_count
 					season_dict['episodes'].append(curr_episode)
@@ -730,7 +748,11 @@ def get_episode_meta(season, episode,tmdb=None, show_name=None, year=None, inter
 			show['tvmaze_total_seasons'] = i['season']
 			show['tvmaze_seasons'] = season_dict
 			show['tvmaze_seasons_episode_tot'] = season_episodes
-			show['tvmaze_absolute_number'] = absolute_tvmaze
+			try: 
+				show['tvmaze_absolute_number'] = absolute_tvmaze
+			except: 
+				show['tvmaze_absolute_number'] = -99
+				#tools.log(show)
 			show['tvmaze_tot_episode_count'] = max(tot_episode_count,show['tot_episode_count'])
 			show['tvmaze_total_seasons'] = max(total_seasons, show['total_seasons'])
 
@@ -738,7 +760,7 @@ def get_episode_meta(season, episode,tmdb=None, show_name=None, year=None, inter
 		#from pprint import pprint
 		#pprint(show)
 		episode_meta = {'show_aliases': alternative_titles, 'season_number': season, 'show_title': show_name, 'year': episode_year, 'episode': episode,'imdb_id': imdb,'imdbnumber': imdb,'mediatype': 'episode','season': season,'title': episode_title,'tvshow_year': first_air_date[:4], 'tvshow': show_name,'is_movie': False, 'is_tvshow': True, 'tmdb_id': tmdb,'imdb_id': imdb, 'media_type': 'episode', 'download_type': 'episode','absoluteNumber': show['tmdb_absolute_number'],'episode_count': show['tmdb_seasons_episode_tot'],'info': {'show_aliases': alternative_titles, 'season_number': season, 'show_title': show_name, 'tvshow': show_name, 'episode': episode,'imdb_id': imdb,'imdbnumber': imdb,'mediatype': 'episode','season': season,'title': episode_title,'tmdb_id': tmdb,'tmdb_show_id': tmdb,
-		'tvdb_id': tvdb,'tvdb_show_id': tvdb,'tvshow.imdb_id': imdb,'tvshow.tmdb_id': tmdb,'tvshow.tvdb_id': tvdb,'tvshow.year': first_air_date[:4],'tvshowtitle': show_name,'year': episode_year},'is_airing': is_airing,'season_count': show['total_seasons'],'show_episode_count': show['tot_episode_count']}
+		'tvdb_id': tvdb,'tvdb_show_id': tvdb,'tvshow.imdb_id': imdb,'tvshow.tmdb_id': tmdb,'tvshow.tvdb_id': tvdb,'tvshow.year': first_air_date[:4],'tvshowtitle': show_name,'year': episode_year},'is_airing': is_airing,'season_count': show['total_seasons'],'show_episode_count': show['tot_episode_count'], 'episode_air_date': episode_air_date}
 		show['episode_meta'] = episode_meta
 		return show
 

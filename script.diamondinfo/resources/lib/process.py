@@ -1264,6 +1264,42 @@ def start_info_actions(infos, params):
 					idx = idx + 1
 			Utils.hide_busy()
 
+		elif info == 'fix_video':
+			import json
+			json_result = xbmc.executeJSONRPC('{"jsonrpc": "2.0","id": "1","method": "Player.GetProperties","params": {"playerid": 1,"properties": ["currentaudiostream", "currentsubtitle", "currentvideostream"]}}')
+			curr_sub_audio_json  = json.loads(json_result)
+			xbmc.log(str(curr_sub_audio_json)+'fix_video===>OPENINFO', level=xbmc.LOGINFO)
+			aspect_43 = 4/3
+			aspect_169 = 16/9
+			height = curr_sub_audio_json['result']['currentvideostream']['height']
+			width = curr_sub_audio_json['result']['currentvideostream']['width']
+			xbmc.log(str(aspect_43)+'fix_video===>OPENINFO', level=xbmc.LOGINFO)
+			xbmc.log(str(aspect_169)+'fix_video===>OPENINFO', level=xbmc.LOGINFO)
+			xbmc.log(str(height)+'fix_video===>OPENINFO', level=xbmc.LOGINFO)
+			xbmc.log(str(width)+'fix_video===>OPENINFO', level=xbmc.LOGINFO)
+			xbmc.log(str(width/height)+'fix_video===>OPENINFO', level=xbmc.LOGINFO)
+			test_43 = abs(aspect_43-(width/height))
+			test_169 = abs(aspect_169-(width/height))
+			#xbmc.log(str(test_43)+"__"+str(test_169)+'fix_video===>OPENINFO', level=xbmc.LOGINFO)
+			if min(test_43,test_169) == test_43:
+				if width/height > aspect_43:
+					pixel_ratio = aspect_43/(width/height)
+				else:
+					pixel_ratio =  (width/height)/aspect_43
+			else:
+				if width/height > aspect_169:
+					pixel_ratio = aspect_169/(width/height)
+				else:
+					pixel_ratio =  (width/height)/aspect_169
+			pixel_ratio = round(pixel_ratio,2)
+			xbmc.log(str(pixel_ratio)+'fix_video===>OPENINFO', level=xbmc.LOGINFO)
+			json_result = xbmc.executeJSONRPC('{"id":1,"jsonrpc":"2.0","method":"Player.SetViewMode","params":{"viewmode": {"pixelratio": %s}}}' % str(pixel_ratio))
+			curr_sub_audio_json  = json.loads(json_result)
+			xbmc.log(str(curr_sub_audio_json)+'fix_video===>OPENINFO', level=xbmc.LOGINFO)
+
+		elif info == 'patch_core':
+			from a4kscrapers_wrapper import getSources
+			getSources.patch_ak4_core_find_url()
 
 		elif info == 'patch_urllib3':
 			Utils.show_busy()

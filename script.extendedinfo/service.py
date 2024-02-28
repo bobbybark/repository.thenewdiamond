@@ -1497,7 +1497,6 @@ class CronJobMonitor(Thread):
 		ServiceStop = ''
 		self.exit = False
 		self.poll_time = 1800  # Poll every 30 mins since we don't need to get exact time for update
-		self.poll_time = 600  # Poll every 30 mins since we don't need to get exact time for update
 		self.update_hour = update_hour
 		self.xbmc_monitor = xbmc.Monitor()
 
@@ -1528,6 +1527,7 @@ class CronJobMonitor(Thread):
 			if int(time.time()) > self.next_time and library_auto_sync == True:  # Scheduled time has past so lets update
 				library_update_period = int(xbmcaddon.Addon(library.addon_ID()).getSetting('library_sync_hours'))
 				self.next_time = self.curr_time + library_update_period*60*60
+				log(str('process.auto_library()'))
 				process.auto_library()
 				rss_1_enabled = xbmcaddon.Addon(addon_ID()).getSetting('rss.1')
 				rss_2_enabled = xbmcaddon.Addon(addon_ID()).getSetting('rss.2')
@@ -1541,6 +1541,7 @@ class CronJobMonitor(Thread):
 				except: trakt_token = None
 				if trakt_token:
 					if trakt_calendar_auto_sync == 'true' or trakt_calendar_auto_sync == True:
+						log(str('trakt_calendar_list()'))
 						trakt_calendar_list()
 				rss_1_enabled = xbmcaddon.Addon(addon_ID()).getSetting('rss.1')
 				rss_2_enabled = xbmcaddon.Addon(addon_ID()).getSetting('rss.2')
@@ -1561,10 +1562,11 @@ class CronJobMonitor(Thread):
 				library_update_period = int(xbmcaddon.Addon(library.addon_ID()).getSetting('library_sync_hours'))
 				self.next_time = self.curr_time + library_update_period*60*60
 			if int(time.time()) > self.next_clean_time and auto_clean_cache_bool == True:
+				log(str('process.auto_clean_cache(days=30)'))
 				process.auto_clean_cache(days=30)
 				self.next_clean_time = self.curr_time + 24*60*60
-			log(str('self.xbmc_monitor.waitForAbort(self.poll_time)'))
-			log(str(self.poll_time))
+			#log(str('self.xbmc_monitor.waitForAbort(self.poll_time)'))
+			#log(str(self.poll_time))
 			self.xbmc_monitor.waitForAbort(self.poll_time)
 		del self.xbmc_monitor
 

@@ -406,6 +406,7 @@ def get_set_id(set_name):
 
 def get_tmdb_data(url='', cache_days=14, folder='TheMovieDB'):
 	url = 'https://api.themoviedb.org/3/%sapi_key=%s' % (url, API_key)
+	#xbmc.log(str(url)+'===>PHIL', level=xbmc.LOGINFO)
 	return Utils.get_JSON_response(url, cache_days, folder)
 
 def get_fanart_clearlogo(tmdb_id=None, media_type=None):

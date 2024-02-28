@@ -120,6 +120,11 @@ def get_next_ep_details(show_title, season_num, ep_num, tmdb):
 	meta = get_meta.get_episode_meta(season=season_num,episode=ep_num,show_name=show_title, tmdb=tmdb, interactive=False)
 	info = meta['episode_meta']
 
+	daily_show_flag = False
+	if info['episode_air_date'][-2:] in info['title'] and info['episode_air_date'][:4] in info['title']:
+		if datetime.datetime.strptime(info['episode_air_date'], '%Y-%m-%d').strftime('%B %d, %Y') in info['title']:
+			daily_show_flag = True
+
 	xbmcgui.Window(10000).clearProperty('Next_EP.ResolvedUrl')
 
 	tvdb_id = meta['tvdb']
@@ -128,7 +133,11 @@ def get_next_ep_details(show_title, season_num, ep_num, tmdb):
 	show_id = meta['tvmaze_show_id']
 	curr_ep_flag = False
 	air_date_timestamp = 0
-	for i in meta['tvmaze_seasons']['episodes']:
+	if daily_show_flag == False:
+		meta_source = 'tvmaze_seasons'
+	else:
+		meta_source = 'tmdb_seasons'
+	for i in meta[meta_source]['episodes']:
 		i_air_date = str(i.get('air_date','1901-01-01'))
 		try: i_air_date = datetime.datetime.strptime(i_air_date, "%Y-%m-%d")
 		except TypeError: i_air_date = datetime.datetime(*(time.strptime(i_air_date, "%Y-%m-%d")[0:6]))
@@ -148,9 +157,14 @@ def get_next_ep_details(show_title, season_num, ep_num, tmdb):
 	if curr_ep_flag == True:
 		next_ep_episode = 1
 		next_ep_season = int(i['season']) + 1
-		if next_ep_season > (meta['tvmaze_total_seasons']):
-			print_log(str('ENDED')+'===>PHIL')
-			return None
+		if meta_source == 'tmdb_seasons':
+			if next_ep_season > (meta['total_seasons']):
+				print_log(str('ENDED')+'===>PHIL')
+				return None
+		else:
+			if next_ep_season > (meta['tvmaze_total_seasons']):
+				print_log(str('ENDED')+'===>PHIL')
+				return None
 		meta = get_meta.get_episode_meta(season=next_ep_season,episode=next_ep_episode,show_name=show_title, tmdb=tmdb, interactive=False)
 	else:
 		if air_date_timestamp > ( time.time()+60*60*36): #air_date > tomorrow
@@ -160,19 +174,23 @@ def get_next_ep_details(show_title, season_num, ep_num, tmdb):
 			print_log(str('NET_EP_NOT_AIRED')+'===>PHIL')
 			return None
 
-	for i in meta['tvmaze_seasons']['episodes']:
+	for i in meta[meta_source]['episodes']:
 		if int(i['episode']) == int(next_ep_episode) and int(i['season']) == int(next_ep_season):
 			next_ep_show = i['tvshowtitle']
 			next_ep_thumbnail = i['still_path']
 			next_ep_title = i['name']
 			next_ep_rating = i['vote_average']
 			next_ep_year = i['year']
-			next_ep_id = i['tvmaze_ep_id']
+			if daily_show_flag == False:
+				next_ep_id = i['tvmaze_ep_id']
 			air_date = i.get('airdate','')
 
-	url = 'http://api.tvmaze.com/episodes/'+str(next_ep_id)+'?embed=show'
-	#response = get_JSON_response(url=url, cache_days=7.0, folder='TVMaze')
-	response = get_meta.get_response_cache(url=url, cache_days=7.0, folder='TVMaze')
+	if daily_show_flag:
+		response = {'id': None, 'summary': None, '_embedded': {'show': {'genres': []}}}
+	else:
+		url = 'http://api.tvmaze.com/episodes/'+str(next_ep_id)+'?embed=show'
+		#response = get_JSON_response(url=url, cache_days=7.0, folder='TVMaze')
+		response = get_meta.get_response_cache(url=url, cache_days=7.0, folder='TVMaze')
 	next_ep_genre = response['_embedded']['show']['genres']
 	strm_title = '%s - S%sE%s - %s' % (next_ep_show, str(next_ep_season).zfill(2),str(next_ep_episode).zfill(2), next_ep_title)
 	
@@ -256,9 +274,13 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True):
 							break
 			elif int(i['episode']) == int(show_episode) and int(i['season']) == int(show_season):
 				info2 = i
-		try: info1['tvmaze_ep_id'] = info2['tvmaze_ep_id']
-		except: tools.log('missing on TMDB!!!')
-		info = info2
+		try: 
+			info1['tvmaze_ep_id'] = info2['tvmaze_ep_id']
+		except: 
+			info1['tvmaze_ep_id'] = False
+			tools.log('missing on TMDB!!!')
+		try: info = info2
+		except: info = info1
 		meta_info = info
 
 		show_title = show_title.replace('+', ' ')
@@ -300,10 +322,14 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True):
 		episode_name = info['title']
 		year = info['year']
 		air_date = info['air_date']
-		episode_id = info['tvmaze_ep_id']
-		url = 'http://api.tvmaze.com/episodes/'+str(episode_id)+'?embed=show'
-		#response = get_JSON_response(url=url, cache_days=7.0, folder='TVMaze')
-		response = get_meta.get_response_cache(url=url, cache_days=7.0, folder='TVMaze')
+		if info['tvmaze_ep_id']:
+			episode_id = info['tvmaze_ep_id']
+			url = 'http://api.tvmaze.com/episodes/'+str(episode_id)+'?embed=show'
+			#response = get_JSON_response(url=url, cache_days=7.0, folder='TVMaze')
+			response = get_meta.get_response_cache(url=url, cache_days=7.0, folder='TVMaze')
+		else:
+			episode_id = 0
+			response = {'id': None, 'summary': None, '_embedded': {'show': {'genres': []}}}
 		try: 
 			tmdb_response = extended_episode_info(tvshow_id=tmdb_id, season=show_season, episode=show_episode, cache_time=3)
 			extended_tvshow_info_response = extended_tvshow_info(tvshow_id=tmdb_id, cache_time=3)

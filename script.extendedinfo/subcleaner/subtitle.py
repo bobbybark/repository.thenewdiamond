@@ -3,18 +3,18 @@ import re
 from typing import List, Set, Dict
 
 try: 
-	from . import languages
-	from .settings import args, config
-	from .sub_block import SubBlock, ParsingException
+    from . import languages
+    from .settings import args, config
+    from .sub_block import SubBlock, ParsingException
 except: 
-	from subcleaner import languages
-	from subcleaner.settings import args, config
-	from subcleaner.sub_block import SubBlock, ParsingException
+    from subcleaner import languages
+    from subcleaner.settings import args, config
+    from subcleaner.sub_block import SubBlock, ParsingException
 
 try: 
-	from libs import langdetect as langdetect
+    from libs import langdetect as langdetect
 except:
-	import subcleaner.langdetect as langdetect
+    import subcleaner.langdetect as langdetect
 from pathlib import Path
 
 try: from ..langdetect import LangDetectException
@@ -144,10 +144,14 @@ class Subtitle:
         except ParsingException as e:
             e.subtitle_file = self.file
             e.file_line = line_lookup.get(lines[last_break], None)
-            if not e.file_line:
-                e.file_line = line_lookup.get(lines[last_break + 1], None)
+            try:
+                if not e.file_line:
+                    e.file_line = line_lookup.get(lines[last_break + 1], None)
+            except:
+                pass
             logger.warning(e)
-            self.blocks[-1].content += "\n\n" + "\n".join(lines[last_break:])
+            try: self.blocks[-1].content += "\n\n" + "\n".join(lines[last_break:])
+            except: pass
             return
         if block.content:
             self.blocks.append(block)
@@ -270,7 +274,7 @@ def bomType(file):
         bom = bomtype(file)
         open(file, encoding=bom, errors='ignore')
     """
-
+    return "latin-1"
     f = open(file, 'rb')
     b = f.read(4)
     f.close()
@@ -289,7 +293,8 @@ def bomType(file):
 
     # If BOM is not provided, then assume its the codepage
     #     used by your operating system
-    return "cp1252"
+    #return "cp1252"
+    return "latin-1"
     # For the United States its: cp1252
 
 
@@ -299,25 +304,25 @@ def OpenRead(file):
 
 
 def read_file(file: Path) -> str:
-	file_content: str
+    file_content: str
 
-	"""
-	try:
-		with file.open("r", encoding="utf-8-sig") as opened_file:
-			file_content = opened_file.read()
-	except UnicodeDecodeError:
-		try:
-			with file.open("r", encoding="utf-16-le") as opened_file:
-				file_content = opened_file.read()
-		except UnicodeError:
-				with file.open("r", encoding="cp1252") as opened_file:
-					file_content = opened_file.read()
-	"""
-	try:
-		opened_file = OpenRead(file)
-		file_content = opened_file.read()
-		opened_file.close()
-	except UnicodeDecodeError:
-		with file.open("r", encoding="utf-16-le") as opened_file:
-			file_content = opened_file.read()
-	return file_content
+    """
+    try:
+        with file.open("r", encoding="utf-8-sig") as opened_file:
+            file_content = opened_file.read()
+    except UnicodeDecodeError:
+        try:
+            with file.open("r", encoding="utf-16-le") as opened_file:
+                file_content = opened_file.read()
+        except UnicodeError:
+                with file.open("r", encoding="cp1252") as opened_file:
+                    file_content = opened_file.read()
+    """
+    try:
+        opened_file = OpenRead(file)
+        file_content = opened_file.read()
+        opened_file.close()
+    except UnicodeDecodeError:
+        with file.open("r", encoding="utf-16-le") as opened_file:
+            file_content = opened_file.read()
+    return file_content

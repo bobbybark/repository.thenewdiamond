@@ -265,6 +265,23 @@ getSources.get_subtitles(info , '')
 	#except:
 	#	pass
 	#try:
+	download_type = VIDEO_META.get('download_type',False)
+
+	daily_show_flag = False
+	if download_type != 'movie':
+		if VIDEO_META['air_date'][-2:] in VIDEO_META['name'] and VIDEO_META['air_date'][:4] in VIDEO_META['name']:
+			import datetime
+			if datetime.datetime.strptime(VIDEO_META['air_date'], '%Y-%m-%d').strftime('%B %d, %Y') in VIDEO_META['name']:
+				daily_show_flag = True
+
+	if daily_show_flag:
+		VIDEO_META['name'] = VIDEO_META['name'].replace(datetime.datetime.strptime(VIDEO_META['air_date'], '%Y-%m-%d').strftime('%B %d, %Y'), datetime.datetime.strptime(VIDEO_META['air_date'], '%Y-%m-%d').strftime('%Y.%m.%d'))
+		VIDEO_META['originaltitle'] = VIDEO_META['name']
+		VIDEO_META['title'] = VIDEO_META['name']
+		VIDEO_META['info']['title'] = VIDEO_META['name']
+		VIDEO_META['info']['originaltitle'] = VIDEO_META['name']
+		
+
 	if 1==1:
 		VIDEO_META['file_name'] = unquote(os.path.basename(file_path))
 		VIDEO_META['filename'] = unquote(VIDEO_META['file_name'])
