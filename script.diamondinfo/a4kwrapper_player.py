@@ -362,10 +362,17 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True):
 		else:
 			rating = None
 
+		#tools.log(response)
+		#tools.log(tmdb_response)
+		#tools.log(extended_tvshow_info_response)
+		#tools.log(info1)
+		#tools.log(info)
 		try: runtime = int(info['runtime'])
 		except: runtime = 0
 
 		runtime_list = []
+		try: runtime_list.append(response.get('runtime',0))
+		except: pass
 		try: runtime_list.append(tmdb_response[1].get('runtime',0))
 		except: pass
 		try: runtime_list.append(extended_tvshow_info_response[0].get('duration','0').split(' -')[0])
