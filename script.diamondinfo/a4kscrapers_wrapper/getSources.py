@@ -578,7 +578,26 @@ def run_tv_search():
 		return
 	meta = get_meta.get_episode_meta(season=season_number, episode=episode_number,tmdb=None, show_name=tv_show_title, year=None, interactive=True)
 	info = meta['episode_meta']
-	uncached, sources_list, item_information= Sources(info).get_sources()
+	#tools.log(info)
+	scrapper = Sources(info)
+	uncached, sources_list, item_information = scrapper.get_sources()
+	print(scrapper.progress)
+	if len(uncached) == 0 and len(sources_list) == 0:
+		for i in info['show_aliases']:
+			info['show_title'] = i
+			info['tvshow'] = i
+			info['tvshowtitle'] = i
+			info['info']['show_title'] = i
+			info['info']['tvshow'] = i
+			info['info']['tvshowtitle'] = i
+			#tools.log(info)
+			scrapper = Sources(info)
+			uncached, sources_list, item_information = scrapper.get_sources()
+			print(scrapper.progress)
+			if len(uncached) == 0 and len(sources_list) == 0:
+				continue
+			else:
+				break
 	sources_list = tools.SourceSorter(item_information).sort_sources(sources_list)
 	#sources_list, uncached = pack_sort(sources_list=sources_list, uncached=uncached, item_information=item_information)
 	
@@ -1324,6 +1343,7 @@ def cloud_get_ep_season(rd_api, meta, torr_id, torr_info):
 	else:
 		test_ep = int(simple_info['episode_number'])
 	#log(simple_info['episode_number'])
+	#log(result_dict)
 
 	test_ep_adjust = 0
 	counted = []
@@ -1334,9 +1354,10 @@ def cloud_get_ep_season(rd_api, meta, torr_id, torr_info):
 		if ijx > 0 and result_dict['alt_ep_num'][ijx-1] == ij:
 			test_ep_adjust = test_ep_adjust + 1 
 			counted.append(ij)
-		elif ijx == 0 and result_dict['alt_ep_num'][ijx+1] == ij:
-			test_ep_adjust = test_ep_adjust + 1 
-			counted.append(ij)
+		elif ijx == 0 and len(result_dict['alt_ep_num']) >= ijx+2:
+			if result_dict['alt_ep_num'][ijx+1] == ij:
+				test_ep_adjust = test_ep_adjust + 1 
+				counted.append(ij)
 		if ij == test_ep:
 			break
 	test_ep = test_ep - test_ep_adjust
@@ -1549,7 +1570,28 @@ def auto_scrape_rd(meta):
 		#tools.log(meta['episode_meta'])
 		#tools.log(sources_list)
 	else:
-		uncached, sources_list, item_information = Sources(info).get_sources()
+		#uncached, sources_list, item_information = Sources(info).get_sources()
+		scrapper = Sources(info)
+		uncached, sources_list, item_information = scrapper.get_sources()
+		print(scrapper.progress)
+		if len(uncached) == 0 and len(sources_list) == 0:
+			for i in info['show_aliases']:
+				info['show_title'] = i
+				info['tvshow'] = i
+				info['tvshowtitle'] = i
+				info['info']['show_title'] = i
+				info['info']['tvshow'] = i
+				info['info']['tvshowtitle'] = i
+				#tools.log(info)
+				scrapper = Sources(info)
+				uncached, sources_list, item_information = scrapper.get_sources()
+				print(scrapper.progress)
+				if len(uncached) == 0 and len(sources_list) == 0:
+					continue
+				else:
+					break
+
+
 	#sources_list = tools.SourceSorter(item_information).sort_sources(sources_list)
 	#uncached = tools.SourceSorter(info).sort_sources(uncached)
 	if meta.get('download_type',False) != 'movie':

@@ -29,6 +29,7 @@
 		<setting label="Auto Clear cache on startup?" type="bool" id="auto_clean_cache_bool" default="true"/>
 		<setting label="Log Plugin URLS" type="bool" id="log_urls" default="false"/>
 		<setting label="TEST ROUTE" type="action" action="RunScript(script.diamondinfo,info=test_route)"/>
+		<setting label="setup_favourites" type="action" action="RunScript(script.diamondinfo,info=setup_favourites)"/>
 		<setting label="fenlight_open_setting" type="action" action="RunPlugin(plugin://plugin.video.fenlight/?mode=open_settings)" visible="System.HasAddon(plugin.video.fenlight)"/>
 		<setting label="fenlight_patch" type="action" action="RunScript(script.diamondinfo,info=patch_fen_light)" visible="System.HasAddon(plugin.video.fenlight)"/>
 		<setting label="fen_light_players" type="action" action="RunScript(script.diamondinfo,info=setup_fen_light_players)" visible="System.HasAddon(plugin.video.fenlight)"/>

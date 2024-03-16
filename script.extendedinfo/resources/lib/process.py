@@ -1297,6 +1297,46 @@ def start_info_actions(infos, params):
 			curr_sub_audio_json  = json.loads(json_result)
 			xbmc.log(str(curr_sub_audio_json)+'fix_video===>OPENINFO', level=xbmc.LOGINFO)
 
+		elif info == 'estuary_fix':
+			estuary_fix()
+
+		elif info == 'setup_favourites':
+			file_path = xbmcvfs.translatePath('special://userdata/favourites.xml')
+			fav1_list = []
+			fav1_list.append('    <favourite name="Trakt Watched TV" thumb="special://home/addons/script.extendedinfo/resources/skins/Default/media/tmdb/thumb.png">RunScript('+str(addonID)+',info=trakt_watched,trakt_type=tv)</favourite>')
+			fav1_list.append('    <favourite name="Trakt Watched Movies" thumb="special://home/addons/script.extendedinfo/resources/skins/Default/media/tmdb/thumb.png">RunScript('+str(addonID)+',info=trakt_watched,trakt_type=movie)</favourite>')
+			fav1_list.append('    <favourite name="Reopen Last" thumb="special://home/addons/script.extendedinfo/resources/skins/Default/media/tmdb/thumb.png">RunScript('+str(addonID)+',info=reopen_window)</favourite>')
+			fav1_list.append('    <favourite name="Youtube Trailers" thumb="special://home/addons/script.extendedinfo/resources/skins/Default/media/common/youtube.png">RunScript('+str(addonID)+',info=youtube,search_str=trailers)</favourite>')
+			fav1_list.append('    <favourite name="Eps_Movies Watching" thumb="special://home/addons/script.extendedinfo/resources/skins/Default/media/tmdb/thumb.png">RunScript('+str(addonID)+',info=ep_movie_progress)</favourite>')
+			fav1_list.append('    <favourite name="Settings" thumb="special://home/addons/script.extendedinfo/resources/skins/Default/media/icons/tool2.png">RunScript('+str(addonID)+',info=open_settings)</favourite>')
+			fav1_list.append('    <favourite name="manage_download_list" thumb="special://home/addons/script.extendedinfo/resources/skins/Default/media/icons/database.png">RunScript('+str(addonID)+',info=manage_download_list)</favourite>')
+			fav1_list.append('    <favourite name="run_downloader" thumb="special://home/addons/script.extendedinfo/resources/skins/Default/media/netflix/play.png">RunScript('+str(addonID)+',info=run_downloader)</favourite>')
+			fav1_list.append('    <favourite name="stop_downloader" thumb="special://home/addons/script.extendedinfo/resources/skins/Default/media/netflix/stop.png">RunScript('+str(addonID)+',info=stop_downloader)</favourite>')
+			file1 = open(file_path, 'r')
+			lines = file1.readlines()
+			new_file = ''
+			update_list = []
+			for j in fav1_list:
+				curr_test = j.split('RunScript(')[1].split(')</favourite>')[0]
+				if curr_test in str(lines):
+					continue
+				else:
+					update_list.append(j)
+			for idx, line in enumerate(lines):
+				if line == '</favourites>\n' or idx == len(lines) - 1:
+					for j in update_list:
+						new_file = new_file + j + '\n'
+					new_file = new_file + line
+				else:
+					new_file = new_file + line
+			file1.close()
+			if len(update_list) > 0:
+				xbmc.log(str('setup_favourites')+'_patch_seren_a4k===>OPENINFO', level=xbmc.LOGINFO)
+				file1 = open(file_path, 'w')
+				file1.writelines(new_file)
+				file1.close()
+			Utils.hide_busy()
+
 		elif info == 'patch_core':
 			from a4kscrapers_wrapper import getSources
 			getSources.patch_ak4_core_find_url()
@@ -1531,12 +1571,47 @@ def reopen_window():
 	wm.window_stack_empty()
 	return wm.open_video_list(search_str='', mode='reopen_window')
 
+def auto_clean_cache_seren_downloader(days=None):
+	import os 
+	import datetime
+	import glob
+	xbmc.log('STARTING===>auto_clean_cache_seren_downloader', level=xbmc.LOGINFO)
+	path = xbmcvfs.translatePath('special://profile/addon_data/'+str('plugin.video.seren_downloader')+'/')
+	if days==None:
+		days = -30
+	else:
+		days = int(days)*-1
+
+	today = datetime.datetime.today()#gets current time
+	if not xbmcvfs.exists(path):
+		return
+		#xbmcvfs.mkdir(path)
+	os.chdir(path) #changing path to current path(same as cd command)
+
+	directories_list = ['TheMovieDB', 'TVMaze']
+	#we are taking current folder, directory and files 
+	#separetly using os.walk function
+	for root,directories,files in os.walk(path,topdown=False): 
+		for name in files:
+			#this is the last modified time
+			t = os.stat(os.path.join(root, name))[8] 
+			filetime = datetime.datetime.fromtimestamp(t) - today
+			#checking if file is more than 7 days old 
+			#or not if yes then remove them
+			if filetime.days <= days: # and 'Taste' not in str(root):
+				#print(os.path.join(root, name), filetime.days)
+				for i in directories_list:
+					target = str(os.path.join(root, name))
+					if str(i) in target:
+						xbmc.log(str(target)+'===>DELETE', level=xbmc.LOGINFO)
+						os.remove(target)
+
 def auto_clean_cache(days=None):
 	import os 
 	import datetime
 	import glob
 	xbmc.log('STARTING===>auto_clean_cache', level=xbmc.LOGINFO)
-	path = Utils.ADDON_DATA_PATH
+	path = Utils.ADDON_DATA_PATH + '/'
 	if days==None:
 		days = -30
 	else:
@@ -1564,6 +1639,7 @@ def auto_clean_cache(days=None):
 					if str(i) in target:
 						xbmc.log(str(target)+'===>DELETE', level=xbmc.LOGINFO)
 						os.remove(target)
+	auto_clean_cache_seren_downloader(days=30)
 
 def auto_library():
 	Utils.hide_busy()
@@ -1639,3 +1715,95 @@ def auto_library():
 		#			if hours_since_up >=1:
 		#				xbmc.executebuiltin('RunPlugin(plugin://plugin.video.realizer/?action=rss_update)')
 		#xbmc.executebuiltin('RunPlugin(plugin://plugin.video.realizer/?action=rss_update)')
+		
+
+def estuary_fix():
+	#osmc_home = '/usr/share/kodi/addons/skin.estuary/xml/Home.xml'
+	import os
+	osmc_home = xbmcvfs.translatePath('special://skin/xml/Home.xml')
+	estuary_home_fix2 = xbmcvfs.translatePath(Utils.ADDON_DATA_PATH + '/estuary_home_fix2.py')
+	command = "sudo python %s '%s'" % (estuary_home_fix2, osmc_home)
+	xbmc.log(str(command)+'===>OPEN_INFO', level=xbmc.LOGINFO)
+	os.system(command)
+	return
+
+	home_xml = osmc_home 
+	file1 = open(home_xml, 'r')
+	Lines = file1.readlines()
+	out_xml = ''
+	item_flag = False
+	new_item = '''
+
+							<item>
+								<label>$LOCALIZE[10134]</label>
+								<onclick>ActivateWindow(favourites)</onclick>
+								<property name="menu_id">$NUMBER[14000]</property>
+								<thumb>icons/sidemenu/favourites.png</thumb>
+								<property name="id">favorites</property>
+								<visible>!Skin.HasSetting(HomeMenuNoFavButton)</visible>
+							</item>
+
+	'''
+	item_count = 0
+	change_flag = False
+	for line in Lines:
+		if item_flag == False and not '<item>' in line:
+			out_xml = out_xml + line 
+		if '<item>' in line:
+			item_flag = True
+			string = line
+			item_count = item_count + 1
+			continue
+		if item_flag == True:
+			string  = string + line
+		if '</item>' in line:
+			item_flag = False
+			curr_item = string.split('<property name="id">')[1].split('</property>')[0]
+			print(item_count, curr_item )
+			if curr_item == 'movies' and item_count == 1:
+				string = new_item + string 
+				change_flag = True
+			if curr_item == 'favorites' and item_count == 1:
+				change_flag = False
+			if curr_item == 'favorites' and item_count > 2:
+				continue
+				change_flag = True
+			out_xml = out_xml + string
+
+	if change_flag == True:
+		file1 = open(home_xml, 'w')
+		file1.writelines(out_xml)
+		file1.close()
+		print(out_xml)
+
+
+	#osmc_home = '/usr/share/kodi/addons/skin.estuary/xml/VideoOSD.xml'
+	#osmc_home = '/usr/share/kodi/addons/skin.estuary/xml/Home.xml'
+	osmc_home = xbmcvfs.translatePath('special://skin/xml/VideoOSD.xml')
+
+	home_xml = osmc_home 
+	file1 = open(home_xml, 'r')
+	Lines = file1.readlines()
+	out_xml = ''
+	item_flag = False
+	old_item = '''<defaultcontrol always="true">602</defaultcontrol>'''
+	new_item = '''
+		<defaultcontrol always="true">70048</defaultcontrol>
+	'''
+
+	item_count = 0
+	change_flag = False
+	for line in Lines:
+		if item_flag == False and old_item in str(line):
+			out_xml = out_xml + new_item 
+			item_flag = True
+			change_flag = True
+		else:
+			out_xml = out_xml + line
+
+
+	if change_flag == True:
+		file1 = open(home_xml, 'w')
+		file1.writelines(out_xml)
+		file1.close()
+		print(out_xml)

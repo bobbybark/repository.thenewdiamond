@@ -1552,12 +1552,12 @@ class CronJobMonitor(Thread):
 					get_meta.get_rss_cache()
 				if trakt_calendar_auto_sync == 'true' or trakt_calendar_auto_sync == True:
 					log(str('library.trakt_unwatched_tv_shows()'))
-					unwatched_thread = Thread(target=library.trakt_unwatched_tv_shows)
-					unwatched_thread.setDaemon(True)
+					unwatched_thread = Thread(target=library.trakt_unwatched_tv_shows, daemon=True)
+					#unwatched_thread.setDaemon(True)
 					unwatched_thread.start()
 					log(str('library.taste_dive_movies()'))
-					taste_dive_thread = Thread(target=library.taste_dive_movies)
-					taste_dive_thread.setDaemon(True)
+					taste_dive_thread = Thread(target=library.taste_dive_movies, daemon=True)
+					#taste_dive_thread.setDaemon(True)
 					taste_dive_thread.start()
 				library_update_period = int(xbmcaddon.Addon(library.addon_ID()).getSetting('library_sync_hours'))
 				self.next_time = self.curr_time + library_update_period*60*60
@@ -1577,7 +1577,8 @@ class ServiceMonitor(object):
 		Utils.hide_busy()
 		self.exit = False
 		self.cron_job = CronJobMonitor(0)
-		self.cron_job.setName('Cron Thread')
+		#self.cron_job.setName('Cron Thread')
+		self.cron_job.name = 'Cron Thread'
 		self.player_monitor = None
 		self.my_monitor = None
 		self.xbmc_monitor = xbmc.Monitor()

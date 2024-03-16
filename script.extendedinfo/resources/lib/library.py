@@ -947,9 +947,15 @@ def trakt_next_episode_rewatch(tmdb_id_num=None):
                 next_season_to_watch = i['number']
                 next_ep_to_watch = j['number']
                 next_flag = 'false'
-                break        
-            if int(i['number']) == int(next_season_to_watch) and int(j['number']) == int(next_ep_to_watch):
-                next_flag = 'true'
+                break
+            try:
+                if int(i['number']) == int(next_season_to_watch) and int(j['number']) == int(next_ep_to_watch):
+                    next_flag = 'true'
+            except:
+                xbmc.executebuiltin('Dialog.Close(busydialog)')
+                xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
+                xbmcgui.Dialog().notification(heading='Trakt Next Episode Rewatch', message='Not REWATCHING!', icon=icon_path(),time=1000,sound=False)
+                return
 
     try:    
         season = int(next_season_to_watch)

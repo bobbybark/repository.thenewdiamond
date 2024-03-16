@@ -246,6 +246,7 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True):
 	#except:
 	#	tmdb_response = None
 	#	pass
+	show_title = show_title.replace(' s ', 's ')
 	kodi_send_command = 'kodi-send --action="RunScript(%s,info=a4kwrapper_player,type=tv,show_title=%s,show_season=%s,show_episode=%s,tmdb=%s,test=True)"' % (addon_ID(), show_title, show_season, show_episode, tmdb)
 	print_log(kodi_send_command,'___kodi_send_command')
 	meta = get_meta.get_episode_meta(season=show_season,episode=show_episode,show_name=show_title, tmdb=tmdb, interactive=False)
@@ -289,7 +290,7 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True):
 			xbmc.executebuiltin('ActivateWindow(busydialog)')
 
 
-		show_title_clean = regex.sub(' ', show_title.replace('\'s','s').replace('&','and')).replace('  ',' ').lower()
+		show_title_clean = regex.sub(' ', show_title.replace('\'s','s').replace('&','and')).replace('  ',' ').lower().replace(' s ','s ')
 		tmdb_id = tmdb
 		#response = get_tvshow_info(tvshow_label=show_title, year=None, use_dialog=False)
 		#tmdb_id2 = response['id']

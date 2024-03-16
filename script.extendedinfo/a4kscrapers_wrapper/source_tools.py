@@ -1356,6 +1356,7 @@ def match_episodes_season_pack(meta, sorted_torr_info):
 		end_index = -1
 		options = {'type': 'episode'}
 		prev_episode = 0
+		max_episode = 0
 		absolute_flag = False
 		season_match = False
 		
@@ -1410,6 +1411,14 @@ def match_episodes_season_pack(meta, sorted_torr_info):
 					continue
 			#guess = api.guessit(pack_path, options)
 			guess = get_guess(pack_path, options)
+			if guess.get('type') == 'episode' and 'miniseries' in str(meta).lower():
+				if guess.get('episode', False) == False and guess.get('part', False) != False:
+					guess['episode'] = guess['part'] 
+				if guess.get('season', False) == False:
+					guess['season'] = 1 
+				if guess.get('episode_title', False) == False:
+					guess['episode_title'] = simple_info['originaltitle']
+					
 			#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 			#tools.log(pack_path,guess)
 			guessit_list.append([guess, idx, []])

@@ -625,6 +625,18 @@ def get_episode_meta(season, episode,tmdb=None, show_name=None, year=None, inter
 				alternative_titles.append(show_name + ' ' + show_year)
 				alternative_titles.append(show_name + ' - ' + first_air_date[:4])
 
+			clean_titles = []
+			unclean_titles = []
+			for i in alternative_titles:
+				if sum(not c.isalnum() for c in i.replace(' ', '')) >= 1:
+					unclean_titles.append(i)
+				else:
+					clean_titles.append(i)
+			alternative_titles = []
+			for i in clean_titles:
+				alternative_titles.append(i)
+			for i in unclean_titles:
+				alternative_titles.append(i)
 			episode_year = 1900
 			episode_title = None
 			season_dict = {}
