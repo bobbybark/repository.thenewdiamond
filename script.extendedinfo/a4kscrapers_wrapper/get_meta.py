@@ -699,7 +699,11 @@ def get_episode_meta(season, episode,tmdb=None, show_name=None, year=None, inter
 			except: response = eval(str(response).replace('null','"null"'))
 
 			show['tvmaze_runtime'] = response['runtime']
+			if show['tvmaze_runtime'] == 'None' or show['tvmaze_runtime'] == None:
+				show['tvmaze_runtime'] = 60
 			show['tvmaze_averageRuntime'] = response['averageRuntime']
+			if show['tvmaze_averageRuntime'] == 'None' or show['tvmaze_averageRuntime'] == None:
+				show['tvmaze_runtime'] = 60
 			show['tvmaze_premiered'] = response['premiered']
 			show['tvmaze_show_id'] = response['id']
 
@@ -745,7 +749,8 @@ def get_episode_meta(season, episode,tmdb=None, show_name=None, year=None, inter
 				season_dict['episodes'][idx]['season_count'] = total_seasons
 				season_dict['episodes'][idx]['show_episode_count'] = tot_episode_count
 
-				pc_of_max_runtime = abs(100*((x-max(runtime_list))/max(runtime_list)))
+				try: pc_of_max_runtime = abs(100*((x-max(runtime_list))/max(runtime_list)))
+				except: pc_of_max_runtime = None
 				season_dict['episodes'][idx]['pc_of_max_runtime'] = pc_of_max_runtime
 				if max(runtime_list) == min(runtime_list):
 					season_dict['episodes'][idx]['double_ep'] = False

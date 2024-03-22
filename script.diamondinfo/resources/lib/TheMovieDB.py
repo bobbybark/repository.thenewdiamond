@@ -1698,11 +1698,14 @@ def get_imdb_watchlist_ids(ur_list_str=None, limit=0):
 				if 'tt' in str(y):
 					movies.append(y)
 		x = x + 1
-	del list_container
-	del list_container2
-	del imdb_dict2
-	del imdb_dict
-	del imdb_response
+	try:
+		del list_container
+		del list_container2
+		del imdb_dict2
+		del imdb_dict
+		del imdb_response
+	except:
+		pass
 	return movies
 
 def get_imdb_watchlist_items(movies=None, limit=0, cache_days=14, folder='IMDB', imdb_url=None):

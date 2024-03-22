@@ -1574,7 +1574,11 @@ def auto_scrape_rd(meta):
 		scrapper = Sources(info)
 		uncached, sources_list, item_information = scrapper.get_sources()
 		print(scrapper.progress)
-		if len(uncached) == 0 and len(sources_list) == 0:
+		if meta.get('download_type',False) == 'movie' and len(uncached) == 0 and len(sources_list) == 0:
+			scrapper = Sources(info)
+			uncached, sources_list, item_information = scrapper.get_sources()
+			print(scrapper.progress)
+		elif len(uncached) == 0 and len(sources_list) == 0:
 			for i in info['show_aliases']:
 				info['show_title'] = i
 				info['tvshow'] = i
