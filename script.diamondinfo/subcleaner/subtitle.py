@@ -306,12 +306,11 @@ def OpenRead(file):
         return codecs.open(file, 'r', encoding='utf8')
     except:
         try:
-            return codecs.open(file, 'r', encoding='latin1').
+            return codecs.open(file, 'r', encoding='latin1')
         except: 
             bom = bomType(file)
             return open(file, 'r', encoding=bom, errors='ignore')
 
-codecs.open("/home/osmc/Stargate.1994.Director's.Cut.1080p.Remux.AVC.DTS-HD.MA.7.1-playBD.srt", 'r', encoding='utf8').read().split('\r\n')
 
 def read_file(file: Path) -> str:
     file_content: str
