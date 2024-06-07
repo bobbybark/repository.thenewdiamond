@@ -302,7 +302,7 @@ def OpenRead(file):
     #bom = bomType(file)
     #return open(file, 'r', encoding=bom, errors='ignore')
     import codecs
-    return codecs.open(filename, 'r', 'utf-8')
+    return codecs.open(file, 'r', 'utf-8')
 
 
 def read_file(file: Path) -> str:
