@@ -7,6 +7,7 @@ from resources.lib.library import addon_ID
 from resources.lib.library import addon_ID_short
 from resources.lib.library import fanart_api_key
 
+import html
 from inspect import currentframe, getframeinfo
 #xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 
@@ -547,7 +548,7 @@ def get_tastedive_data_scrape(url='', query='', year='', limit=20, media_type=No
 					results_id.append(i['id'])
 		for i in imdb_response:
 			#xbmc.log(str(i)+'query_get_tastedive_data_scrape===>OPENINFO', level=xbmc.LOGINFO)
-			if i.get('poster_path','') == '' or i.get('poster_path','') == None or i.get('poster_path','') == 'None':
+			if i.get('poster','') == '' or i.get('poster','') == None or i.get('poster','') == 'None':
 				continue
 			try: title = i['title']
 			except: title = i['name']
@@ -1614,27 +1615,40 @@ def get_trakt_userlists():
 
 def get_imdb_userlists():
 	imdb_id = xbmcaddon.Addon().getSetting('imdb_ur_id')
+	Utils.log(imdb_id)
 	if imdb_id == '':
 		return None
 	import requests
 	imdb_url = 'https://www.imdb.com/user/'+str(imdb_id)+'/lists'
+	#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
+	#xbmc.log(str(imdb_url)+'===>OPENINFO', level=xbmc.LOGINFO)
 	imdb_header = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
 	imdb_response = requests.get(imdb_url, headers=imdb_header)
 	list_container = str(imdb_response.text,).split('<')
+	#xbmc.log(str(list_container)+'===>OPENINFO', level=xbmc.LOGINFO)
 	imdb_list = {}
 	imdb_list['imdb_list'] = []
-	
+	processed_list = []
+	imdb_user_name = None
 
 	for i in list_container:
 		if 'meta property=\'og:title\' content="' in i:
 			imdb_user_name = i.split('"')[1].replace('Lists - IMDb','')
 			imdb_user_name = 'IMDB - %s Watchlist' % (imdb_user_name)
 			imdb_list['imdb_list'].append({imdb_id: imdb_user_name})
-		if 'a class="list-name"' in i:
-			list_number = i.split('/')[2]
-			list_name = 'IMDB - ' + i.split('/')[3].replace('">','')
-			imdb_list['imdb_list'].append({list_number: list_name})
+		if 'title>' in i and imdb_user_name == None:
+			imdb_user_name = html.unescape(i.split('title>')[1]).replace("'s Lists",'')
+			imdb_user_name = 'IMDB - %s Watchlist' % (imdb_user_name)
+			imdb_list['imdb_list'].append({imdb_id: imdb_user_name})
 		
+		if 'href="/list/ls' in i:
+			list_number = 'ls' + i.split('href="/list/ls')[1].split('/?r')[0]
+			if list_number in processed_list:
+				continue
+			processed_list.append(list_number)
+			#list_name = 'IMDB - ' + i.split('/')[3].replace('">','')
+			list_name = 'IMDB - ' + i.split('View list page for ')[1].split('">')[0]
+			imdb_list['imdb_list'].append({list_number: list_name})
 			
 	return imdb_list
 
@@ -1649,16 +1663,26 @@ def get_imdb_userlists_search(imdb_id=None):
 	list_container = str(imdb_response.text,).split('<')
 	imdb_list = {}
 	imdb_list['imdb_list'] = []
-	
+	processed_list = []
+	imdb_user_name = None
 
 	for i in list_container:
 		if 'meta property=\'og:title\' content="' in i:
 			imdb_user_name = i.split('"')[1].replace('Lists - IMDb','')
 			imdb_user_name = 'IMDB - %s Watchlist' % (imdb_user_name)
 			imdb_list['imdb_list'].append({imdb_id: imdb_user_name})
-		if 'a class="list-name"' in i:
-			list_number = i.split('/')[2]
-			list_name = 'IMDB - ' + i.split('/')[3].replace('">','')
+		if 'title>' in i and imdb_user_name == None:
+			imdb_user_name = html.unescape(i.split('title>')[1]).replace("'s Lists",'')
+			imdb_user_name = 'IMDB - %s Watchlist' % (imdb_user_name)
+			imdb_list['imdb_list'].append({imdb_id: imdb_user_name})
+		
+		if 'href="/list/ls' in i:
+			list_number = 'ls' + i.split('href="/list/ls')[1].split('/?r')[0]
+			if list_number in processed_list:
+				continue
+			processed_list.append(list_number)
+			#list_name = 'IMDB - ' + i.split('/')[3].replace('">','')
+			list_name = 'IMDB - ' + i.split('View list page for ')[1].split('">')[0]
 			imdb_list['imdb_list'].append({list_number: list_name})
 		
 			
@@ -1669,6 +1693,7 @@ def get_imdb_watchlist_ids(ur_list_str=None, limit=0):
 	import requests
 	list_str=ur_list_str
 
+	#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 	imdb_url = 'https://www.imdb.com/user/'+str(list_str)+'/watchlist'
 	imdb_header = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
 	imdb_response = requests.get(imdb_url, headers=imdb_header)
@@ -1679,11 +1704,23 @@ def get_imdb_watchlist_ids(ur_list_str=None, limit=0):
 	#episode_containers = html_soup.find_all('div', class_='article')
 
 	list_container = str(imdb_response.text,).split('<')
+	#xbmc.log(str(list_container)+'===>OPENINFO', level=xbmc.LOGINFO)
+	processed_list = []
+	movies = []
 	for i in list_container:
+		if 'href="/title/tt' in i:
+			imdb_number = 'tt' + i.split('href="/title/tt')[1].split('/?r')[0]
+			if imdb_number in processed_list:
+				continue
+			processed_list.append(imdb_number)
+			movies.append(imdb_number)
+		"""
 		if 'IMDbReactWidgets.WatchlistWidget.push' in str(i):
 			list_container2 = i
 			break
+		"""
 
+	"""
 	try: imdb_dict = str(list_container2).split('{')
 	except: return None
 	movies = []
@@ -1706,6 +1743,7 @@ def get_imdb_watchlist_ids(ur_list_str=None, limit=0):
 		del imdb_response
 	except:
 		pass
+	"""
 	return movies
 
 def get_imdb_watchlist_items(movies=None, limit=0, cache_days=14, folder='IMDB', imdb_url=None):

@@ -225,7 +225,7 @@ def get_next_ep_details(show_title, season_num, ep_num, tmdb):
 
 
 
-def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True):
+def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True, prescrape_test=None):
 	#from resources.lib.TheMovieDB import get_tmdb_data
 	#from resources.lib.TheMovieDB import single_tvshow_info
 	#from resources.lib.TheMovieDB import get_tvshow_info
@@ -518,6 +518,10 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True):
 		if 'http'  in str(PTN_download):
 			tools.log('prescrape_DOWNLOAD_FOUND!!',PTN_download)
 
+	if not 'http' in str(PTN_download) and prescrape_test:
+		PTN_download = prescrape_test
+		new_meta = meta
+		tools.log('prescrape_DOWNLOAD_FOUND!!',PTN_download)
 	
 
 	#print_log('SUBTITLES_____________')

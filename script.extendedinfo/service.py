@@ -1200,6 +1200,7 @@ class PlayerMonitor(xbmc.Player):
 			self.playerid = self.get_playerid()
 
 			if self.update_resume_position_duration() == False:
+				log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO')
 				return
 			#try: self.player_meta['resume_position'] = player.getTime()
 			#except: return
@@ -1220,6 +1221,7 @@ class PlayerMonitor(xbmc.Player):
 		#except: return
 		self.update_play_test(self.playing_file)
 		if self.play_test == False:
+			log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO')
 			return
 
 
@@ -1232,10 +1234,12 @@ class PlayerMonitor(xbmc.Player):
 				xbmc.sleep(250)
 				self.player_meta['resume_position'] = player.getTime()
 			except: 
+				log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO')
 				return
 
 			return_var = self.scrobble_trakt_speed_resume_test()
 			if return_var == False:
+				log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO')
 				return
 			#if int(time.time()) >= int(self.speed_time):
 			#	json_result = xbmc.executeJSONRPC('{"jsonrpc": "2.0","id": "1","method": "Player.GetProperties","params": {"playerid": %s,"properties": ["position","playlistid","speed"]}}' % (self.playerid))
@@ -1424,7 +1428,7 @@ class PlayerMonitor(xbmc.Player):
 
 
 			if self.player_meta['percentage'] > 33 and 'http' in str(prescrape) and self.player_meta['diamond_player'] == True:
-				next_ep_play_details = next_ep_play(show_title=next_ep_details['next_ep_show'], show_season=next_ep_details['next_ep_season'], show_episode=next_ep_details['next_ep_episode'], tmdb=next_ep_details['tmdb_id'],auto_rd=False)
+				next_ep_play_details = next_ep_play(show_title=next_ep_details['next_ep_show'], show_season=next_ep_details['next_ep_season'], show_episode=next_ep_details['next_ep_episode'], tmdb=next_ep_details['tmdb_id'],auto_rd=False,prescrape_test=self.prescrape_test)
 				try: 
 					prescrape = 'Done'
 					if next_ep_play_details.get('ResolvedUrl') == True:

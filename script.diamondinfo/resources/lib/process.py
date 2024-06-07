@@ -1203,6 +1203,10 @@ def start_info_actions(infos, params):
 				import getSources
 			except:
 				from a4kscrapers_wrapper import getSources
+			stop_downloader = xbmcaddon.Addon(addon_ID()).getSetting('magnet_list').replace('magnet_list.txt','stop_downloader')
+			if os.path.exists(stop_downloader):
+				os.remove(stop_downloader)
+
 			magnet_list = xbmcaddon.Addon(addon_ID()).getSetting('magnet_list')
 			download_path = xbmcaddon.Addon(addon_ID()).getSetting('download_path')
 			xbmc.log(str('run_downloader___')+'run_downloader===>OPENINFO', level=xbmc.LOGINFO)
@@ -1299,6 +1303,7 @@ def start_info_actions(infos, params):
 
 		elif info == 'estuary_fix':
 			estuary_fix()
+			Utils.hide_busy()
 
 		elif info == 'setup_favourites':
 			file_path = xbmcvfs.translatePath('special://userdata/favourites.xml')
@@ -1721,7 +1726,7 @@ def estuary_fix():
 	#osmc_home = '/usr/share/kodi/addons/skin.estuary/xml/Home.xml'
 	import os
 	osmc_home = xbmcvfs.translatePath('special://skin/xml/Home.xml')
-	estuary_home_fix2 = xbmcvfs.translatePath(Utils.ADDON_DATA_PATH + '/estuary_home_fix2.py')
+	estuary_home_fix2 = xbmcvfs.translatePath(Utils.ADDON_PATH + '/estuary_home_fix2.py')
 	command = "sudo python %s '%s'" % (estuary_home_fix2, osmc_home)
 	xbmc.log(str(command)+'===>OPEN_INFO', level=xbmc.LOGINFO)
 	os.system(command)
@@ -1798,6 +1803,45 @@ def estuary_fix():
 			out_xml = out_xml + new_item 
 			item_flag = True
 			change_flag = True
+		else:
+			out_xml = out_xml + line
+
+
+	if change_flag == True:
+		file1 = open(home_xml, 'w')
+		file1.writelines(out_xml)
+		file1.close()
+		print(out_xml)
+		
+	line_593_594 = """				<onup>noop</onup>
+				<ondown>105</ondown>"""
+	line_593 = """<onup>noop</onup>"""
+	line_594 = """<ondown>105</ondown>"""
+	line_3 = """<defaultcontrol always="true">300</defaultcontrol>"""
+
+	line_593_594_new = """				<onup>300</onup>
+				<ondown>300</ondown>"""
+	line_3_new = """	<defaultcontrol always="true">105</defaultcontrol>"""
+
+	osmc_home = xbmcvfs.translatePath('special://skin/xml/DialogKeyboard.xml')
+	home_xml = osmc_home 
+	file1 = open(home_xml, 'r')
+	Lines = file1.readlines()
+	out_xml = ''
+	item_flag = False
+	item_count = 0
+	change_flag = False
+	for line in Lines:
+		if line_3 in str(line):
+			out_xml = out_xml + line_3_new 
+			item_flag = True
+			change_flag = True
+		if line_593 in str(line):
+			out_xml = out_xml + line_593_594_new 
+			item_flag = True
+			change_flag = True
+		if line_594 in str(line):
+			continue
 		else:
 			out_xml = out_xml + line
 

@@ -1297,11 +1297,13 @@ def get_tmdb_window(window_type):
 			self.page = 1
 			listitems = []
 			trakt_data = TheMovieDB.get_trakt_userlists()
+			#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 			if trakt_data:
 				for i in trakt_data['trakt_list']:
 					if str(i['name']) != '':
 						listitems += [i['name']]
 
+			#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 			data = TheMovieDB.get_imdb_userlists()
 			imdb_list = []
 			imdb_list_name = []
