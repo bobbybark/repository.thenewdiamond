@@ -99,7 +99,7 @@ def main():
 			file1 = open(magnet_list, "w")
 			file1.write("\n")
 			file1.close()
-			for line in lines:
+			for line in reversed(lines):
 				if except_flag == False:
 					try: new_line = eval(line)
 					except: continue
