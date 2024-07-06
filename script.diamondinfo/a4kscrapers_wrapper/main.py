@@ -184,9 +184,12 @@ def main():
 			meta = get_meta.get_movie_meta(movie_name=movie_title,year=None, interactive=True)
 			info = meta
 		
-		file_path = input('Enter file path for source file MP4:  ')
+		file_path = input('Enter file path for source file MP4:  ').strip()
 		source_dir = os.path.dirname(file_path)
+		if file_path[:4] == 'http':
+			source_dir = os.path.join(tools.ADDON_USERDATA_PATH, 'temp')
 		print(source_dir)
+		print(file_path)
 		
 		try: subs = importlib.import_module("subs")
 		except: subs = reload_module(importlib.import_module("subs"))

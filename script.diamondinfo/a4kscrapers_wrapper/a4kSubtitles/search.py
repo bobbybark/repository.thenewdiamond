@@ -358,6 +358,7 @@ def search(core, params):
 
 		service = core.services[service_name]
 		core.progress_text += service.display_name + '|'
+		tools.log(core.progress_text)
 
 		auth_thread = None
 		#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))

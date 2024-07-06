@@ -119,12 +119,17 @@ def is_local(_str):
 def hashFile_url(filepath): 
 	#https://trac.opensubtitles.org/projects/opensubtitles/wiki/HashSourceCodes
 	#filehash = filesize + 64bit sum of the first and last 64k of the file
-	name = filepath
+	name = filepath.strip()
+	filepath = filepath.strip()
 	if is_local(filepath):
 		local_file = True
 	else:
 		local_file = False
 
+	tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+	if local_file == True and filepath[:4] == 'http':
+		tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+		local_file = False
 	if local_file == False:
 		f = None
 		url = name
