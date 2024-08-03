@@ -570,7 +570,13 @@ def run_downloader(magnet_list, download_path):
 
 def run_tv_search():
 	try: 
-		tv_show_title = input('Enter TV Show Title:  ')
+		tv_show_title = input('Enter TV Show Title (MAGNET???):  ')
+		if 'magnet:' in tv_show_title:
+			custom = {'provider_name_override': 'CUSTOM', 'hash': 'CUSTOM', 'package': 'CUSTOM', 'release_title': 'CUSTOM', 'size': 0, 'seeds': 0, 'magnet': tv_show_title, 'type': 'CUSTOM', 'provider_name': 'CUSTOM', 'info': {'CUSTOM'}, 'quality': 'CUSTOM', 'pack_size': 0, 'provider': 'CUSTOM', 'debrid_provider': 'CUSTOM'}
+			tv_show_title = input('Enter TV Show Title:  ')
+		else:
+			custom = None
+
 		season_number = input('Enter Season Number:  ')
 		episode_number = input('Enter Episode Number:  ')
 	except:
@@ -580,7 +586,16 @@ def run_tv_search():
 	info = meta['episode_meta']
 	#tools.log(info)
 	scrapper = Sources(info)
-	uncached, sources_list, item_information = scrapper.get_sources()
+
+	if custom:
+		uncached = []
+		uncached.append(custom)
+		sources_list = []
+		sources_list.append(custom)
+		item_information = info
+	else:
+		uncached, sources_list, item_information= Sources(info).get_sources()
+	#uncached, sources_list, item_information = scrapper.get_sources()
 	print(scrapper.progress)
 	if len(uncached) == 0 and len(sources_list) == 0:
 		for i in info['show_aliases']:
@@ -745,9 +760,14 @@ def run_tv_search():
 			try: print('Unrestrict %s:  ' % i['file'])
 			except: print('Unrestrict %s:  ' % i['path'])
 			if 1==1:
+				time.sleep(1)
 				response = rd_api.torrent_select(torr_id, i['id'])
 				response = rd_api.add_magnet(torrent['magnet'])
-				torr_id = response['id']
+				try: 
+					torr_id = response['id']
+				except: 
+					tools.log(response)
+					continue
 				torr_info = rd_api.torrent_info(torr_id)
 		#response = rd_api.add_magnet(torrent['magnet'])
 		#tools.log(response)
@@ -1648,19 +1668,35 @@ def auto_scrape_rd(meta):
 
 	download_link = None
 	torrent = None
+	added_uncached = 0
 	while download_link == None:
 		try: 
 			torrent = sources_list[idx]
 		except: 
 			try:
 				tools.log('UNCACHED')
+				tools.log(torrent)
 				torrent = uncached[idx]
+				curr_idx = idx
 				idx = idx + 1
 				response = rd_api.add_magnet(torrent['magnet'])
-				#tools.log(response)
-				torr_id = response['id']
+				tools.log(response)
+				try: torr_id = response['id']
+				except KeyError: continue
+				if 'infringing_file' in str(response):
+					rd_api.delete_torrent(torr_id)
+					continue
+				
+				response = rd_api.torrent_select_all(torr_id)
+				time.sleep(2)
+				tools.log(response)
 				response = rd_api.torrent_select_all(torr_id)
 				torr_info = rd_api.torrent_info(torr_id)
+				tools.log(torr_info)
+				if 'magnet_error' in str(torr_info) or 'waiting_files_selection' in str(torr_info):
+					rd_api.delete_torrent(torr_id)
+					continue
+				added_uncached = added_uncached + 1
 				#torr_info = rd_api.torrent_info_files(torr_info)
 				if torr_info['status'] == 'downloaded':
 					if download_type == 'movie':
@@ -1680,11 +1716,22 @@ def auto_scrape_rd(meta):
 					if download_link:
 						return download_link, meta
 				#tools.log(response)
+				tools.log(idx)
 				tools.log('UNCACHED_ADDED_1ST_LINK_TO_RD')
+				if added_uncached > 1:
+					rd_api.delete_torrent(torr_id)
+				if idx >= len(uncached)-1:
+					return None, meta
+				#continue
 				return None, meta
 			except:
+				rd_api.delete_torrent(torr_id)
+				if curr_idx >= len(uncached):
+					return None, meta
+				uncached.pop(curr_idx)
+				idx = idx + 1
 				tools.log(torrent, 'EXCEPTION_auto_scrape_rd')
-				return None, meta
+				continue
 
 		torrent = sources_list[idx]
 		idx = idx + 1
@@ -2053,16 +2100,21 @@ getSources.check_rd_cloud(meta)
 			break
 		for x in result:
 			#tools.log('torrent', i, x)
+			#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
+			if x['status'] == 'downloading':
+				continue
 			file_info1 = tools.get_info(x['filename'])
 			file_info2 = tools.get_info(source_tools.clean_title(x['filename']))
 			source_list = []
 			try:
-				source_list.append({'filename': x['filename'], 'pack_size': x['bytes'] / 1024 / 1024 , 'size': x['bytes'] / 1024 / 1024 / len(x['links']), 'info': tools.get_info(x['filename']), 'quality': tools.get_quality(x['filename'])})
-				source_list.append({'filename': x['filename'], 'pack_size': x['bytes'] / 1024 / 1024 , 'size': x['bytes'] / 1024 / 1024 / len(x['links']), 'info': tools.get_info(source_tools.clean_title(x['filename'])), 'quality': tools.get_quality(source_tools.clean_title(x['filename']))})
+				source_list.append({'filename': x['filename'], 'pack_size': x['bytes'] / 1024 / 1024 , 'size': x['bytes'] / 1024 / 1024 / max(1,len(x['links'])), 'info': tools.get_info(x['filename']), 'quality': tools.get_quality(x['filename'])})
+				source_list.append({'filename': x['filename'], 'pack_size': x['bytes'] / 1024 / 1024 , 'size': x['bytes'] / 1024 / 1024 / max(1,len(x['links'])), 'info': tools.get_info(source_tools.clean_title(x['filename'])), 'quality': tools.get_quality(source_tools.clean_title(x['filename']))})
 			except: 
+				#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 				continue
 			new_source_list = list(tools.SourceSorter(info).filter_sources2(source_list))
 			if len(new_source_list) == 0:
+				#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 				continue
 
 			if download_type == 'movie':
@@ -2763,12 +2815,16 @@ def rd_delete_dupes():
 			#tools.log(x)
 			if x['status'] != 'downloaded' and x['status'] != 'downloading':
 				check_hash = rd_api.check_hash([x['hash']])
-				if len(x['links']) == 0:
-					tools.log('ERROR_DELETE=' + x['filename'])
-					#tools.log(check_hash)
-					delete_torrent = rd_api.delete_torrent(x['id'])
-					tools.log(delete_torrent)
+				try:
+					if len(x['links']) == 0:
+						tools.log('ERROR_DELETE=' + x['filename'])
+						#tools.log(check_hash)
+						delete_torrent = rd_api.delete_torrent(x['id'])
+						tools.log(delete_torrent)
+						break_flag = True
+				except KeyError:
 					break_flag = True
+					pass
 			pass_count = 0
 			if x['status'] == 'downloading':
 				pass_count = 1
@@ -2780,17 +2836,23 @@ def rd_delete_dupes():
 				tools.log(delete_torrent)
 				break_flag = True
 			if break_flag == False:
-				for j in x['links']:
-					torr_link = rd_api.resolve_hoster(j)
-					torr_link = rd_api.test_download_link(torr_link,rar_test=False)
-					if torr_link:
-						pass_count = pass_count + 1
-					UNRESTRICT_FILE_ID = torr_link.split('/')[4]
-					rd_api.delete_download(UNRESTRICT_FILE_ID)
+				try: 
+					for j in x['links']:
+						torr_link = rd_api.resolve_hoster(j)
+						torr_link = rd_api.test_download_link(torr_link,rar_test=False)
+						if torr_link:
+							pass_count = pass_count + 1
+						UNRESTRICT_FILE_ID = torr_link.split('/')[4]
+						rd_api.delete_download(UNRESTRICT_FILE_ID)
+				except KeyError:
+					pass_count = 1
+					pass
 				if pass_count == 0:
 					tools.log('DELETE_NO_LINKS=' + x['filename'])
-					delete_torrent = rd_api.delete_torrent(x['id'])
-					tools.log(delete_torrent)
+					if x['status'] != 'downloaded':
+						print(x)
+						delete_torrent = rd_api.delete_torrent(x['id'])
+						tools.log(delete_torrent)
 			if x['status'] != 'downloading':
 				names.append(x['filename'])
 		if type(result).__name__ == 'list':

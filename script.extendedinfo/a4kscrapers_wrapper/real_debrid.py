@@ -317,6 +317,7 @@ class RealDebrid:
 
 		response = self.session.post(url, data=post_data, headers=self._get_headers(), timeout=5)
 		if not self._is_response_ok(response) and not fail_check:
+			#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 			self.try_refresh_token(True)
 			response = self.post_url(original_url, post_data, fail_check=True)
 		try:
@@ -338,7 +339,11 @@ class RealDebrid:
 		else:
 			response = self.session.get(url, headers=self._get_headers(), timeout=5)
 
+		if not self._is_response_ok(response) and 'Max retries exceeded with url' in str(response.text):
+			return response
+
 		if not self._is_response_ok(response) and not fail_check:
+			#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 			self.try_refresh_token(True)
 			response = self.get_url(original_url, post_data=post_data, fail_check=True)
 		try:
@@ -356,6 +361,7 @@ class RealDebrid:
 		response = self.session.delete(url, headers=self._get_headers(), timeout=5)
 
 		if not self._is_response_ok(response) and not fail_check:
+			#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 			self.try_refresh_token(True)
 			response = self.delete_url(original_url, fail_check=True)
 		try:
@@ -410,7 +416,9 @@ class RealDebrid:
 
 	def torrent_info(self, id):
 		url = "torrents/info/{}".format(id)
-		return self.get_url(url)
+		response = self.get_url(url)
+		#tools.log(response)
+		return response
 
 	def torrent_info_files(self, torr_info):
 		files = []
