@@ -38,7 +38,10 @@ def start_info_actions(infos, params):
 			Utils.hide_busy()
 
 		if info == 'context_info':
-			context_info()
+			if xbmc.Player().isPlaying():
+				context_info()
+			else:
+				context_info2()
 
 		if info == 'a4kProviders':
 			from a4kscrapers_wrapper import getSources
@@ -1749,7 +1752,6 @@ def context_info():
 			type = 'episode'
 			title = json_object['result']['VideoPlayer.TVShowTitle']
 
-	#remote_id = sys.listitem.getProperty('id')
 	params = {}
 	infos = []
 	if type   == 'movie':
@@ -1760,21 +1762,6 @@ def context_info():
 		params['id'] = remote_id
 		params['imdb_id'] = IMDBNumber
 		params['name'] = title
-		#xbmc.executebuiltin(url)
-	#elif type == 'tvshow':
-	#	infos.append('extendedtvinfo')
-	#	params['dbid'] = dbid
-	#	params['id'] = remote_id
-	#	params['imdb_id'] = info.getIMDBNumber()
-	#	params['name'] = info.getTitle()
-	#	#xbmc.executebuiltin('%sextendedtvinfo,dbid=%s,id=%s,name=%s)' % (base, dbid, remote_id, info.getTVShowTitle()))
-	#elif type == 'season':
-	#	infos.append('seasoninfo')
-	#	params['dbid'] = dbid
-	#	params['id'] = remote_id
-	#	params['tvshow'] = info.getTVShowTitle()
-	#	params['season'] = info.getSeason()
-	#	#xbmc.executebuiltin('%sseasoninfo,dbid=%s,id=%s,tvshow=%s,season=%s)' % (base, dbid, remote_id, info.getTVShowTitle(), info.getSeason()))
 	elif type == 'episode':
 		infos.append('extendedepisodeinfo')
 		params['dbid'] = dbid
@@ -1782,14 +1769,78 @@ def context_info():
 		params['tvshow'] = title
 		params['season'] = Season
 		params['episode'] = episode
-		#xbmc.executebuiltin('%sextendedepisodeinfo,dbid=%s,id=%s,tvshow=%s,season=%s,episode=%s)' % (base, dbid, remote_id, info.getTVShowTitle(), info.getSeason(), info.getEpisode()))
-	#elif type in ['actor', 'director']:
-	#	infos.append('extendedactorinfo')
-	#	params['name'] = sys.listitem.getLabel()
-	#	#xbmc.executebuiltin('%sextendedactorinfo,name=%s)' % (base, sys.listitem.getLabel()))
 	if infos:
 		start_info_actions(infos, params)
 
+def context_info2():
+	import json
+	base = 'RunScript('+str(addon_ID())+',info='
+	#info = sys.listitem.getVideoInfoTag()
+
+	json_result = xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"XBMC.GetInfoLabels","params": {"labels":["ListItem.Title", "ListItem.Label",  "ListItem.MovieTitle",    "ListItem.DBTYPE",  "ListItem.Season", "ListItem.Episode", "ListItem.Year",  "ListItem.IMDBNumber", "ListItem.DBID",   "ListItem.TVShowTitle", "ListItem.FileNameAndPath"]}, "id":1}')
+	json_object  = json.loads(json_result)
+	xbmc.log(str(json_object)+'===>PHIL', level=xbmc.LOGINFO)
+	dbid = json_object['result']['ListItem.DBID']
+	type = json_object['result']['ListItem.DBTYPE']
+	episode = json_object['result']['ListItem.Episode']
+	Season = json_object['result']['ListItem.Season']
+	TVShowTitle = json_object['result']['ListItem.TVShowTitle']
+	MovieTitle = json_object['result']['ListItem.MovieTitle']
+	Title = json_object['result']['ListItem.Title']
+	Label = json_object['result']['ListItem.Label']
+	remote_id = None
+	IMDBNumber = json_object['result']['ListItem.IMDBNumber']
+
+	if not type in ['movie','tvshow','season','episode','actor','director']:
+		if (episode == '' or episode == None) and (TVShowTitle == '' or TVShowTitle == None):
+			type = 'movie'
+		else:
+			type = 'tvshow'
+
+	params = {}
+	infos = []
+	if (TVShowTitle == '' or TVShowTitle == None):
+		TVShowTitle = Title
+	if type   == 'movie':
+		base = 'RunScript('+str(addon_ID())+',info='+str(addon_ID_short())
+		if (MovieTitle == '' or MovieTitle == None):
+			MovieTitle = Title
+		url = '%s,dbid=%s,id=%s,imdb_id=%s,name=%s)' % (base, dbid, remote_id, IMDBNumber, MovieTitle)
+		infos.append(str(addon_ID_short()))
+		params['dbid'] = dbid
+		params['id'] = remote_id
+		params['imdb_id'] = IMDBNumber
+		params['name'] = MovieTitle
+		#xbmc.executebuiltin(url)
+	elif type == 'tvshow':
+		infos.append('extendedtvinfo')
+		params['dbid'] = dbid
+		params['id'] = remote_id
+		params['imdb_id'] = IMDBNumber
+		params['name'] = TVShowTitle
+		#xbmc.executebuiltin('%sextendedtvinfo,dbid=%s,id=%s,name=%s)' % (base, dbid, remote_id, info.getTVShowTitle()))
+	elif type == 'season':
+		infos.append('seasoninfo')
+		params['dbid'] = dbid
+		params['id'] = remote_id
+		params['tvshow'] = TVShowTitle
+		params['season'] = Season
+		#xbmc.executebuiltin('%sseasoninfo,dbid=%s,id=%s,tvshow=%s,season=%s)' % (base, dbid, remote_id, info.getTVShowTitle(), info.getSeason()))
+	elif type == 'episode':
+		infos.append('extendedepisodeinfo')
+		params['dbid'] = dbid
+		params['id'] = remote_id
+		params['tvshow'] = TVShowTitle
+		params['season'] = Season
+		params['episode'] = episode
+		#xbmc.executebuiltin('%sextendedepisodeinfo,dbid=%s,id=%s,tvshow=%s,season=%s,episode=%s)' % (base, dbid, remote_id, info.getTVShowTitle(), info.getSeason(), info.getEpisode()))
+	elif type in ['actor', 'director']:
+		infos.append('extendedactorinfo')
+		params['name'] = Label
+		#xbmc.executebuiltin('%sextendedactorinfo,name=%s)' % (base, sys.listitem.getLabel()))
+	xbmc.log(str(params)+'===>PHIL', level=xbmc.LOGINFO)
+	if infos:
+		start_info_actions(infos, params)
 
 def estuary_fix():
 	#osmc_home = '/usr/share/kodi/addons/skin.estuary/xml/Home.xml'
