@@ -22,6 +22,8 @@ def start_info_actions(infos, params):
 	if wm.custom_filter:
 		wm.custom_filter = eval(unquote(wm.custom_filter))
 
+	keep_stack = params.get('keep_stack',False)
+
 	if 'imdbid' in params and 'imdb_id' not in params:
 		params['imdb_id'] = params['imdbid']
 	for info in infos:
@@ -779,7 +781,8 @@ def start_info_actions(infos, params):
 					if trakt_script == 'False':
 						return get_trakt_lists(list_name=trakt_label,user_id=trakt_user_id,list_slug=takt_list_slug,sort_by=trakt_sort_by,sort_order=trakt_sort_order,limit=limit)
 					movies = trakt_lists(list_name=trakt_label,user_id=trakt_user_id,list_slug=takt_list_slug,sort_by=trakt_sort_by,sort_order=trakt_sort_order,limit=limit)
-				wm.window_stack_empty()
+				if keep_stack == None or keep_stack == False:
+					wm.window_stack_empty()
 				return wm.open_video_list(mode='trakt', listitems=[], search_str=movies, media_type=trakt_type, filter_label=trakt_label)
 
 		elif info == 'imdb_list':
@@ -1769,6 +1772,7 @@ def context_info():
 		params['tvshow'] = title
 		params['season'] = Season
 		params['episode'] = episode
+	xbmc.log(str(params)+'===>context_info', level=xbmc.LOGINFO)
 	if infos:
 		start_info_actions(infos, params)
 
@@ -1777,9 +1781,9 @@ def context_info2():
 	base = 'RunScript('+str(addon_ID())+',info='
 	#info = sys.listitem.getVideoInfoTag()
 
-	json_result = xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"XBMC.GetInfoLabels","params": {"labels":["ListItem.Title", "ListItem.Label",  "ListItem.MovieTitle",    "ListItem.DBTYPE",  "ListItem.Season", "ListItem.Episode", "ListItem.Year",  "ListItem.IMDBNumber", "ListItem.DBID",   "ListItem.TVShowTitle", "ListItem.FileNameAndPath"]}, "id":1}')
+	json_result = xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"XBMC.GetInfoLabels","params": {"labels":["ListItem.Title", "ListItem.Label",  "ListItem.MovieTitle",    "ListItem.DBTYPE",  "ListItem.Season", "ListItem.Episode", "ListItem.Year",  "ListItem.IMDBNumber", "ListItem.DBID",   "ListItem.TVShowTitle", "ListItem.FileNameAndPath", "ListItem.UniqueID(tmdb)", "ListItem.UniqueID(imdb)", "Container.ListItem.UniqueID(imdb)"]}, "id":1}')
 	json_object  = json.loads(json_result)
-	xbmc.log(str(json_object)+'===>PHIL', level=xbmc.LOGINFO)
+	#xbmc.log(str(json_object)+'===>PHIL', level=xbmc.LOGINFO)
 	dbid = json_object['result']['ListItem.DBID']
 	type = json_object['result']['ListItem.DBTYPE']
 	episode = json_object['result']['ListItem.Episode']
@@ -1788,8 +1792,15 @@ def context_info2():
 	MovieTitle = json_object['result']['ListItem.MovieTitle']
 	Title = json_object['result']['ListItem.Title']
 	Label = json_object['result']['ListItem.Label']
-	remote_id = None
+	remote_id = json_object['result']['ListItem.UniqueID(tmdb)']
+	imdb = json_object['result']['ListItem.UniqueID(imdb)']
+
+	#json_object['result']['ListItemTMDBNumber'] = property_value
+
 	IMDBNumber = json_object['result']['ListItem.IMDBNumber']
+	if (IMDBNumber == '' or IMDBNumber == None):
+		IMDBNumber = imdb
+	#xbmc.log(str(json_object)+'===>PHIL2', level=xbmc.LOGINFO)
 
 	if not type in ['movie','tvshow','season','episode','actor','director']:
 		if (episode == '' or episode == None) and (TVShowTitle == '' or TVShowTitle == None):
@@ -1838,7 +1849,7 @@ def context_info2():
 		infos.append('extendedactorinfo')
 		params['name'] = Label
 		#xbmc.executebuiltin('%sextendedactorinfo,name=%s)' % (base, sys.listitem.getLabel()))
-	xbmc.log(str(params)+'===>PHIL', level=xbmc.LOGINFO)
+	xbmc.log(str(params)+'===>context_info2', level=xbmc.LOGINFO)
 	if infos:
 		start_info_actions(infos, params)
 

@@ -538,6 +538,7 @@ def get_tmdb_window(window_type):
 			if self.search_str == 'Trakt Episodes/Movies in progress':
 				listitems += ['Trakt remove playback entry']
 			listitems += ['TasteDive Similar Items']
+			listitems += ['In Trakt Lists']
 			if xbmcaddon.Addon(addon_ID()).getSetting('RD_bluray_player') == 'true' or xbmcaddon.Addon(addon_ID()).getSetting('RD_bluray_player2')  == 'true':
 				listitems += ['Eject/Load DVD']
 
@@ -763,6 +764,31 @@ def get_tmdb_window(window_type):
 				#return wm.open_video_list(mode='tastedive&' + str(media_type), listitems=[], search_str=response, filter_label='TasteDive Similar ('+str(search_str)+'):')
 				#self.fetch_data()
 				#self.update()
+				xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
+				self.fetch_data()
+				wm.page = -1
+				self.update()
+				#self.update_content(force_update=False)
+				Utils.hide_busy()
+			if selection_text == 'In Trakt Lists':
+				from resources.lib.library import trakt_in_lists
+				search_str = self.listitem.getProperty('title')
+				Utils.show_busy()
+				if xbmc.getInfoLabel('listitem.DBTYPE') == 'movie':
+					self_type = 'movie'
+				elif xbmc.getInfoLabel('listitem.DBTYPE') in ['tv', 'tvshow', 'season', 'episode']:
+					self_type = 'tv'
+				if self_type == 'tv':
+					media_type = 'tv'
+					imdb_id = Utils.fetch(TheMovieDB.get_tvshow_ids(item_id), 'imdb_id')
+				else:
+					media_type = 'movie'
+					imdb_id = TheMovieDB.get_imdb_id_from_movie_id(item_id)
+				self.search_str = trakt_in_lists(type=media_type,imdb_id=imdb_id)
+				wm.pop_video_list = False
+				self.page = 1
+				self.mode = 'trakt'
+				self.filter_label='Trakt In Lists ('+str(search_str)+'):'
 				xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 				self.fetch_data()
 				wm.page = -1
@@ -1995,6 +2021,9 @@ def get_tmdb_window(window_type):
 				page = int(self.page)
 				listitems = None
 				responses = {'page': 1, 'results': [],'total_pages': 1, 'total_results': 0}
+				if movies == None:
+					info = {'listitems': None, 'results_per_page': 0, 'total_results': 0}
+					return info
 
 				for i in movies:
 					response1 = None

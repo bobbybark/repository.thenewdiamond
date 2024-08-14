@@ -496,6 +496,7 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 		#listitem = xbmcgui.ListItem('%s' % str(count), offscreen=True)
 		listitem.setProperty("dateadded", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 		listitem.setProperty("nocache", "true")
+
 		try: tmdb_id = result['id']
 		except: tmdb_id = 0
 		try: media_type = result['media_type']
@@ -516,6 +517,7 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 				from resources.lib.TheMovieDB import get_imdb_id_from_movie_id
 				imdb_id = get_imdb_id_from_movie_id(tmdb_id)
 				result['IMDBNumber'] = imdb_id
+
 		if mediatype == 'movie':
 			listitem.setProperty("tmdb_id", str(result['id']))
 		elif mediatype == 'tvshow':
@@ -636,6 +638,14 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 			result['logo'] = clearlogo
 
 		#tools.log(result)
+		try: 
+			#listitem.setUniqueIDs({ 'imdb': result['imdb_id'], 'tmdb' : result['id'] }, "imdb")
+			vinfo = listitem.getVideoInfoTag()
+			vinfo.setUniqueID( str(result['id']), type='tmdb',  isdefault=True)
+			vinfo.setUniqueID( result['imdb_id'], type='imdb',  isdefault=False)
+			vinfo.setIMDBNumber( result['imdb_id'])
+		except KeyError: 
+			pass
 		for (key, value) in result.items():
 			if not value:
 				continue
@@ -685,13 +695,18 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 			#	except: 
 			#		listitem.setInfo('video', {'IMDBNumber': str(value)})
 			elif key.lower() in ['dbid']:
-				listitem.setProperty('DBID', str(value))
+				#listitem.setProperty('DBID', str(value))
 				#listitem.setInfo('video', {'DBID': str(value)})
-				try: 
-					info_tag = ListItemInfoTag(listitem, 'video')
-					info_tag.set_info({'DBID': str(value)})
-				except:
-					listitem.setInfo('video', {'DBID': str(value)})
+				#info_tag = ListItemInfoTag(listitem, 'video')
+				#info_tag.set_info({'DBID': str(value)})
+				
+				vinfo = listitem.getVideoInfoTag()
+				vinfo.setDbId(int(value))
+				#try: 
+				#	info_tag = ListItemInfoTag(listitem, 'video')
+				#	info_tag.set_info({'DBID': str(value)})
+				#except:
+				#	listitem.setInfo('video', {'DBID': str(value)})
 
 			elif key.lower() in ['path']:
 				listitem.setPath(path=value)

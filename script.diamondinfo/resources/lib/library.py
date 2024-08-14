@@ -1030,6 +1030,35 @@ def trakt_calendar_hide_show(tmdb_id_num=None, unhide=False):
     response_collect = requests.post(url, data=values, headers=headers).json()
     return response_collect
 
+def trakt_in_lists(type=None,imdb_id=None,return_var='movies'):
+    from resources.lib import Utils
+    import urllib.parse
+    #import json
+    #headers = trak_auth()
+    if type == 'movie':
+        url = 'https://api.trakt.tv/movies/%s/lists/all/popular' % (imdb_id)
+    else:
+        url = 'https://api.trakt.tv/shows/%s/lists/all/popular' % (imdb_id)
+    response = get_trakt_data(url, 1)
+    trakt_list = []
+    for i in response:
+        trakt_list.append(i['name'])
+    index = xbmcgui.Dialog().select(heading='Select Trakt List', list=trakt_list)
+    if index == -1:
+        if return_var == 'movies':
+            return None
+        else:
+            return None, None, None, None, None
+    list_name = response[index]['name']
+    user_id = response[index]['user']['ids']['slug']
+    list_slug = response[index]['ids']['slug']
+    sort_by = response[index]['sort_by']
+    sort_order = response[index]['sort_how']
+    if return_var == 'movies':
+        movies = trakt_lists(list_name=list_name,user_id=user_id,list_slug=list_slug,sort_by=sort_by,sort_order=sort_order)
+        return movies
+    else:
+       return list_name, user_id, list_slug, sort_by, sort_order
 
 def trakt_lists(list_name=None,user_id=None,list_slug=None,sort_by=None,sort_order=None, limit=0):
     from resources.lib import Utils

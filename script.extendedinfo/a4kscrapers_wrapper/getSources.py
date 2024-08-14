@@ -1285,7 +1285,25 @@ def cloud_get_ep_season(rd_api, meta, torr_id, torr_info):
 	#tools.log(meta_source)
 	#tools.log(meta['tmdb_seasons']['episodes'])
 	#tools.log(meta['tvmaze_seasons']['episodes'])
-	if meta_source == 'tmdb_seasons' and (int(meta['tmdb_seasons']['episodes'][-1]['episode']) < int(meta['tvmaze_seasons']['episodes'][-1]['episode']) or result_dict['alt_ep_num'][-1] < result_dict['episode_numbers'][-1]):
+	result_dict_alt_ep_num_check = False
+	if type(result_dict['alt_ep_num'][-1]) == 'list':
+		for i in result_dict['alt_ep_num'][-1]:
+			if type(result_dict['episode_numbers'][-1]) == 'list':
+				for j in list(result_dict['episode_numbers'][-1]):
+					if i < j:
+						result_dict_alt_ep_num_check = True
+			elif type(result_dict['alt_ep_num'][-1]) == 'int':
+				if i < result_dict['alt_ep_num'][-1]:
+					result_dict_alt_ep_num_check = True
+	elif type(result_dict['alt_ep_num'][-1]) == 'int':
+		if type(result_dict['episode_numbers'][-1]) == 'list':
+			for j in list(result_dict['episode_numbers'][-1]):
+				if result_dict['alt_ep_num'][-1] < j:
+					result_dict_alt_ep_num_check = True
+		elif type(result_dict['episode_numbers'][-1]) == 'int':
+			if result_dict['alt_ep_num'][-1] < result_dict['episode_numbers'][-1]:
+				result_dict_alt_ep_num_check = True
+	if meta_source == 'tmdb_seasons' and (int(meta['tmdb_seasons']['episodes'][-1]['episode']) < int(meta['tvmaze_seasons']['episodes'][-1]['episode']) or result_dict_alt_ep_num_check ):
 		for idx, i in enumerate(meta['tvmaze_seasons']['episodes']):
 			try:
 				try: curr_tmdb_name = meta['tmdb_seasons']['episodes'][idx]['name']
