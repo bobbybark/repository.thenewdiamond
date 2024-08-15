@@ -1042,7 +1042,7 @@ def trakt_in_lists(type=None,imdb_id=None,return_var='movies'):
     response = get_trakt_data(url, 1)
     trakt_list = []
     for i in response:
-        trakt_list.append(i['name'])
+        trakt_list.append(i['name'] + str(' (%s)') % i['item_count'])
     index = xbmcgui.Dialog().select(heading='Select Trakt List', list=trakt_list)
     if index == -1:
         if return_var == 'movies':

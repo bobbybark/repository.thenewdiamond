@@ -189,6 +189,9 @@ def get_tvshow_window(window_type):
 				media_type = 'movie'
 				imdb_id = TheMovieDB.get_imdb_id_from_movie_id(item_id)
 			list_name, user_id, list_slug, sort_by, sort_order = trakt_in_lists(type=media_type,imdb_id=imdb_id,return_var=None)
+			if list_name == None or list_name == '':
+				Utils.hide_busy()
+				return
 			wm.pop_video_list = False
 			self.page = 1
 			self.mode = 'trakt'

@@ -788,6 +788,9 @@ def get_tmdb_window(window_type):
 					media_type = 'movie'
 					imdb_id = TheMovieDB.get_imdb_id_from_movie_id(item_id)
 				self.search_str = trakt_in_lists(type=media_type,imdb_id=imdb_id)
+				if self.search_str == None or self.search_str == []:
+					Utils.hide_busy()
+					return
 				wm.pop_video_list = False
 				self.page = 1
 				self.mode = 'trakt'
