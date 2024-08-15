@@ -18,6 +18,8 @@ from inspect import currentframe, getframeinfo
 
 ADDON_PATH = xbmcvfs.translatePath('special://home/addons/'+str(addon_ID()))
 ADDON_DATA_PATH = xbmcvfs.translatePath('special://profile/addon_data/'+str(addon_ID()))
+CACHE_PATH = xbmcvfs.translatePath('special://profile/addon_data/'+str(addon_ID())+'/cache.db')
+
 IMAGES_DATA_PATH = xbmcvfs.translatePath('special://profile/addon_data/'+str(addon_ID())+'/images')
 SKIN_DIR = xbmc.getSkinDir()
 AUTOPLAY_TRAILER = xbmcaddon.Addon().getSetting('autoplay_trailer')
@@ -28,6 +30,147 @@ DIAMONDPLAYER_MOVIE_FOLDER = basedir_movies_path()
 window_stack_enable = xbmcaddon.Addon().getSetting('window_stack_enable')
 trakt_kodi_mode = xbmcaddon.Addon().getSetting('trakt_kodi_mode')
 imdb_recommendations = xbmcaddon.Addon().getSetting('imdb_recommendations')
+
+db_con = None
+def test_db():
+	import sqlite3
+	db_con = sqlite3.connect(CACHE_PATH, check_same_thread=False)
+	return db_con
+
+def encode_db(sample_string):
+	import base64
+	sample_string_bytes = sample_string.encode("ascii")
+	base64_bytes = base64.b64encode(sample_string_bytes)
+	base64_string = base64_bytes.decode("ascii")
+	return base64_string
+
+def decode_db(base64_string):
+	import base64
+	base64_bytes = base64_string.encode("ascii")
+	sample_string_bytes = base64.b64decode(base64_bytes)
+	sample_string = sample_string_bytes.decode("ascii")
+	return sample_string
+
+def write_db(connection=None,url=None, cache_days=7.0, folder=False,cache_val=None, headers=False):
+	if db_con == None:
+		connection = db_start()
+	cur = connection.cursor()
+	try: url = url.encode('utf-8')
+	except: pass
+	hashed_url = hashlib.md5(url).hexdigest()
+	cache_seconds = int(cache_days * 86400.0)
+	if isinstance(cache_val, str) == True:
+		cache_val = encode_db(cache_val)
+		cache_type = 'str'
+	elif isinstance(cache_val, list) == True or isinstance(cache_val, dict) == True:
+		try: 
+			cache_val = encode_db(json.dumps(cache_val))
+			cache_type = 'json'
+		except: 
+			cache_val = encode_db(str(cache_val))
+			cache_type = 'list'
+
+	expire = round(time.time() + cache_seconds,0)
+	sql_query = """
+	CREATE TABLE IF NOT EXISTS %s (
+		url VARCHAR PRIMARY KEY,
+		cache_val BLOB NOT NULL,
+		cache_type VARCHAR NOT NULL,
+		expire INT NOT NULL
+	); 
+	""" % (folder)
+	sql_result = cur.execute(sql_query).fetchall()
+	connection.commit()
+	sql_query = """
+	INSERT INTO %s (url,cache_val,cache_type,expire)
+	VALUES( '%s','%s','%s',%s);
+	""" % (folder, hashed_url,cache_val,cache_type,int(expire))
+	sql_result = cur.execute(sql_query).fetchall()
+	#try: 
+	#	sql_result = cur.execute(sql_query).fetchall()
+	#except Exception as ex:
+	#	if 'UNIQUE constraint failed' in str(ex):
+	#		sql_query = """
+	#		REPLACE INTO %s (url,cache_val,cache_type,expire)
+	#		VALUES( '%s','%s','%s',%s);
+	#		""" % (folder, hashed_url,cache_val,cache_type,int(expire))
+	#		sql_result = cur.execute(sql_query).fetchall()
+	connection.commit()
+	cur.close()
+
+def query_db(connection=None,url=None, cache_days=7.0, folder=False, headers=False):
+	if db_con == None:
+		connection = db_start()
+	cur = connection.cursor()
+	#if cache_days == 0:
+	#	cache_days = 7
+	try: url = url.encode('utf-8')
+	except: pass
+	cache_val = None
+	hashed_url = hashlib.md5(url).hexdigest()
+
+	sql_query = """select cache_val, expire,cache_type from %s
+	where url = '%s'
+	""" % (folder, hashed_url)
+
+	try: 
+		sql_result = cur.execute(sql_query).fetchall()
+	except Exception as ex:
+		if 'no such table' in str(ex):
+			return None
+		else:
+			xbmc.log(str(ex)+'===>OPENINFO', level=xbmc.LOGINFO)
+	if len(sql_result) ==0:
+		cur.close()
+		return None
+
+	if int(time.time()) >= int(sql_result[0][1]):
+		sql_query = """DELETE FROM %s
+		where url = '%s'
+		""" % (folder, hashed_url)
+		sql_result = cur.execute(sql_query).fetchall()
+		connection.commit()
+		cur.close()
+		return None
+	else:
+		cache_type = sql_result[0][2]
+		if cache_type == 'str':
+			cache_val = decode_db(sql_result[0][0])
+		elif cache_type == 'list':
+			cache_val = eval(decode_db(sql_result[0][0]))
+		elif cache_type == 'json':
+			cache_val = json.loads(decode_db(sql_result[0][0]))
+		cur.close()
+		return cache_val
+
+def db_delete_expired(connection=None):
+	if db_con == None:
+		connection = db_start()
+	cur = connection.cursor()
+	curr_time = int(time.time())
+	sql_query = """SELECT * FROM sqlite_master WHERE type='table'
+	"""  
+	sql_result = cur.execute(sql_query).fetchall()
+	for i in sql_result:
+		folder = i[1]
+		xbmc.log(str(folder)+'===>PHIL', level=xbmc.LOGINFO)
+		#sql_query = """select * FROM %s
+		#where expire < %s
+		#""" % (folder, curr_time)
+		#sql_result = cur.execute(sql_query).fetchall()
+		#xbmc.log(str(len(sql_result))+str(folder)+'===>PHIL', level=xbmc.LOGINFO)
+		sql_query = """DELETE FROM %s
+		where expire < %s
+		""" % (folder, curr_time)
+		sql_result = cur.execute(sql_query).fetchall()
+		xbmc.log(str(len(sql_result))+str(folder)+'===>DELETED', level=xbmc.LOGINFO)
+	connection.commit()
+	cur.close()
+	return None
+
+
+db_start = test_db()
+db_con = db_start
 
 def show_busy():
 	#window_id = xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"GUI.GetProperties","params":{"properties":["currentwindow", "currentcontrol"]},"id":1}')
@@ -264,7 +407,7 @@ def get_JSON_response(url='', cache_days=7.0, folder=False, headers=False):
 	now = time.time()
 	url = url.encode('utf-8')
 	hashed_url = hashlib.md5(url).hexdigest()
-	cache_path = translate_path(ADDON_DATA_PATH, folder) if folder else translate_path(ADDON_DATA_PATH)
+	#cache_path = translate_path(ADDON_DATA_PATH, folder) if folder else translate_path(ADDON_DATA_PATH)
 	cache_seconds = int(cache_days * 86400.0)
 	#if not cache_days:
 	#	xbmcgui.Window(10000).clearProperty(hashed_url)
@@ -277,23 +420,45 @@ def get_JSON_response(url='', cache_days=7.0, folder=False, headers=False):
 	#			return prop
 	#	except Exception as e:
 	#		pass
-	path = os.path.join(cache_path, '%s.txt' % hashed_url)
-	if xbmcvfs.exists(path) and ((now - os.path.getmtime(path)) < cache_seconds):
-		results = read_from_file(path)
+	#path = os.path.join(cache_path, '%s.txt' % hashed_url)
+
+	try: 
+		db_result = query_db(connection=db_con,url=url, cache_days=cache_days, folder=folder, headers=headers)
+	except:
+		db_result = None
+	if db_result:
+		return db_result
 	else:
 		response = get_http(url, headers)
-		try:
-			results = json.loads(response)
-			save_to_file(results, hashed_url, cache_path)
-		except:
-			log('Exception: Could not get new JSON data from %s. Tryin to fallback to cache' % url)
-			log(response)
-			results = read_from_file(path) if xbmcvfs.exists(path) else []
-	if not results:
+		try: results = json.loads(response)
+		except: results = []
+	if not results or len(results) == 0:
 		return None
-	#xbmcgui.Window(10000).setProperty('%s_timestamp' % hashed_url, str(now))
-	#xbmcgui.Window(10000).setProperty(hashed_url, json.dumps(results))
+	else:
+		write_db(connection=db_con,url=url, cache_days=cache_days, folder=folder,cache_val=results)
 	return results
+	
+	#if xbmcvfs.exists(path) and ((now - os.path.getmtime(path)) < cache_seconds):
+	#	results = read_from_file(path)
+	#else:
+	#	response = get_http(url, headers)
+	#	try:
+	#		results = json.loads(response)
+	#		save_to_file(results, hashed_url, cache_path)
+	#		
+	#	except:
+	#		log('Exception: Could not get new JSON data from %s. Tryin to fallback to cache' % url)
+	#		log(response)
+	#		results = read_from_file(path) if xbmcvfs.exists(path) else []
+	#if not results:
+	#	return None
+	##xbmcgui.Window(10000).setProperty('%s_timestamp' % hashed_url, str(now))
+	##xbmcgui.Window(10000).setProperty(hashed_url, json.dumps(results))
+
+	#if db_result == None:
+	#	write_db(connection=db_con,url=url, cache_days=cache_days, folder=folder,cache_val=results)
+
+	#return results
 
 class GetFileThread(threading.Thread):
 	def __init__(self, url):

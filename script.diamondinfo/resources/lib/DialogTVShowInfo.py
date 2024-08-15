@@ -34,10 +34,15 @@ def get_tvshow_window(window_type):
 				imdb_id = data[0]['imdb_id']
 				if 'tt' not in str(imdb_id):
 					imdb_id = Utils.fetch(TheMovieDB.get_tvshow_ids(kwargs.get('tmdb_id', False)), 'imdb_id')
-				imdb_similar = TheMovieDB.get_imdb_recommendations(imdb_id=imdb_id,return_items=True)
+			#	imdb_similar = TheMovieDB.get_imdb_recommendations(imdb_id=imdb_id,return_items=True)
+			#else:
+			#	imdb_similar = None
+				imdbs_thread = IMDB_Thread(imdb_id)
+				imdbs_thread.start()
+				imdbs_thread.join()
+				imdb_similar = imdbs_thread.imdb_similar
 			else:
 				imdb_similar = None
-
 
 			if Utils.NETFLIX_VIEW == 'true':
 				#super(DialogTVShowInfo, self).__init__(*args, **kwargs)
@@ -624,5 +629,19 @@ def get_tvshow_window(window_type):
 		@ch.click(29)
 		def stop_tv_trailer_button(self):
 			xbmc.executebuiltin('PlayerControl(Stop)')
+
+	class IMDB_Thread(threading.Thread):
+
+		def __init__(self, imdb_id=''):
+			threading.Thread.__init__(self)
+			self.imdb_id = imdb_id
+			self.imdb_similar = None
+
+		def run(self):
+			if self.imdb_id:
+				imdb_similar = TheMovieDB.get_imdb_recommendations(imdb_id=self.imdb_id,return_items=True)
+				self.imdb_similar = imdb_similar
+			else:
+				self.imdb_similar = []
 
 	return DialogTVShowInfo

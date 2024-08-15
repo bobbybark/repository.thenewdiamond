@@ -19,6 +19,7 @@ def start_info_actions(infos, params):
 	addonID_short = addon_ID_short()
 
 	wm.custom_filter = params.get('meta_filter')
+	log(Utils.db_con)
 	if wm.custom_filter:
 		wm.custom_filter = eval(unquote(wm.custom_filter))
 
@@ -1621,38 +1622,40 @@ def auto_clean_cache_seren_downloader(days=None):
 						os.remove(target)
 
 def auto_clean_cache(days=None):
-	import os 
-	import datetime
-	import glob
+	#import os 
+	#import datetime
+	#import glob
 	xbmc.log('STARTING===>auto_clean_cache', level=xbmc.LOGINFO)
-	path = Utils.ADDON_DATA_PATH + '/'
-	if days==None:
-		days = -30
-	else:
-		days = int(days)*-1
+	#path = Utils.ADDON_DATA_PATH + '/'
+	#if days==None:
+	#	days = -30
+	#else:
+	#	days = int(days)*-1
 
-	today = datetime.datetime.today()#gets current time
-	if not xbmcvfs.exists(path):
-		xbmcvfs.mkdir(path)
-	os.chdir(path) #changing path to current path(same as cd command)
+	#today = datetime.datetime.today()#gets current time
+	#if not xbmcvfs.exists(path):
+	#	xbmcvfs.mkdir(path)
+	#os.chdir(path) #changing path to current path(same as cd command)
 
-	directories_list = ['Trakt', 'TheMovieDB', 'show_filters', 'TVMaze', 'IMDB', 'FanartTV', 'TasteDive', 'YouTube', 'images', 'rss']
-	#we are taking current folder, directory and files 
-	#separetly using os.walk function
-	for root,directories,files in os.walk(path,topdown=False): 
-		for name in files:
-			#this is the last modified time
-			t = os.stat(os.path.join(root, name))[8] 
-			filetime = datetime.datetime.fromtimestamp(t) - today
-			#checking if file is more than 7 days old 
-			#or not if yes then remove them
-			if filetime.days <= days: # and 'Taste' not in str(root):
-				#print(os.path.join(root, name), filetime.days)
-				for i in directories_list:
-					target = str(os.path.join(root, name))
-					if str(i) in target:
-						xbmc.log(str(target)+'===>DELETE', level=xbmc.LOGINFO)
-						os.remove(target)
+	#directories_list = ['Trakt', 'TheMovieDB', 'show_filters', 'TVMaze', 'IMDB', 'FanartTV', 'TasteDive', 'YouTube', 'images', 'rss']
+	##we are taking current folder, directory and files 
+	##separetly using os.walk function
+	#for root,directories,files in os.walk(path,topdown=False): 
+	#	for name in files:
+	#		#this is the last modified time
+	#		t = os.stat(os.path.join(root, name))[8] 
+	#		filetime = datetime.datetime.fromtimestamp(t) - today
+	#		#checking if file is more than 7 days old 
+	#		#or not if yes then remove them
+	#		if filetime.days <= days: # and 'Taste' not in str(root):
+	#			#print(os.path.join(root, name), filetime.days)
+	#			for i in directories_list:
+	#				target = str(os.path.join(root, name))
+	#				if str(i) in target:
+	#					xbmc.log(str(target)+'===>DELETE', level=xbmc.LOGINFO)
+	#					os.remove(target)
+	Utils.db_delete_expired(connection=Utils.db_con)
+	#Utils.db_con.close()
 	auto_clean_cache_seren_downloader(days=30)
 
 def auto_library():

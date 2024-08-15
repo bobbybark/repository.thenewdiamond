@@ -1089,6 +1089,7 @@ def get_tmdb_window(window_type):
 			if 'Trakt Watched Movies' in str(self.filter_label):
 				self.search_str = trakt_watched_movies()
 			if 'Trakt Watched Shows' in str(self.filter_label):
+				xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>PHIL', level=xbmc.LOGINFO)
 				self.search_str = trakt_watched_tv_shows()
 			if 'Trakt Unwatched Shows' in str(self.filter_label):
 				self.search_str = trakt_unwatched_tv_shows()
@@ -1176,6 +1177,7 @@ def get_tmdb_window(window_type):
 				self.type = 'movie'
 
 			elif listitems[selection] == 'Trakt Watched Shows':
+				xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>PHIL', level=xbmc.LOGINFO)
 				self.search_str = trakt_watched_tv_shows()
 				self.type = 'tv'
 			elif listitems[selection] == 'Trakt Unwatched Shows':
@@ -1200,6 +1202,7 @@ def get_tmdb_window(window_type):
 				self.search_str = trakt_popular_movies()
 				self.type = 'tv'
 			elif listitems[selection] == 'Trakt Shows Progress':
+				xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>PHIL', level=xbmc.LOGINFO)
 				self.search_str = trakt_watched_tv_shows_progress()
 				self.type = 'tv'
 			elif listitems[selection] == 'Trakt Episodes/Movies in progress':
@@ -1604,6 +1607,7 @@ def get_tmdb_window(window_type):
 				if self.mode == 'trakt' and 'Trakt Watched Movies' in str(self.filter_label):
 					self.search_str = trakt_watched_movies()
 				if self.mode == 'trakt' and 'Trakt Watched Shows' in str(self.filter_label):
+					xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>PHIL', level=xbmc.LOGINFO)
 					self.search_str = trakt_watched_tv_shows()
 				if self.mode == 'trakt' and 'Trakt Unwatched Shows' in str(self.filter_label):
 					self.search_str = trakt_unwatched_tv_shows()

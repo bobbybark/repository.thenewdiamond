@@ -22,6 +22,7 @@ class WindowManager(object):
 		Utils.show_busy()
 	window_stack = []
 
+
 	def __init__(self):
 		global dialog
 		self.reopen_window = False
@@ -45,6 +46,7 @@ class WindowManager(object):
 		self.position = None
 		self.focus_id = None
 		self.custom_filter = None
+
 		try: self.window_stack_len = self.window_stack_len
 		except: self.window_stack_len = 0
 		#self.reopen_window_var = None
@@ -57,6 +59,7 @@ class WindowManager(object):
 			self.osAndroid_path = ''
 	if 'estuary' in str(Utils.SKIN_DIR):
 			 Utils.SKIN_DIR = 'skin.estuary'
+
 
 
 	def window_stack_connection(self):

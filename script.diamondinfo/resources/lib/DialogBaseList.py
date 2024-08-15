@@ -48,6 +48,7 @@ class DialogBaseList(object):
 		if xbmcaddon.Addon().getSetting('alt_browser_layout') == 'true':
 			self.setProperty('alt_layout', 'true')
 
+		#log(Utils.db_con)
 		self.update_ui()
 		xbmc.sleep(100)
 
@@ -103,6 +104,7 @@ class DialogBaseList(object):
 
 	@ch.action('previousmenu', '*')
 	def exit_script(self):
+		Utils.db_con.close()
 		self.close()
 		Utils.hide_busy()
 

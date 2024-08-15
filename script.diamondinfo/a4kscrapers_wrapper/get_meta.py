@@ -137,32 +137,42 @@ def get_rss_cache(rss_feed=None, cache_days=30, folder='rss'):
 			hashed_url = hashlib.md5(url).hexdigest()
 			#try: cache_path = os.path.join(g.ADDON_USERDATA_PATH, folder)
 			#except: cache_path = os.path.join(tools.ADDON_USERDATA_PATH, folder)
-			cache_path = os.path.join(ADDON_USERDATA_PATH, folder)
+			#cache_path = os.path.join(ADDON_USERDATA_PATH, folder)
 
-			if not os.path.exists(cache_path):
-				os.mkdir(cache_path)
-			cache_seconds = int(cache_days * 86400.0)
-			path = os.path.join(cache_path, '%s.txt' % hashed_url)
-			torr_info = None
-			if os.path.exists(path) and ((now - os.path.getmtime(path)) < cache_seconds):
-				torr_info = read_all_text(path)
-				try: torr_info = eval(torr_info)
-				except: pass
+			#if not os.path.exists(cache_path):
+			#	os.mkdir(cache_path)
+			#cache_seconds = int(cache_days * 86400.0)
+			#path = os.path.join(cache_path, '%s.txt' % hashed_url)
+			#torr_info = None
+			try: 
+				db_result = tools.query_db(connection=tools.db_con,url=url, cache_days=cache_days, folder=folder, headers=None)
+			except:
+				db_result = None
+			if db_result:
+				return db_result
 			else:
+			#if os.path.exists(path) and ((now - os.path.getmtime(path)) < cache_seconds):
+			#	torr_info = read_all_text(path)
+			#	try: torr_info = eval(torr_info)
+			#	except: pass
+			#else:
 				response = rd_api.add_magnet(magnet)
 				torr_id = response['id']
 				response = rd_api.torrent_select_all(torr_id)
 				torr_info = rd_api.torrent_info(torr_id)
-				try:
-					#magnet = json.loads(response)
-					#save_to_file(results, hashed_url, cache_path)
-					#file_path = os.path.join(cache_path, hashed_url)
-					write_all_text(path, str(torr_info))
-					tools.log('RSS_ADDED_MAGNET',torr_info['filename'])
-				except:
-					log('Exception: Could not get new JSON data from %s. Tryin to fallback to cache' % url)
-					log(torr_info)
-					torr_info = read_all_text(path) if os.path.exists(path) else []
+
+				tools.write_db(connection=tools.db_con,url=url, cache_days=cache_days, folder=folder,cache_val=torr_info)
+
+				#try:
+				#	#magnet = json.loads(response)
+				#	#save_to_file(results, hashed_url, cache_path)
+				#	#file_path = os.path.join(cache_path, hashed_url)
+				#	write_all_text(path, str(torr_info))
+				#	tools.log('RSS_ADDED_MAGNET',torr_info['filename'])
+				#except:
+				#	log('Exception: Could not get new JSON data from %s. Tryin to fallback to cache' % url)
+				#	log(torr_info)
+				#	torr_info = read_all_text(path) if os.path.exists(path) else []
 				if not torr_info:
 					continue
 	#if rss_rarbg_enabled == 'true':
@@ -176,25 +186,34 @@ def get_response_cache(url='', cache_days=7.0, folder=False, headers=False):
 	#except: cache_path = os.path.join(tools.ADDON_USERDATA_PATH, folder)
 	cache_path = os.path.join(ADDON_USERDATA_PATH, folder)
 
-	if not os.path.exists(cache_path):
-		os.mkdir(cache_path)
-	cache_seconds = int(cache_days * 86400.0)
-	path = os.path.join(cache_path, '%s.txt' % hashed_url)
-	if os.path.exists(path) and ((now - os.path.getmtime(path)) < cache_seconds):
-		try: 
-			results = read_all_text(path)
-		except: 
-			tools.log(path)
-			results = read_all_text(path)
-		try: results = eval(results)
-		except: pass
+	try: 
+		db_result = tools.query_db(connection=tools.db_con,url=url, cache_days=cache_days, folder=folder, headers=headers)
+	except:
+		db_result = None
+	if db_result:
+		return db_result
 	else:
+
+	#if not os.path.exists(cache_path):
+	#	os.mkdir(cache_path)
+	#cache_seconds = int(cache_days * 86400.0)
+	#path = os.path.join(cache_path, '%s.txt' % hashed_url)
+	#if os.path.exists(path) and ((now - os.path.getmtime(path)) < cache_seconds):
+	#	try: 
+	#		results = read_all_text(path)
+	#	except: 
+	#		tools.log(path)
+	#		results = read_all_text(path)
+	#	try: results = eval(results)
+	#	except: pass
+	#else:
 		response = get_http(url, headers)
 		try:
 			results = json.loads(response)
+			tools.write_db(connection=tools.db_con,url=url, cache_days=cache_days, folder=folder,cache_val=results)
 			#save_to_file(results, hashed_url, cache_path)
 			#file_path = os.path.join(cache_path, hashed_url)
-			write_all_text(path, str(results))
+			#write_all_text(path, str(results))
 		except:
 			log('Exception: Could not get new JSON data from %s. Tryin to fallback to cache' % url)
 			log(response)

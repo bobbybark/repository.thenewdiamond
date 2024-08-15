@@ -1299,15 +1299,22 @@ def match_episodes_season_pack(meta, sorted_torr_info):
 	hashed_url = hashlib.md5(url).hexdigest()
 	cache_path = os.path.join(tools.ADDON_USERDATA_PATH, folder)
 
-	if not os.path.exists(cache_path):
-		os.mkdir(cache_path)
-	cache_seconds = int(cache_days * 86400.0)
-	path = os.path.join(cache_path, '%s.txt' % hashed_url)
-	if os.path.exists(path) and ((now - os.path.getmtime(path)) < cache_seconds):
-		results = tools.read_all_text(path)
-		results = eval(results)
-		return results
+	try: 
+		db_result = tools.query_db(connection=tools.db_con,url=url, cache_days=cache_days, folder=folder, headers=None)
+	except:
+		db_result = None
+	if db_result:
+		return db_result
 	else:
+	#if not os.path.exists(cache_path):
+	#	os.mkdir(cache_path)
+	#cache_seconds = int(cache_days * 86400.0)
+	#path = os.path.join(cache_path, '%s.txt' % hashed_url)
+	#if os.path.exists(path) and ((now - os.path.getmtime(path)) < cache_seconds):
+	#	results = tools.read_all_text(path)
+	#	results = eval(results)
+	#	return results
+	#else:
 		#sys.path.append(current_directory)
 		#try:
 		#	import daetutil, babelfish, rebulk, guessit
@@ -1733,5 +1740,7 @@ def match_episodes_season_pack(meta, sorted_torr_info):
 
 		#for i in result_dict:
 		#	tools.log(i, result_dict[i])
-		tools.write_all_text(path, str(result_dict_sorted))
+		#tools.write_all_text(path, str(result_dict_sorted))
+		tools.write_db(connection=tools.db_con,url=url, cache_days=cache_days, folder=folder,cache_val=result_dict_sorted)
+		
 		return result_dict_sorted

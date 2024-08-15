@@ -486,17 +486,23 @@ def get_tastedive_data_scrape(url='', query='', year='', limit=20, media_type=No
 	#		pass
 	path = os.path.join(cache_path, '%s.txt' % hashed_url)
 
-	if xbmcvfs.exists(path) and ((now - os.path.getmtime(path)) < cache_seconds):
-		results = Utils.read_from_file(path)
-		results_id = []
-		results_out = []
-		for i in results:
-			if not i['item_id'] in results_id:
-				results_id.append(i['item_id'])
-				results_out.append(i)
-		results = results_out
+	try: 
+		db_result = Utils.query_db(connection=Utils.db_con,url=url, cache_days=cache_days, folder=folder, headers=None)
+	except:
+		db_result = None
+	if db_result:
+		return db_result
 	else:
-
+	#if xbmcvfs.exists(path) and ((now - os.path.getmtime(path)) < cache_seconds):
+	#	results = Utils.read_from_file(path)
+	#	results_id = []
+	#	results_out = []
+	#	for i in results:
+	#		if not i['item_id'] in results_id:
+	#			results_id.append(i['item_id'])
+	#			results_out.append(i)
+	#	results = results_out
+	#else:
 		if item_id:
 			if 'show' in media_type or 'tv' in media_type:
 				#response = extended_tvshow_info(item_id)
@@ -570,12 +576,15 @@ def get_tastedive_data_scrape(url='', query='', year='', limit=20, media_type=No
 						results.append({'name': title, 'year': year, 'media_type':  i['media_type'], 'item_id': i['id']})
 						results_id.append(i['id'])
 
-		try:
-			Utils.save_to_file(results, hashed_url, cache_path)
-		except:
-			Utils.log('Exception: Could not get new JSON data from %s. Tryin to fallback to cache' % url)
-			Utils.log(response)
-			results = Utils.read_from_file(path) if xbmcvfs.exists(path) else []
+
+		Utils.write_db(connection=Utils.db_con,url=url, cache_days=cache_days, folder=folder,cache_val=results)
+		#try:
+		#	Utils.write_db(connection=Utils.db_con,url=url, cache_days=cache_days, folder=folder,cache_val=results)
+		#	Utils.save_to_file(results, hashed_url, cache_path)
+		#except:
+		#	Utils.log('Exception: Could not get new JSON data from %s. Tryin to fallback to cache' % url)
+		#	Utils.log(response)
+		#	results = Utils.read_from_file(path) if xbmcvfs.exists(path) else []
 
 	if not results:
 		return []
@@ -1257,15 +1266,21 @@ def get_imdb_language(imdb_id=None, cache_days=14, folder='IMDB'):
 	#	except Exception as e:
 	#		pass
 	path = os.path.join(cache_path, '%s.txt' % hashed_url)
-	if xbmcvfs.exists(path) and ((now - os.path.getmtime(path)) < cache_seconds):
-		results = Utils.read_from_file(path)
-		if not results:
-			return []
-		#xbmcgui.Window(10000).setProperty('%s_timestamp' % hashed_url, str(now))
-		#xbmcgui.Window(10000).setProperty(hashed_url, json.dumps(results))
-		return results
-
+	try: 
+		db_result = Utils.query_db(connection=Utils.db_con,url=url, cache_days=cache_days, folder=folder, headers=imdb_header)
+	except:
+		db_result = None
+	if db_result:
+		return db_result
 	else:
+	#if xbmcvfs.exists(path) and ((now - os.path.getmtime(path)) < cache_seconds):
+	#	results = Utils.read_from_file(path)
+	#	if not results:
+	#		return []
+	#	#xbmcgui.Window(10000).setProperty('%s_timestamp' % hashed_url, str(now))
+	#	#xbmcgui.Window(10000).setProperty(hashed_url, json.dumps(results))
+	#	return results
+	#else:
 		imdb_response = requests.get(imdb_url, headers=imdb_header)
 		details_section = imdb_response.text.split('<span>Details</span>')[1].split('</section>')[0]
 		language_list = []
@@ -1280,12 +1295,13 @@ def get_imdb_language(imdb_id=None, cache_days=14, folder='IMDB'):
 		if country == 'US' or country == 'UK' and results[1] == 'English':
 			results[0] = 'English'
 
-		try:
-			Utils.save_to_file(results, hashed_url, cache_path)
-		except:
-			Utils.log('Exception: Could not get new JSON data from %s. Tryin to fallback to cache' % url)
-			Utils.log(response)
-			results = Utils.read_from_file(path) if xbmcvfs.exists(path) else []
+		Utils.write_db(connection=Utils.db_con,url=url, cache_days=cache_days, folder=folder,cache_val=results)
+		#try:
+		#	Utils.save_to_file(results, hashed_url, cache_path)
+		#except:
+		#	Utils.log('Exception: Could not get new JSON data from %s. Tryin to fallback to cache' % url)
+		#	Utils.log(response)
+		#	results = Utils.read_from_file(path) if xbmcvfs.exists(path) else []
 
 		if not results:
 			return []
@@ -1325,23 +1341,32 @@ def get_imdb_recommendations(imdb_id=None, return_items=False, cache_days=14, fo
 	#		pass
 	path = os.path.join(cache_path, '%s.txt' % hashed_url)
 	path2 = os.path.join(cache_path2, '%s[2].txt' % hashed_url2)
-	if xbmcvfs.exists(path) and ((now - os.path.getmtime(path)) < cache_seconds):
-		results = Utils.read_from_file(path)
-		results2 = Utils.read_from_file(path2)
-		if return_items == False:
-			if not results2:
-				return []
-			#xbmcgui.Window(10000).setProperty('%s_timestamp' % hashed_url2, str(now))
-			#xbmcgui.Window(10000).setProperty(hashed_url2, json.dumps(results2))
-			return results2
-		else:
-			if not results:
-				return []
-			#xbmcgui.Window(10000).setProperty('%s_timestamp' % hashed_url, str(now))
-			#xbmcgui.Window(10000).setProperty(hashed_url, json.dumps(results))
-			return results
 
+	try: 
+		db_result = Utils.query_db(connection=Utils.db_con,url=url, cache_days=cache_days, folder=folder, headers=imdb_header)
+	except:
+		db_result = None
+	if db_result:
+		return db_result
 	else:
+
+	#if xbmcvfs.exists(path) and ((now - os.path.getmtime(path)) < cache_seconds):
+	#	results = Utils.read_from_file(path)
+	#	results2 = Utils.read_from_file(path2)
+	#	if return_items == False:
+	#		if not results2:
+	#			return []
+	#		#xbmcgui.Window(10000).setProperty('%s_timestamp' % hashed_url2, str(now))
+	#		#xbmcgui.Window(10000).setProperty(hashed_url2, json.dumps(results2))
+	#		return results2
+	#	else:
+	#		if not results:
+	#			return []
+	#		#xbmcgui.Window(10000).setProperty('%s_timestamp' % hashed_url, str(now))
+	#		#xbmcgui.Window(10000).setProperty(hashed_url, json.dumps(results))
+	#		return results
+
+	#else:
 		imdb_response = requests.get(imdb_url, headers=imdb_header)
 		try: 
 			imdb_response = imdb_response.text.split('<span>Storyline</span>')[0].split('<span>More like this</span>')[1]
@@ -1359,13 +1384,14 @@ def get_imdb_recommendations(imdb_id=None, return_items=False, cache_days=14, fo
 
 		if return_items == False:
 			results2 = movies
-			
-			try:
-				Utils.save_to_file(results2, hashed_url2, cache_path2)
-			except:
-				Utils.log('Exception: Could not get new JSON data from %s. Tryin to fallback to cache' % url)
-				Utils.log(response)
-				results2 = Utils.read_from_file(path2) if xbmcvfs.exists(path2) else []
+
+			Utils.write_db(connection=Utils.db_con,url=url, cache_days=cache_days, folder=folder,cache_val=results)
+			#try:
+			#	Utils.save_to_file(results2, hashed_url2, cache_path2)
+			#except:
+			#	Utils.log('Exception: Could not get new JSON data from %s. Tryin to fallback to cache' % url)
+			#	Utils.log(response)
+			#	results2 = Utils.read_from_file(path2) if xbmcvfs.exists(path2) else []
 
 			if not results2:
 				return []
@@ -1375,12 +1401,13 @@ def get_imdb_recommendations(imdb_id=None, return_items=False, cache_days=14, fo
 		else:
 			results = get_imdb_watchlist_items(movies=movies, limit=0, imdb_url=imdb_url)
 
-			try:
-				Utils.save_to_file(results, hashed_url, cache_path)
-			except:
-				Utils.log('Exception: Could not get new JSON data from %s. Tryin to fallback to cache' % url)
-				Utils.log(response)
-				results = Utils.read_from_file(path) if xbmcvfs.exists(path) else []
+			Utils.write_db(connection=Utils.db_con,url=url, cache_days=cache_days, folder=folder,cache_val=results)
+			#try:
+			#	Utils.save_to_file(results, hashed_url, cache_path)
+			#except:
+			#	Utils.log('Exception: Could not get new JSON data from %s. Tryin to fallback to cache' % url)
+			#	Utils.log(response)
+			#	results = Utils.read_from_file(path) if xbmcvfs.exists(path) else []
 
 			if not results:
 				return []
@@ -1783,9 +1810,16 @@ def get_imdb_watchlist_items(movies=None, limit=0, cache_days=14, folder='IMDB',
 	#		pass
 	path = os.path.join(cache_path, '%s.txt' % hashed_url)
 
-	if xbmcvfs.exists(path) and ((now - os.path.getmtime(path)) < cache_seconds):
-		listitems = Utils.read_from_file(path)
+	try: 
+		db_result = Utils.query_db(connection=Utils.db_con,url=url, cache_days=cache_days, folder=folder, headers=None)
+	except:
+		db_result = None
+	if db_result and len(db_result) > 0:
+		return db_result
 	else:
+	#if xbmcvfs.exists(path) and ((now - os.path.getmtime(path)) < cache_seconds):
+	#	listitems = Utils.read_from_file(path)
+	#else:
 
 		listitems = None
 		x = 0
@@ -1813,12 +1847,13 @@ def get_imdb_watchlist_items(movies=None, limit=0, cache_days=14, folder='IMDB',
 				break
 			x = x + 1
 
-		try:
-			Utils.save_to_file(listitems, hashed_url, cache_path)
-		except:
-			Utils.log('Exception: Could not get new JSON data from %s. Tryin to fallback to cache' % url)
-			Utils.log(response)
-			results = Utils.read_from_file(path) if xbmcvfs.exists(path) else []
+		Utils.write_db(connection=Utils.db_con,url=url, cache_days=cache_days, folder=folder,cache_val=listitems)
+		#try:
+		#	Utils.save_to_file(listitems, hashed_url, cache_path)
+		#except:
+		#	Utils.log('Exception: Could not get new JSON data from %s. Tryin to fallback to cache' % url)
+		#	Utils.log(response)
+		#	results = Utils.read_from_file(path) if xbmcvfs.exists(path) else []
 
 	if not listitems:
 		return []

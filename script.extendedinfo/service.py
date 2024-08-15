@@ -1530,7 +1530,10 @@ class CronJobMonitor(Thread):
 		else:
 			auto_clean_cache_bool = False
 
-		Utils.hide_busy()
+
+		import importlib
+		importlib.reload(Utils)
+		
 		library.trakt_refresh_all()
 		self.xbmc_monitor.waitForAbort(5)  # Wait 10 minutes before doing updates to give boot time
 		if self.xbmc_monitor.abortRequested():
