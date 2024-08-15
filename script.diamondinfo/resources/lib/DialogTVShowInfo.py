@@ -197,6 +197,21 @@ def get_tvshow_window(window_type):
 			self.close()
 			xbmc.executebuiltin('RunScript('+str(addon_ID())+',info=trakt_list,trakt_type=%s,trakt_label=%s,user_id=%s,list_slug=%s,trakt_sort_by=%s,trakt_sort_order=%s,trakt_list_name=%s,keep_stack=True)' % (media_type,list_name,user_id,list_slug,sort_by,sort_order,list_name))
 
+		@ch.action('play', 250)
+		def context_play(self):
+			tmdb_id = self.info['id']
+			self.info['media_type'] = 'season'
+			Utils.context_play(window=self,tmdb_id = tmdb_id)
+
+		@ch.action('play', 150)
+		@ch.action('play', 9)
+		def context_play(self):
+			try: 
+				tmdb_id = self.listitem.getProperty('id')
+			except: 
+				tmdb_id = self.info['id']
+				self.info['media_type'] = 'tvshow'
+			Utils.context_play(window=self,tmdb_id = tmdb_id)
 
 		@ch.action('contextmenu', 150)
 		def right_click_similar(self):

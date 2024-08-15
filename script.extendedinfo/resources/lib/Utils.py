@@ -197,6 +197,127 @@ def hide_busy():
 		xbmc.sleep(250)
 		xbmc.executebuiltin('Dialog.Close(busydialog)')
 
+
+def context_play(window=None,tmdb_id=None):
+	import json
+	#base = 'RunScript('+str(addon_ID())+',info='
+	#info = sys.listitem.getVideoInfoTag()
+	#xbmc.executebuiltin('Dialog.Close(busydialog)')
+	hide_busy()
+	json_result = xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"XBMC.GetInfoLabels","params": {"labels":["ListItem.Title", "ListItem.Label",  "ListItem.MovieTitle",    "ListItem.DBTYPE",  "ListItem.Season", "ListItem.Episode", "ListItem.Year",  "ListItem.IMDBNumber", "ListItem.Property(tmdb_id)","ListItem.DBID",   "ListItem.TVShowTitle", "ListItem.FileNameAndPath", "ListItem.UniqueID(tmdb)", "ListItem.UniqueID(imdb)", "Container.ListItem.UniqueID(imdb)"]}, "id":1}')
+	json_object  = json.loads(json_result)
+	#xbmc.log(str(window.info)+'===>PHIL', level=xbmc.LOGINFO)
+	#xbmc.log(str(json_object)+'===>PHIL', level=xbmc.LOGINFO)
+	#show_busy()
+	dbid = json_object['result']['ListItem.DBID']
+	type = json_object['result']['ListItem.DBTYPE']
+	try: type = window.info['media_type']
+	except: pass
+	episode = json_object['result']['ListItem.Episode']
+	try: episode = window.info['episode']
+	except: pass
+	Season = json_object['result']['ListItem.Season']
+	try: Season = window.info['season']
+	except: pass
+	TVShowTitle = json_object['result']['ListItem.TVShowTitle']
+	MovieTitle = json_object['result']['ListItem.MovieTitle']
+	Title = json_object['result']['ListItem.Title']
+	Label = json_object['result']['ListItem.Label']
+	remote_id = json_object['result']['ListItem.UniqueID(tmdb)']
+
+	#tmdb_id = json_object['result']['ListItem.Property(tmdb_id)']
+	if remote_id != tmdb_id:
+		remote_id = tmdb_id
+	imdb = json_object['result']['ListItem.UniqueID(imdb)']
+
+	#json_object['result']['ListItemTMDBNumber'] = property_value
+	if dbid == None or dbid == '':
+		dbid = 0
+
+	IMDBNumber = json_object['result']['ListItem.IMDBNumber']
+	if (IMDBNumber == '' or IMDBNumber == None):
+		IMDBNumber = imdb
+	#xbmc.log(str(json_object)+'===>PHIL2', level=xbmc.LOGINFO)
+
+	if not type in ['movie','tvshow','season','episode','actor','director']:
+		if (episode == '' or episode == None) and (TVShowTitle == '' or TVShowTitle == None):
+			type = 'movie'
+		else:
+			type = 'tvshow'
+
+	params = {}
+	infos = []
+	if (TVShowTitle == '' or TVShowTitle == None):
+		TVShowTitle = Title
+	if type   == 'movie':
+		#base = 'RunScript('+str(addon_ID())+',info='+str(addon_ID_short())
+		if (MovieTitle == '' or MovieTitle == None):
+			MovieTitle = Title
+		#url = '%s,dbid=%s,id=%s,imdb_id=%s,name=%s)' % (base, dbid, remote_id, IMDBNumber, MovieTitle)
+		#infos.append(str(addon_ID_short()))
+		#params['dbid'] = dbid
+		#params['id'] = remote_id
+		#params['imdb_id'] = IMDBNumber
+		#params['name'] = MovieTitle
+
+		url = 'plugin://plugin.video.themoviedb.helper?info=play&amp;type=movie&amp;tmdb_id=%s' % remote_id
+		#if dbid != None or dbid != '' or dbid != 0:
+		#	url = 'plugin://plugin.video.themoviedb.helper?info=play&amp;type=movie&amp;tmdb_id=%s' % remote_id
+		#	xbmc.executebuiltin('Dialog.Close(all,true)')
+		#	PLAYER.play_from_button(url, listitem=None, window=self, type='movieid', dbid=dbid)
+		#else:
+		#	dbid = 0
+		#	url = 'plugin://plugin.video.themoviedb.helper?info=play&amp;type=movie&amp;tmdb_id=%s' % remote_id
+		#	xbmc.executebuiltin('Dialog.Close(all,true)')
+		#	PLAYER.play_from_button(url, listitem=None, window=self, dbid=0)
+
+
+	elif type == 'tvshow':
+		#infos.append('extendedtvinfo')
+		#params['dbid'] = dbid
+		#params['id'] = remote_id
+		#params['imdb_id'] = IMDBNumber
+		#params['name'] = TVShowTitle
+		#xbmc.executebuiltin('%sextendedtvinfo,dbid=%s,id=%s,name=%s)' % (base, dbid, remote_id, info.getTVShowTitle()))
+		from resources.lib.library import trakt_next_episode_rewatch
+
+		url = trakt_next_episode_rewatch(tmdb_id_num=remote_id)
+		#xbmc.executebuiltin('Dialog.Close(all,true)')
+		#PLAYER.play_from_button(url, listitem=None, window=self, dbid=0)
+
+	elif type == 'season':
+		#infos.append('seasoninfo')
+		#params['dbid'] = dbid
+		#params['id'] = remote_id
+		#params['tvshow'] = TVShowTitle
+		#params['season'] = Season
+		episode = 1
+		#params['episode'] = episode
+
+		url = 'plugin://plugin.video.themoviedb.helper?info=play&amp;type=episode&amp;tmdb_id=%s&amp;season=%s&amp;episode=%s' % (remote_id, Season, episode)
+		#xbmc.log(str(url)+'===>PHIL', level=xbmc.LOGINFO)
+		#xbmc.executebuiltin('Dialog.Close(busydialog)')
+		#xbmc.executebuiltin('Dialog.Close(all,true)')
+		#PLAYER.play_from_button(url, listitem=None, window=self, dbid=0)
+
+		#xbmc.executebuiltin('%sseasoninfo,dbid=%s,id=%s,tvshow=%s,season=%s)' % (base, dbid, remote_id, info.getTVShowTitle(), info.getSeason()))
+	elif type == 'episode':
+		#infos.append('extendedepisodeinfo')
+		#params['dbid'] = dbid
+		#params['id'] = remote_id
+		#params['tvshow'] = TVShowTitle
+		#params['season'] = Season
+		#params['episode'] = episode
+
+		url = 'plugin://plugin.video.themoviedb.helper?info=play&amp;type=episode&amp;tmdb_id=%s&amp;season=%s&amp;episode=%s' % (remote_id, Season, episode)
+	from resources.lib.VideoPlayer import PLAYER
+	xbmc.log(str(url)+'===>context_play', level=xbmc.LOGINFO)
+	#xbmc.executebuiltin('Dialog.Close(all,true)')
+	PLAYER.play_from_button(url, listitem=None, window=window, dbid=dbid)
+	#return
+	#if infos:
+	#	start_info_actions(infos, params)
+
 def busy_dialog(func):
 	@wraps(func)
 	def decorator(self, *args, **kwargs):
@@ -806,9 +927,13 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 		try: 
 			#listitem.setUniqueIDs({ 'imdb': result['imdb_id'], 'tmdb' : result['id'] }, "imdb")
 			vinfo = listitem.getVideoInfoTag()
-			vinfo.setUniqueID( str(result['id']), type='tmdb',  isdefault=True)
 			vinfo.setUniqueID( result['imdb_id'], type='imdb',  isdefault=False)
 			vinfo.setIMDBNumber( result['imdb_id'])
+		except KeyError: 
+			pass
+		try: 
+			vinfo = listitem.getVideoInfoTag()
+			vinfo.setUniqueID( str(result['id']), type='tmdb',  isdefault=True)
 		except KeyError: 
 			pass
 		for (key, value) in result.items():

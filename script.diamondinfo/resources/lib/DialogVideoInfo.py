@@ -224,7 +224,18 @@ def get_movie_window(window_type):
 			if selection == 0:
 				self.close()
 				xbmc.executebuiltin('RunScript('+str(addon_ID())+',info=search_person,person=%s)' % self.listitem.getLabel())
-			
+
+		@ch.action('play', 250)
+		@ch.action('play', 150)
+		@ch.action('play', 8)
+		def context_play(self):
+			try: 
+				tmdb_id = self.listitem.getProperty('id')
+			except: 
+				tmdb_id = self.info['id']
+				self.info['media_type'] = 'movie'
+			Utils.context_play(window=self, tmdb_id = tmdb_id)
+
 		@ch.action('contextmenu', 150)
 		@ch.action('contextmenu', 250)
 		def context_menu(self):

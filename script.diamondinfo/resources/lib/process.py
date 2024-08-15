@@ -1779,6 +1779,7 @@ def context_info():
 	if infos:
 		start_info_actions(infos, params)
 
+
 def context_info2():
 	import json
 	base = 'RunScript('+str(addon_ID())+',info='

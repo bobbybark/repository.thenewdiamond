@@ -475,6 +475,9 @@ def get_tmdb_window(window_type):
 								break
 			xbmc.executebuiltin('Control.SetFocus('+str(new_button)+')')
 
+		@ch.action('play', 500)
+		def context_play(self):
+			Utils.context_play(window=self,tmdb_id=self.listitem.getProperty('id'))
 
 		@ch.action('info', 500)
 		@ch.action('contextmenu', 500)
