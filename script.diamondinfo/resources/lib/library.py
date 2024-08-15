@@ -1092,8 +1092,11 @@ def trakt_lists(list_name=None,user_id=None,list_slug=None,sort_by=None,sort_ord
             tmdb_id = i['movie']
             tmdb_id['type'] = 'movie'
         except:
-            tmdb_id = i['show']
-            tmdb_id['type'] = 'show'
+            try:
+                tmdb_id = i['show']
+                tmdb_id['type'] = 'show'
+            except:
+                pass
         if tmdb_id not in movies:
             movies.append(tmdb_id)
         if x + 1 == int(limit) and limit != 0:
