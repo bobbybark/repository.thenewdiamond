@@ -208,7 +208,7 @@ def get_movie_window(window_type):
 			self.filter_label='Trakt In Lists ('+str(search_str)+'):'
 			wm.append_window_stack_table(mode='curr_window')
 			self.close()
-			xbmc.executebuiltin('RunScript('+str(addon_ID())+',info=trakt_list,trakt_type=%s,trakt_label=%s,user_id=%s,list_slug=%s,trakt_sort_by=%s,trakt_sort_order=%s,trakt_list_name=%s,keep_stack=True)' % (media_type,list_name,user_id,list_slug,sort_by,sort_order,list_name))
+			xbmc.executebuiltin('RunScript('+str(addon_ID())+',info=trakt_list,trakt_type=%s,trakt_label=%s,user_id=%s,list_slug=%s,trakt_sort_by=%s,trakt_sort_order=%s,trakt_list_name=%s,keep_stack=True,script=True)' % (media_type,list_name,user_id,list_slug,sort_by,sort_order,list_name))
 
 
 		@ch.click(1000)
