@@ -217,7 +217,8 @@ def get_response_cache(url='', cache_days=7.0, folder=False, headers=False):
 		except:
 			log('Exception: Could not get new JSON data from %s. Tryin to fallback to cache' % url)
 			log(response)
-			results = read_all_text(path) if os.path.exists(path) else []
+			results = None
+			#results = read_all_text(path) if os.path.exists(path) else []
 	if not results:
 		return None
 	return results
