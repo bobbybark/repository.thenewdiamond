@@ -1000,6 +1000,7 @@ def run_keyword_search():
 	run_movie_search(info)
 
 def run_movie_search(info=None):
+	custom = None
 	if info == None:
 		try: 
 			movie_title = input('Enter Movie Title:  ')

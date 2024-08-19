@@ -866,21 +866,43 @@ def get_tmdb_window(window_type):
 			ids = [item["id"] for item in response["genres"]]
 			labels = [item["name"] for item in response["genres"]]
 			preselect = [ids.index(int(i)) for i in str(selected[0]).split(",")] if selected else []
-			indexes = xbmcgui.Dialog().multiselect(heading='Choose genre',options=labels,preselect=preselect)
+
+			try: without_genres = 'NOT Genres: ' + str([i["label"] for i in self.filters if i["type"] == "without_genres"][0]).replace(',','+').replace('|',' OR ')
+			except: without_genres = ''
+			try: with_genres = 'Genres: ' + str([i["label"] for i in self.filters if i["type"] == "with_genres"][0]).replace(',','+').replace('|',' OR ') + ' '
+			except: with_genres = ''
+			filter_label = with_genres + without_genres
+			
+			indexes = xbmcgui.Dialog().multiselect(heading='Choose genre: ' + filter_label,options=labels,preselect=preselect)
+			if indexes == -1:
+				return
+
+			try: selected_indexes = [labels[i] for i in indexes]
+			except: return
+			preselect_indexes = [labels[i] for i in  [ids.index(int(j)) for j in [ids[i] for i in preselect]]]
+			selected_indexes2 = str([i for i in selected_indexes if i not in preselect_indexes]).replace('[','').replace(']','')
+			#xbmc.log(str([i["label"] for i in self.filters if i["type"] == "without_genres"])+'without_genres===>OPENINFO', level=xbmc.LOGFATAL)
+			#xbmc.log(str([i["label"] for i in self.filters if i["type"] == "with_genres"])+'with_genres===>OPENINFO', level=xbmc.LOGFATAL)
+
 			if indexes is None:
 				return None
-			indexes2 = xbmcgui.Dialog().yesno('Genres', 'Set with/without genres for newly selected items', 'without_genres', 'with_genres', 3500) 
+			indexes2 = xbmcgui.Dialog().yesno('Genres', 'Set with/without genres for newly selected items' + ' ' + selected_indexes2, 'With Genres', 'Without Genres', 3500) 
+			if indexes2 == -1:
+				return
 			indexes3 = str(indexes2)
+
+			#xbmc.log(str([i["label"] for i in self.filters if i["type"] == "without_genres"])+'without_genres===>OPENINFO', level=xbmc.LOGFATAL)
+			#xbmc.log(str([i["label"] for i in self.filters if i["type"] == "with_genres"])+'with_genres===>OPENINFO', level=xbmc.LOGFATAL)
 
 			self.filters = [i for i in self.filters if i["type"] != "with_genres"]
 			for i in indexes:
 				if indexes2 == False:
+					self.add_filter('with_genres', ids[i], 'Genres', labels[i])
+				else:
 					if str(i) in str(preselect):
 						self.add_filter('with_genres', ids[i], 'Genres', labels[i])
 					else:
 						self.add_filter('without_genres', ids[i], 'NOT Genres', labels[i])
-				else:
-					self.add_filter('with_genres', ids[i], 'Genres', labels[i])
 			self.mode = 'filter'
 			self.page = 1
 			self.update()
@@ -1019,8 +1041,9 @@ def get_tmdb_window(window_type):
 
 		@ch.click(50139)
 		def set_page_number(self):
-			page = xbmcgui.Dialog().input(heading='Page Number', type=xbmcgui.INPUT_NUMERIC)
-			self.page = int(page)
+			page = xbmcgui.Dialog().input(heading='Page Number', type=xbmcgui.INPUT_NUMERIC)#
+			try: self.page = int(page)
+			except: return
 			self.update()
 
 		@ch.click(5013)

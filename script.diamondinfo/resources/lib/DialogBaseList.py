@@ -551,10 +551,27 @@ class DialogBaseList(object):
 			self.filters[index]['label'] = str(label)
 			return None
 		dialog = xbmcgui.Dialog()
-		ret = dialog.yesno(heading='Filter', message='Choose filter behaviour', nolabel='OR', yeslabel='AND')
-		if ret:
-			self.filters[index]['id'] = str(self.filters[index]['id']) + ',' + quote_plus(str(value))
-			self.filters[index]['label'] = self.filters[index]['label'] + ',' + label
+
+		without_genres = [i["label"] for i in self.filters if i["type"] == "without_genres"]
+		try: without_genres = without_genres[0].replace(',','+').replace('|',' OR ')
+		except: without_genres = ''
+		with_genres = [i["label"] for i in self.filters if i["type"] == "with_genres"] 
+		try: with_genres = with_genres[0].replace(',','+').replace('|',' OR ')
+		except: with_genres = ''
+		if key == 'without_genres':
+			dialog_label = ' NOT  ' + without_genres
 		else:
+			dialog_label = ' WITH  ' + with_genres
+		dialog_label = dialog_label + ': ' + label + '?'
+		xbmc.log(str(dialog_label)+'indexes===>OPENINFO', level=xbmc.LOGFATAL)
+
+		ret = dialog.yesno(heading='Filter', message='Choose filter behaviour' + dialog_label, nolabel='AND', yeslabel='OR')
+		if ret == -1:
+			return
+		if ret:
 			self.filters[index]['id'] = str(self.filters[index]['id']) + '|' + quote_plus(str(value))
 			self.filters[index]['label'] = self.filters[index]['label'] + '|' + label
+		else:
+			self.filters[index]['id'] = str(self.filters[index]['id']) + ',' + quote_plus(str(value))
+			self.filters[index]['label'] = self.filters[index]['label'] + ',' + label
+
