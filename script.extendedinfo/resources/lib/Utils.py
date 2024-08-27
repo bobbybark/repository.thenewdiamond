@@ -97,7 +97,12 @@ def write_db(connection=None,url=None, cache_days=7.0, folder=False,cache_val=No
 			VALUES( '%s','%s','%s',%s);
 			""" % (folder, hashed_url,cache_val,cache_type,int(expire))
 			sql_result = cur.execute(sql_query).fetchall()
-	connection.commit()
+	try: 
+		connection.commit()
+	except:
+	#	xbmc.log(str(url)+'===>OPENINFO', level=xbmc.LOGFATAL)
+	#	xbmc.log(str(cache_val)+'===>OPENINFO', level=xbmc.LOGFATAL)
+		connection.commit()
 	cur.close()
 
 def query_db(connection=None,url=None, cache_days=7.0, folder=False, headers=False):

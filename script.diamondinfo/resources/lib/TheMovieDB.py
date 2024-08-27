@@ -2009,11 +2009,12 @@ def get_trakt(trakt_type=None,info=None,limit=0):
 			elif result_type != False:
 				#listitems += handle_tmdb_multi_search(response[result_type])
 				if result_type == 'movie_results':
-					try: 
-						listitems.append(single_movie_info(response[result_type][0]['id']))
-					except: 
-						xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
-						xbmc.log(str(response[result_type][0])+'===>EXCEPTION', level=xbmc.LOGINFO)
+					#try: 
+					#	listitems.append(single_movie_info(response[result_type][0]['id']))
+					#except: 
+					#	xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
+					#	xbmc.log(str(response[result_type][0])+'===>EXCEPTION', level=xbmc.LOGINFO)
+					listitems.append(single_movie_info(response[result_type][0]['id']))
 				else:
 					listitems.append(single_tvshow_info(response[result_type][0]['id']))
 		#Utils.show_busy()
