@@ -216,16 +216,16 @@ def write_db(connection=None,url=None, cache_days=7.0, folder=False,cache_val=No
 	INSERT INTO %s (url,cache_val,cache_type,expire)
 	VALUES( '%s','%s','%s',%s);
 	""" % (folder, hashed_url,cache_val,cache_type,int(expire))
-	sql_result = cur.execute(sql_query).fetchall()
-	#try: 
-	#	sql_result = cur.execute(sql_query).fetchall()
-	#except Exception as ex:
-	#	if 'UNIQUE constraint failed' in str(ex):
-	#		sql_query = """
-	#		REPLACE INTO %s (url,cache_val,cache_type,expire)
-	#		VALUES( '%s','%s','%s',%s);
-	#		""" % (folder, hashed_url,cache_val,cache_type,int(expire))
-	#		sql_result = cur.execute(sql_query).fetchall()
+	#sql_result = cur.execute(sql_query).fetchall()
+	try: 
+		sql_result = cur.execute(sql_query).fetchall()
+	except Exception as ex:
+		if 'UNIQUE constraint failed' in str(ex):
+			sql_query = """
+			REPLACE INTO %s (url,cache_val,cache_type,expire)
+			VALUES( '%s','%s','%s',%s);
+			""" % (folder, hashed_url,cache_val,cache_type,int(expire))
+			sql_result = cur.execute(sql_query).fetchall()
 	connection.commit()
 	cur.close()
 
@@ -238,6 +238,7 @@ def query_db(connection=None,url=None, cache_days=7.0, folder=False, headers=Fal
 	try: url = url.encode('utf-8')
 	except: pass
 	cache_val = None
+	cache_seconds = int(cache_days * 86400.0)
 	hashed_url = hashlib.md5(url).hexdigest()
 
 	sql_query = """select cache_val, expire,cache_type from %s
@@ -255,7 +256,8 @@ def query_db(connection=None,url=None, cache_days=7.0, folder=False, headers=Fal
 		cur.close()
 		return None
 
-	if int(time.time()) >= int(sql_result[0][1]):
+	expire = round(time.time() + cache_seconds,0)
+	if int(time.time()) >= int(sql_result[0][1]) or expire <= int(sql_result[0][1]) :
 		sql_query = """DELETE FROM %s
 		where url = '%s'
 		""" % (folder, hashed_url)

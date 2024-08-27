@@ -563,7 +563,7 @@ class DialogBaseList(object):
 		else:
 			dialog_label = ' WITH  ' + with_genres
 		dialog_label = dialog_label + ': ' + label + '?'
-		xbmc.log(str(dialog_label)+'indexes===>OPENINFO', level=xbmc.LOGFATAL)
+		#xbmc.log(str(dialog_label)+'indexes===>OPENINFO', level=xbmc.LOGFATAL)
 
 		ret = dialog.yesno(heading='Filter', message='Choose filter behaviour' + dialog_label, nolabel='AND', yeslabel='OR')
 		if ret == -1:

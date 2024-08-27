@@ -542,6 +542,7 @@ def get_tmdb_window(window_type):
 				listitems += ['Trakt remove playback entry']
 			listitems += ['TasteDive Similar Items']
 			listitems += ['In Trakt Lists']
+			listitems += ['Googles Similar Items']
 			if xbmcaddon.Addon(addon_ID()).getSetting('RD_bluray_player') == 'true' or xbmcaddon.Addon(addon_ID()).getSetting('RD_bluray_player2')  == 'true':
 				listitems += ['Eject/Load DVD']
 
@@ -729,6 +730,22 @@ def get_tmdb_window(window_type):
 			if selection_text == 'Eject/Load DVD':
 				xbmc.executebuiltin('RunScript(%s,info=eject_load_dvd)' % (addon_ID()))
 
+			if selection_text == 'Googles Similar Items':
+				search_str = self.listitem.getProperty('title')
+				search_year = self.listitem.getProperty('year')
+				from resources.lib.TheMovieDB import google_similar
+				wm.pop_video_list = False
+				self.page = 1
+				self.mode='google_similar'
+				Utils.show_busy()
+				self.search_str = google_similar(search_str=search_str, search_year=search_year)
+				self.filter_label='Googles Similar ('+str(search_str)+'):'
+
+				self.fetch_data()
+				wm.page = -1
+				self.update()
+				#self.update_content(force_update=False)
+				Utils.hide_busy()
 
 			if selection_text == 'TasteDive Similar Items':
 				search_str = self.listitem.getProperty('title')
@@ -1736,6 +1753,31 @@ def get_tmdb_window(window_type):
 				fetch_data_dict_file.write(str(fetch_data_dict))
 				fetch_data_dict_file.close()
 				return info
+
+			elif self.mode ==  'google_similar':
+				movies = self.search_str
+				x = 0
+				page = int(self.page)
+
+				listitems = []
+				for i in movies:
+					if x + 1 <= page * 20 and x + 1 > (page - 1) *  20:
+						listitems.append(i)
+						x = x + 1
+					else:
+						x = x + 1
+
+				info = {
+					'listitems': listitems,
+					'results_per_page': int(int(x/20) + (1 if x % 20 > 0 else 0)),
+					'total_results': len(self.search_str)
+					}
+				fetch_data_dict = self.update_fetch_data_dict(info, fetch_data_dict)
+				fetch_data_dict_file.write(str(fetch_data_dict))
+				fetch_data_dict_file.close()
+				return info
+
+
 			elif self.mode == 'list_items':
 				#fetch_data_dict_file = write_fetch_data_dict_file()
 				if int(self.page) == 1:
