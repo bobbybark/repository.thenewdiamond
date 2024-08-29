@@ -141,7 +141,7 @@ def get_rss_cache(rss_feed=None, cache_days=30, folder='rss'):
 				link = i.get('link',None)
 			except:
 				pass
-			if link and magnet == None:
+			if link and magnet == None and 'magnet:?xt=urn:btih:' in link:
 				magnet = link
 			if magnet == None:
 				for j in i:
