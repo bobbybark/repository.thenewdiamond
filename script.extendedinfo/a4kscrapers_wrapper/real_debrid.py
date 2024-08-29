@@ -215,9 +215,9 @@ class RealDebrid:
 		self.refresh = response["refresh_token"]
 		self.expiry = time.time() + int(response["expires_in"])
 
-		tools.log(RD_AUTH_KEY, self.token)
-		tools.log(RD_REFRESH_KEY, self.refresh)
-		tools.log(RD_EXPIRY_KEY, self.expiry)
+		#tools.log(RD_AUTH_KEY, self.token)
+		#tools.log(RD_REFRESH_KEY, self.refresh)
+		#tools.log(RD_EXPIRY_KEY, self.expiry)
 		tools.set_setting(RD_AUTH_KEY, self.token)
 		tools.set_setting(RD_REFRESH_KEY, self.refresh)
 		tools.set_setting(RD_EXPIRY_KEY, self.expiry)

@@ -134,27 +134,36 @@ def get_rss_cache(rss_feed=None, cache_days=30, folder='rss'):
 			title = None
 			id = None
 			magnet = None
+			link = None
 			safe_title = 'safe_title'
-			for j in i:
-				try:
-					if 'magnet' in i[j]:
-						url = i.get(j,'')
-						magnet = url
-						if url != '':
-							break
-				except:
-					pass
-				if 'infohash' in j:
-					infohash = i[j]
-				if 'id' == j:
-					id = i[j]
-				if 'title' in j:
-					title = i[j]
-					try: safe_title = urllib.parse.quote_plus(title)
-					except: continue
-			if infohash and magnet == None:
-				magnet = 'magnet:?xt=urn:btih:%s&dn=%s&tr=%s' % (infohash,safe_title, id)
-				url = magnet
+			try: 
+				magnet = i.get('magnet',None)
+				link = i.get('link',None)
+			except:
+				pass
+			if link and magnet == None:
+				magnet = link
+			if magnet == None:
+				for j in i:
+					try:
+						if 'magnet' in i[j]:
+							url = i.get(j,'')
+							magnet = url
+							if url != '':
+								break
+					except:
+						pass
+					if 'infohash' in j:
+						infohash = i[j]
+					if 'id' == j:
+						id = i[j]
+					if 'title' in j:
+						title = i[j]
+						try: safe_title = urllib.parse.quote_plus(title)
+						except: continue
+				if infohash and magnet == None:
+					magnet = 'magnet:?xt=urn:btih:%s&dn=%s&tr=%s' % (infohash,safe_title, id)
+					url = magnet
 
 			now = time.time()
 			url = url.encode('utf-8')
