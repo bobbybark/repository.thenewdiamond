@@ -156,7 +156,7 @@ class DialogBaseList(object):
 		wm.page_position = None
 		ch.serve(control_id, self)
 
-	@ch.click(5005)
+	@ch.click(5018)
 	def reset_filters(self):
 		if len(self.filters) > 0:
 			listitems = ['%s: %s' % (f['typelabel'], f['label']) for f in self.filters]

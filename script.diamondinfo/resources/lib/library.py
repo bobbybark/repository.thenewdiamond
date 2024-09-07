@@ -1426,6 +1426,7 @@ def trakt_unwatched_tv_shows(cache_days=None,conn=None):
 	unwatched_list = []
 	for i in unwatched:
 		unwatched_list.append(unwatched[i])
+	xbmc.log(str('library.trakt_unwatched_tv_shows()_finished')+'===>OPEN_INFO', level=xbmc.LOGINFO)
 	return unwatched_list
 
 

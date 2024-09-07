@@ -585,11 +585,13 @@ def start_info_actions(infos, params):
 			from resources.lib.library import main_file_path
 			rd_player_path_in = xbmcvfs.translatePath(main_file_path() + 'direct.diamond_player.json')
 			rd_player_path_in2 = xbmcvfs.translatePath(main_file_path() + 'direct.diamond_player_torr_scrape.json')
+			rd_player_path_in3 = xbmcvfs.translatePath(main_file_path() + 'direct.diamond_player_torr_scrape_dialog.json')
 			rd_bluray_player_path_in = xbmcvfs.translatePath(main_file_path() + 'direct.diamond_player_bluray.json')
 			rd_bluray_player2_path_in = xbmcvfs.translatePath(main_file_path() + 'direct.diamond_player_bluray2.json')
 			
 			rd_player_path_out = xbmcvfs.translatePath(player_path + '/direct.diamond_player.json')
 			rd_player_path_out2 = xbmcvfs.translatePath(player_path + '/direct.diamond_player_torr_scrape.json')
+			rd_player_path_out3 = xbmcvfs.translatePath(player_path + '/direct.diamond_player_torr_scrape_dialog.json')
 			rd_bluray_player_path_out = xbmcvfs.translatePath(player_path + '/direct.diamond_player_bluray.json')
 			rd_bluray_player2_path_out = xbmcvfs.translatePath(player_path + '/direct.diamond_player_bluray2.json')
 			import shutil
@@ -605,6 +607,12 @@ def start_info_actions(infos, params):
 			if xbmcvfs.exists(rd_player_path_out2) and RD_player == 'true':
 				shutil.copyfile(rd_player_path_in2, rd_player_path_out2)
 				xbmc.log(str({'rd_player_path_in': rd_player_path_in2, 'rd_player_path_out': rd_player_path_out2})+'===>OPENINFO', level=xbmc.LOGINFO)
+			if not xbmcvfs.exists(rd_player_path_out3) and RD_player == 'true':
+				shutil.copyfile(rd_player_path_in3, rd_player_path_out3)
+				xbmc.log(str({'rd_player_path_in3': rd_player_path_in3, 'rd_player_path_out3': rd_player_path_out3})+'===>OPENINFO', level=xbmc.LOGINFO)
+			if xbmcvfs.exists(rd_player_path_out3) and RD_player == 'true':
+				shutil.copyfile(rd_player_path_in3, rd_player_path_out3)
+				xbmc.log(str({'rd_player_path_in3': rd_player_path_in3, 'rd_player_path_out3': rd_player_path_out3})+'===>OPENINFO', level=xbmc.LOGINFO)
 
 			if not xbmcvfs.exists(rd_bluray_player_path_out) and RD_bluray_player == 'true':
 				shutil.copyfile(rd_bluray_player_path_in, rd_bluray_player_path_out)
@@ -1565,6 +1573,9 @@ def get_log_error_flag(mode=None):
 			return error_flag
 	if mode == 'tmdb_helper':
 		if 'lib.player - playing' in str(lines) and 'plugin://' in str(lines) and 'plugin.video.themoviedb.helper/plugin.py): script successfully run' in str(lines):
+			error_flag = True
+			return error_flag
+		if 'TORRENTS_FOUND' in str(lines) and '===>A4K_Wrapper' in str(lines):
 			error_flag = True
 			return error_flag
 	if mode == 'seren':

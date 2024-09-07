@@ -1588,7 +1588,7 @@ def pack_sort(sources_list, uncached, item_information):
 	#uncached = tools.SourceSorter(info).sort_sources(uncached)
 	return sources_list, uncached
 
-def auto_scrape_rd(meta):
+def auto_scrape_rd(meta, select_dialog=False, unrestrict=False):
 	rd_api = real_debrid.RealDebrid()
 	if meta.get('download_type',False) == 'movie':
 		info = meta
@@ -1688,6 +1688,51 @@ def auto_scrape_rd(meta):
 	download_link = None
 	torrent = None
 	added_uncached = 0
+	selection = -1
+	if select_dialog:
+		import xbmcgui
+		tools.log(sources_list)
+		tools.log('TORRENTS_FOUND')
+		tools.log('TORRENTS_FOUND')
+		tools.log('TORRENTS_FOUND')
+		#tools.log(info)
+		#from resources.lib.TheMovieDB import get_image_urls
+		if meta.get('download_type',False) != 'movie':
+			from resources.lib.TheMovieDB import extended_season_info
+			response = extended_season_info(tvshow_id=meta['tmdb'], season_number=info['season'] )
+			#tools.log(response)
+			poster = response[1]['images'][1]['poster']
+		else:
+			from resources.lib.TheMovieDB import extended_movie_info
+			response = extended_movie_info(movie_id=meta['tmdb_id'])
+			#tools.log(response)
+			poster = response[1]['images'][1]['poster']
+		
+		#for i in response:
+		#	tools.log(i)
+		#	#tools.log(response[i])
+		#artwork = get_image_urls(poster=season.get('poster_path'))
+		listitems = []
+		for idx, i in enumerate(sources_list):
+			source_name = '%s SIZE=%s %s SEEDS=%s PACK=%s ' % ( i['info'], i['size'], i['release_title'], i['seeds'], i['pack_size'])
+			#source_name = str("{:<90}		{:<10}	{:<10}	{:<10}	{:<10}".format(str(i['release_title'][:95]), 'SIZE='+str(int(i['size'])), 'SEEDS='+str(i['seeds']), 'PACK='+str(int(i['pack_size'])), str(i['info'])))
+			#listitems.append(source_name)
+			listitems += [{'label': source_name, 'poster': poster,'label2': i['release_title']}]
+			#listitem.update(artwork)
+		#selection = xbmcgui.Dialog().select(heading='Choose Torrent', list=listitems, autoclose=30000, preselect=0)
+		from resources.lib.WindowManager import wm
+		listitem, selection = wm.open_selectdialog_autoclose(listitems=listitems, autoclose=30, autoselect=0)
+		if selection == -1:
+			return
+		from resources.lib.Utils import show_busy
+		show_busy()
+		#tools.log(selection)
+
+	if selection >= 0:
+		idx = selection
+	else:
+		idx = 0
+
 	while download_link == None:
 		try: 
 			torrent = sources_list[idx]
@@ -1760,6 +1805,18 @@ def auto_scrape_rd(meta):
 		torr_info = rd_api.torrent_info(torr_id)
 		if torr_info['status'] != 'downloaded':
 			continue
+
+		def unrestrict_torr(torrent, torr_id):
+			tools.log(torrent)
+			torr_info = rd_api.torrent_info(torr_id)
+			#tools.log(torr_info['links'])
+			for i in torr_info['links']:
+				full_unrestrict_link = i
+				full_download_link = rd_api.resolve_hoster(full_unrestrict_link)
+				full_download_id = rd_api.UNRESTRICT_FILE_ID
+				tools.log(full_download_link, full_download_id)
+			return
+
 		#torr_info = rd_api.torrent_info_files(torr_info)
 		#sorted_torr_info = sorted(torr_info['files_links'], key=lambda x: x['pack_path'])
 		#simple_info = tools._build_simple_show_info(info)
@@ -1779,11 +1836,15 @@ def auto_scrape_rd(meta):
 			#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 			download_link, new_meta = cloud_single_ep(rd_api, meta, torr_id, torr_info)
 		if download_link:
+			if unrestrict:
+				unrestrict_torr(torrent, torr_id)
 			return download_link, new_meta
 		if download_type != 'movie':
 			#tools.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename)))
 			download_link, new_meta = cloud_get_ep_season(rd_api, meta, torr_id, torr_info)
 		if download_link:
+			if unrestrict:
+				unrestrict_torr(torrent, torr_id)
 			return download_link, new_meta
 
 

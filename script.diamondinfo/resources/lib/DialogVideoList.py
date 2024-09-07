@@ -92,28 +92,28 @@ menu = [
 	#{'button': 700, 'position': 3},
 	#{'button': 6667, 'position': 4},
 	#{'button': 6668, 'position': 5},
-	{'button': 6000, 'position': 1},
-	{'button': 6001, 'position': 2},
-	#{'button': 9000, 'position': 8},
-	{'button': 5007, 'position': 3},
-	{'button': 5001, 'position': 4},
-	{'button': 5004, 'position': 5},
-	#{'button': 5333, 'position': 12},
-	{'button': 5013, 'position': 6},
-	{'button': 50139, 'position': 7},
-	{'button': 5002, 'position': 8},
-	{'button': 5003, 'position': 9},
-	{'button': 5006, 'position': 10},
-	{'button': 5008, 'position': 11},
-	{'button': 5009, 'position': 12},
-	{'button': 5010, 'position': 13},
-	{'button': 5012, 'position': 14},
-	{'button': 5014, 'position': 15},
-	{'button': 5015, 'position': 16},
-	{'button': 5017, 'position': 17},
-	{'button': 5016, 'position': 18},
-	{'button': 5005, 'position': 19},
-	{'button': 5018, 'position': 20}
+	{'button': 6000, 'position': 1}, #SEARCH
+	{'button': 6001, 'position': 2}, #SEARCH_YT
+	#{'button': 9000, 'position': 8}, #CONTROL_LIST
+	{'button': 5001, 'position': 3}, #TYPE MOVIE/TV
+	{'button': 5002, 'position': 4}, #SORT_BY
+	{'button': 5003, 'position': 5}, #ORDER_BY
+	#{'button': 5004, 'position': 12}, #LABEL____FILTER______LABEL
+	{'button': 5005, 'position': 6}, #Original Language
+	{'button': 5006, 'position': 7}, #Page Number
+	{'button': 5007, 'position': 8}, #Genre
+	{'button': 5008, 'position': 9}, #Release date
+	{'button': 5009, 'position': 10}, #Certification
+	{'button': 5010, 'position': 11}, #Actor / Crew member
+	{'button': 5011, 'position': 12}, #Keyword
+	{'button': 5012, 'position': 13}, #Studio
+	{'button': 5013, 'position': 14}, #Vote count
+	{'button': 5014, 'position': 15}, #IMDB_Lists
+	{'button': 5015, 'position': 16}, #Trakt_Stuff
+	{'button': 5016, 'position': 17}, #User_Lists
+	{'button': 5017, 'position': 18}, #Plugin Routes
+	{'button': 5018, 'position': 19}, #Edit Filters
+	{'button': 5019, 'position': 20} #EXIT
 ]
 
 
@@ -380,100 +380,26 @@ def get_tmdb_window(window_type):
 				self.page_token = self.prev_page_token
 				self.update()
 
-		@ch.action('pagedown', 6666)
-		@ch.action('pageup', 6666)
-		@ch.action('pagedown', 600)
-		@ch.action('pageup', 600)
-		@ch.action('pagedown', 700)
-		@ch.action('pageup', 700)
-		@ch.action('pagedown', 6667)
-		@ch.action('pageup', 6667)
-		@ch.action('pagedown', 6668)
-		@ch.action('pageup', 6668)
-		@ch.action('pagedown', 6000)
+
+		@ch.action('pagedown', 5019)
+		def pgdn_5019(self):
+			xbmc.executebuiltin('Control.SetFocus('+str(6000)+')')
+
 		@ch.action('pageup', 6000)
-		@ch.action('pagedown', 6001)
-		@ch.action('pageup', 6001)
-		@ch.action('pagedown', 6001)
-		@ch.action('pageup', 6001)
-		@ch.action('pagedown', 9000)
-		@ch.action('pageup', 9000)
-		@ch.action('pagedown', 5007)
-		@ch.action('pageup', 5007)
-		@ch.action('pagedown', 5001)
+		def pgup_6000(self):
+			xbmc.executebuiltin('Control.SetFocus('+str(5019)+')')
+
+
+		@ch.action('pagedown', 6000)
+		def pgdn_6000(self):
+			xbmc.executebuiltin('Control.SetFocus('+str(5001)+')')
+
 		@ch.action('pageup', 5001)
-		@ch.action('pagedown', 5004)
-		@ch.action('pageup', 5004)
-		@ch.action('pagedown', 5333)
-		@ch.action('pageup', 5333)
-		@ch.action('pagedown', 5013)
-		@ch.action('pageup', 5013)
-		@ch.action('pagedown', 50139)
-		@ch.action('pageup', 50139)
-		@ch.action('pagedown', 5002)
-		@ch.action('pageup', 5002)
-		@ch.action('pagedown', 5003)
-		@ch.action('pageup', 5003)
-		@ch.action('pagedown', 5006)
-		@ch.action('pageup', 5006)
-		@ch.action('pagedown', 5008)
-		@ch.action('pageup', 5008)
-		@ch.action('pagedown', 5009)
-		@ch.action('pageup', 5009)
-		@ch.action('pagedown', 5010)
-		@ch.action('pageup', 5010)
-		@ch.action('pagedown', 5012)
-		@ch.action('pageup', 5012)
-		@ch.action('pagedown', 5014)
-		@ch.action('pageup', 5014)
-		@ch.action('pagedown', 5015)
-		@ch.action('pageup', 5015)
-		@ch.action('pagedown', 5017)
-		@ch.action('pageup', 5017)
-		@ch.action('pagedown', 5016)
-		@ch.action('pageup', 5016)
-		@ch.action('pagedown', 5005)
-		@ch.action('pageup', 5005)
-		@ch.action('pagedown', 5018)
-		@ch.action('pageup', 5018)
-		def context_testAA(self):
-			#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
-			jump_number = 4
-			if self.action2.getId() == 6: #page_down
-				for i in menu:
-					if i['button'] == self.getFocusId():
-						position = i['position']
-				if position + jump_number <= len(menu):
-					for i in menu:
-						if i['position'] >= position + jump_number:
-							new_button = i['button']
-							if self.getControl(new_button).isVisible():
-								break
-				else:
-					position = (position + jump_number) - len(menu)
-					for i in menu:
-						if i['position'] >= position:
-							new_button = i['button']
-							if self.getControl(new_button).isVisible():
-								break
-			if self.action2.getId() == 5: #page_up
-				for i in menu:
-					if i['button'] == self.getFocusId():
-						position = i['position']
-				if position - jump_number >= 1:
-					for i in reversed(menu):
-						if i['position'] <= position - jump_number:
-							new_button = i['button']
-							if self.getControl(new_button).isVisible():
-								break
-				else:
-					position = len(menu) + (position - jump_number)
-					for i in reversed(menu):
-						if i['position'] <= position:
-							new_button = i['button']
-							if self.getControl(new_button).isVisible():
-								break
-			xbmc.executebuiltin('Control.SetFocus('+str(new_button)+')')
+		def pgup_5001(self):
+			xbmc.executebuiltin('Control.SetFocus('+str(5019)+')')
+
+
+
 
 		@ch.action('play', 500)
 		def context_play(self):
@@ -819,7 +745,7 @@ def get_tmdb_window(window_type):
 				#self.update_content(force_update=False)
 				Utils.hide_busy()
 
-		@ch.click(5001)
+		@ch.click(5002)
 		def get_sort_type(self):
 			if self.mode in ['list']:
 				sort_key = self.mode
@@ -843,12 +769,12 @@ def get_tmdb_window(window_type):
 			else:
 				super(DialogVideoList, self).add_filter(key=key, value=value, typelabel=typelabel, label=label, force_overwrite=False)
 
-		@ch.click(5004)
+		@ch.click(5003)
 		def toggle_order(self):
 			self.order = 'desc' if self.order == 'asc' else 'asc'
 			self.update()
 
-		@ch.click(5007)
+		@ch.click(5001)
 		def toggle_media_type(self):
 			self.filters = []
 			self.page = 1
@@ -860,7 +786,7 @@ def get_tmdb_window(window_type):
 			#xbmc.log(str(str('Line ')+str(getframeinfo(currentframe()).lineno)+'___'+str(getframeinfo(currentframe()).filename))+'===>OPENINFO', level=xbmc.LOGINFO)
 			self.update()
 
-		@ch.click(5002)
+		@ch.click(5007)
 		def set_genre_filter(self):
 			response = TheMovieDB.get_tmdb_data('genre/%s/list?language=%s&' % (self.type, xbmcaddon.Addon().getSetting('LanguageID')), 10)
 			"""
@@ -924,7 +850,7 @@ def get_tmdb_window(window_type):
 			self.page = 1
 			self.update()
 
-		@ch.click(5012)
+		@ch.click(5013)
 		def set_vote_count_filter(self):
 			ret = True
 			if not self.type == 'tv':
@@ -939,7 +865,7 @@ def get_tmdb_window(window_type):
 				self.page = 1
 				self.update()
 
-		@ch.click(5003)
+		@ch.click(5008)
 		def set_year_filter(self):
 			ret = xbmcgui.Dialog().yesno(heading='Choose option', message='Choose filter behaviour', nolabel='Lower limit', yeslabel='Upper limit')
 			result = xbmcgui.Dialog().input(heading='Year', type=xbmcgui.INPUT_NUMERIC)
@@ -961,7 +887,7 @@ def get_tmdb_window(window_type):
 			self.page = 1
 			self.update()
 
-		@ch.click(5008)
+		@ch.click(5010)
 		def set_actor_filter(self):
 			result = xbmcgui.Dialog().input(heading='Enter search string', type=xbmcgui.INPUT_ALPHANUM)
 			if not result or result == -1:
@@ -1004,7 +930,7 @@ def get_tmdb_window(window_type):
 				else:
 					wm.open_movie_info(prev_window=self, movie_id=self.listitem.getProperty('id'), dbid=self.listitem.getProperty('dbid'))
 
-		@ch.click(5010)
+		@ch.click(5012)
 		def set_company_filter(self):
 			result = xbmcgui.Dialog().input(heading='Enter search string', type=xbmcgui.INPUT_ALPHANUM)
 			if not result or len(result) < 1:
@@ -1023,7 +949,7 @@ def get_tmdb_window(window_type):
 			self.page = 1
 			self.update()
 
-		@ch.click(5009)
+		@ch.click(5011)
 		def set_keyword_filter(self):
 			result = xbmcgui.Dialog().input(heading='Enter search string', type=xbmcgui.INPUT_ALPHANUM)
 			if not result or result == -1:
@@ -1036,7 +962,7 @@ def get_tmdb_window(window_type):
 			self.page = 1
 			self.update()
 
-		@ch.click(5006)
+		@ch.click(5009)
 		def set_certification_filter(self):
 			response = TheMovieDB.get_certification_list(self.type)
 			country_list = [key for key in list(response.keys())]
@@ -1056,14 +982,14 @@ def get_tmdb_window(window_type):
 			self.page = 1
 			self.update()
 
-		@ch.click(50139)
+		@ch.click(5006)
 		def set_page_number(self):
 			page = xbmcgui.Dialog().input(heading='Page Number', type=xbmcgui.INPUT_NUMERIC)#
 			try: self.page = int(page)
 			except: return
 			self.update()
 
-		@ch.click(5013)
+		@ch.click(5005)
 		def set_language_filter(self):
 			list = sorted(LANGUAGES, key=lambda k: k['name'])
 			ids = [i['id'] for i in list]
@@ -1370,7 +1296,7 @@ def get_tmdb_window(window_type):
 			self.update()
 			Utils.hide_busy()
 
-		@ch.click(5017)
+		@ch.click(5016)
 		def get_user_lists(self):
 			old_page = self.page
 			self.page = 1
@@ -1448,7 +1374,7 @@ def get_tmdb_window(window_type):
 			self.update()
 			Utils.hide_busy()
 
-		@ch.click(5016)
+		@ch.click(5017)
 		def get_custom_routes(self):
 			self.page = 1
 			items = [
@@ -1535,7 +1461,7 @@ def get_tmdb_window(window_type):
 			self.update()
 			Utils.hide_busy()
 
-		@ch.click(5018)
+		@ch.click(5019)
 		def close_all(self):
 			xbmc.executebuiltin('Dialog.Close(all,true)')
 			wm.window_stack_empty()

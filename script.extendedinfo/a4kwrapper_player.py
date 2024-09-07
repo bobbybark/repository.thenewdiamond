@@ -248,6 +248,10 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True, pres
 	#	pass
 	show_title = show_title.replace(' s ', 's ')
 	kodi_send_command = 'kodi-send --action="RunScript(%s,info=a4kwrapper_player,type=tv,show_title=%s,show_season=%s,show_episode=%s,tmdb=%s,test=True)"' % (addon_ID(), show_title, show_season, show_episode, tmdb)
+	if 'select_dialog=True' in str(sys.argv):
+		kodi_send_command = kodi_send_command.replace(',test=True',',select_dialog=True,test=True')
+	if 'unrestrict=True' in str(sys.argv):
+		kodi_send_command = kodi_send_command.replace(',test=True',',unrestrict=True,test=True')
 	print_log(kodi_send_command,'___kodi_send_command')
 	meta = get_meta.get_episode_meta(season=show_season,episode=show_episode,show_name=show_title, tmdb=tmdb, interactive=False)
 	def meta_process(meta):
@@ -489,13 +493,21 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True, pres
 	#exit()
 
 	print_log('END__SCRAPE_CLOUD__END__')
+	if 'select_dialog=True' in str(sys.argv):
+		select_dialog = True
+	else:
+		select_dialog = False
+	if 'unrestrict=True' in str(sys.argv):
+		unrestrict = True
+	else:
+		unrestrict = False
 
 	if 'prescrape=True' in str(sys.argv):
 		if not 'http' in str(PTN_download):
 			print_log(str('Not found_CLOUD'),'===>OPENINFO')
 			##AUTO_SCRAPE_TORRENTS
 			
-			PTN_download, new_meta = getSources.auto_scrape_rd(meta)
+			PTN_download, new_meta = getSources.auto_scrape_rd(meta,select_dialog=select_dialog,unrestrict=unrestrict)
 			xbmcgui.Window(10000).setProperty('diamond_download_link',str(PTN_download))
 			if not 'http' in str(PTN_download):
 				print_log(str('Not found_AUTO_SCRAPE'),'===>OPENINFO')
@@ -510,7 +522,7 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True, pres
 			print_log(str('Not found_CLOUD'),'===>OPENINFO')
 			##AUTO_SCRAPE_TORRENTS
 			
-			PTN_download, new_meta = getSources.auto_scrape_rd(meta)
+			PTN_download, new_meta = getSources.auto_scrape_rd(meta,select_dialog=select_dialog,unrestrict=unrestrict)
 			
 			if not 'http' in str(PTN_download):
 				print_log(str('Not found_AUTO_SCRAPE'),'===>OPENINFO')
@@ -1045,6 +1057,10 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 	clear_next_ep_props()
 	movie_title = movie_title.replace("'",'').replace('&','and')
 	kodi_send_command = 'kodi-send --action="RunScript(%s,info=a4kwrapper_player,type=movie,movie_title=%s,movie_year=%s,tmdb=%s,test=True)"' % (addon_ID(), movie_title, movie_year, tmdb)
+	if 'select_dialog=True' in str(sys.argv):
+		kodi_send_command = kodi_send_command.replace(',test=True',',select_dialog=True,test=True')
+	#if 'unrestrict=True' in str(sys.argv):
+	#	kodi_send_command = kodi_send_command.replace(',test=True',',unrestrict=True,test=True')
 	print_log(kodi_send_command,' ===>OPENINFO')
 
 	x265_enabled = xbmcaddon.Addon(addon_ID()).getSetting('x265_setting')
@@ -1164,11 +1180,16 @@ def next_ep_play_movie(movie_year, movie_title, tmdb):
 	#exit()
 	print_log('END__SCRAPE_CLOUD__END__')
 
+	if 'select_dialog=True' in str(sys.argv):
+		select_dialog = True
+	else:
+		select_dialog = False
+
 	if not 'http' in str(PTN_download):
 		print_log(str('Not found_CLOUD'),'===>OPENINFO')
 		##AUTO_SCRAPE_TORRENTS
 		
-		PTN_download, new_meta = getSources.auto_scrape_rd(meta)
+		PTN_download, new_meta = getSources.auto_scrape_rd(meta,select_dialog=select_dialog)
 		
 		if not 'http' in str(PTN_download):
 			print_log(str('Not found_AUTO_SCRAPE'),'===>OPENINFO')

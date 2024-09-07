@@ -143,6 +143,7 @@ def get_rss_cache(rss_feed=None, cache_days=30, folder='rss'):
 				pass
 			if link and magnet == None and 'magnet:?xt=urn:btih:' in link:
 				magnet = link
+				url = magnet
 			if magnet == None:
 				for j in i:
 					try:
@@ -180,7 +181,11 @@ def get_rss_cache(rss_feed=None, cache_days=30, folder='rss'):
 				if 'parameter_missing' in str(response) or 'magnet_conversion' in str(response):
 					rd_api.delete_torrent(torr_id)
 					continue
-				torr_id = response['id']
+				try: 
+					torr_id = response['id']
+				except TypeError: 
+					tools.log('exception - TypeError',response)
+					continue
 				response = rd_api.torrent_select_all(torr_id)
 				if 'parameter_missing' in str(response) or 'magnet_conversion' in str(response):
 					rd_api.delete_torrent(torr_id)

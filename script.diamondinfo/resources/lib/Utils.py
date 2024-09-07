@@ -240,8 +240,10 @@ def context_play(window=None,tmdb_id=None):
 	Label = json_object['result']['ListItem.Label']
 	remote_id = json_object['result']['ListItem.UniqueID(tmdb)']
 
-	#tmdb_id = json_object['result']['ListItem.Property(tmdb_id)']
-	if remote_id != tmdb_id:
+	tmdb_id2 = json_object['result']['ListItem.Property(tmdb_id)']
+	if not tmdb_id or tmdb_id2 != tmdb_id:
+		tmdb_id = tmdb_id2
+	if tmdb_id and remote_id != tmdb_id:
 		remote_id = tmdb_id
 	imdb = json_object['result']['ListItem.UniqueID(imdb)']
 
