@@ -178,22 +178,19 @@ def get_rss_cache(rss_feed=None, cache_days=30, folder='rss'):
 				continue
 			else:
 				response = rd_api.add_magnet(magnet)
-				if 'parameter_missing' in str(response) or 'magnet_conversion' in str(response):
-					rd_api.delete_torrent(torr_id)
-					continue
 				try: 
 					torr_id = response['id']
-				except TypeError: 
-					tools.log('exception - TypeError',response)
+				except: 
+					tools.log('exception',response)
+					continue
+				if 'parameter_missing' in str(response) or 'magnet_conversion' in str(response):
+					rd_api.delete_torrent(torr_id)
 					continue
 				response = rd_api.torrent_select_all(torr_id)
 				if 'parameter_missing' in str(response) or 'magnet_conversion' in str(response):
 					rd_api.delete_torrent(torr_id)
 					continue
 				torr_info = rd_api.torrent_info(torr_id)
-				if 'parameter_missing' in str(response) or 'magnet_conversion' in str(response):
-					rd_api.delete_torrent(torr_id)
-					continue
 
 				if torr_info:
 					tools.log('RSS_ADDED_MAGNET',torr_info['filename'])

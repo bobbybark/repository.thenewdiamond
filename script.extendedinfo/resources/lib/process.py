@@ -31,6 +31,10 @@ def start_info_actions(infos, params):
 		Utils.show_busy()
 		data = [], ''
 
+		if info == 'rss_test':
+			from a4kscrapers_wrapper import get_meta
+			get_meta.get_rss_cache()
+
 		if info == 'getplayingfile':
 			xbmc.log(str(xbmc.Player().getPlayingFile())+'===>OPENINFO', level=xbmc.LOGINFO)
 
