@@ -60,6 +60,7 @@ artinfo = {
         'clearlogo': {
             'autolimit': 1,
             'multiselect': False,
+            'limit_setting': True,
             'download': False
         },
         'landscape': {
@@ -70,6 +71,7 @@ artinfo = {
         'clearart': {
             'autolimit': 1,
             'multiselect': False,
+            'limit_setting': True,
             'download': False
         },
         'characterart': {
@@ -106,6 +108,7 @@ artinfo = {
         'clearlogo': {
             'autolimit': 1,
             'multiselect': False,
+            'limit_setting': True,
             'download': False
         },
         'landscape': {
@@ -116,6 +119,7 @@ artinfo = {
         'clearart': {
             'autolimit': 1,
             'multiselect': False,
+            'limit_setting': True,
             'download': False
         },
         'discart': {
@@ -173,6 +177,7 @@ artinfo = {
         'clearlogo': {
             'autolimit': 1,
             'multiselect': False,
+            'limit_setting': True,
             'download': False
         },
         'landscape': {
@@ -183,6 +188,7 @@ artinfo = {
         'clearart': {
             'autolimit': 1,
             'multiselect': False,
+            'limit_setting': True,
             'download': False
         },
         'discart': {
@@ -253,11 +259,13 @@ artinfo = {
         'clearlogo': {
             'autolimit': 1,
             'multiselect': False,
+            'limit_setting': True,
             'download': False
         },
         'clearart': {
             'autolimit': 1,
             'multiselect': False,
+            'limit_setting': True,
             'download': False
         },
         'landscape': {
@@ -286,11 +294,13 @@ artinfo = {
         'clearlogo': {
             'autolimit': 1,
             'multiselect': False,
+            'limit_setting': True,
             'download': False
         },
         'clearart': {
             'autolimit': 1,
             'multiselect': False,
+            'limit_setting': True,
             'download': False
         },
         'landscape': {

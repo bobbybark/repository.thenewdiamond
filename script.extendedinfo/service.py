@@ -1717,8 +1717,8 @@ class ServiceMonitor(object):
 		#if rss_1_enabled == 'true' or rss_2_enabled == 'true' or rss_3_enabled == 'true'  or rss_4_enabled == 'true':
 		#	log(str('get_meta.get_rss_cache()'))
 		#	get_meta.get_rss_cache()
-		if  xbmcaddon.Addon(addon_ID()).getSetting('auto_clean_cache_bool') == 'true':
-			process.auto_clean_cache(days=30)
+		#if  xbmcaddon.Addon(addon_ID()).getSetting('auto_clean_cache_bool') == 'true':
+		#	process.auto_clean_cache(days=30)
 		self.cron_job.start()
 		self.player_monitor = PlayerMonitor()
 		self.poller()

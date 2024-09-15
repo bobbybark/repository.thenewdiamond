@@ -35,6 +35,13 @@ def start_info_actions(infos, params):
 			from a4kscrapers_wrapper import get_meta
 			get_meta.get_rss_cache()
 
+		if info == 'delete_db_expired':
+			Utils.db_delete_expired(Utils.db_con)
+
+		if info == 'clear_db':
+			table_name = params.get('table_name', False)
+			Utils.clear_db(Utils.db_con,table_name)
+
 		if info == 'getplayingfile':
 			xbmc.log(str(xbmc.Player().getPlayingFile())+'===>OPENINFO', level=xbmc.LOGINFO)
 

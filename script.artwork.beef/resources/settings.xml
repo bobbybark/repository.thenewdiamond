@@ -23,11 +23,13 @@
         <setting id="tvshow.poster_limit" label="poster" type="slider" option="int" default="1" range="0,1,10" />
         <setting id="tvshow.keyart_limit" label="keyart" type="slider" option="int" default="0" range="0,1,10" />
         <setting id="tvshow.fanart_limit" label="fanart" type="slider" option="int" default="5" range="0,1,20" />
-        <setting id="tvshow.banner" label="banner" type="bool" default="true" />
-        <setting id="tvshow.clearlogo" label="clearlogo" type="bool" default="true" />
-        <setting id="tvshow.landscape" label="landscape" type="bool" default="true" />
-        <setting id="tvshow.clearart" label="clearart" type="bool" default="true" />
-        <setting id="tvshow.characterart_limit" label="characterart" type="slider" option="int" default="1" range="0,1,20" />
+		<setting id="tvshow.banner" label="banner" type="bool" default="true"/>
+		<setting id="tvshow.clearlogo" label="clearlogo" type="bool" default="true"/>
+		<setting id="tvshow.clearlogo_limit" label="limit" type="slider" option="int" default="1" range="0,1,20" visible="eq(-1,true)" enable="eq(-1,true)"/>
+		<setting id="tvshow.landscape" label="landscape" type="bool" default="true"/>
+		<setting id="tvshow.clearart" label="clearart" type="bool" default="true"/>
+		<setting id="tvshow.clearart_limit" label="limit" type="slider" option="int" default="1" range="0,1,20" visible="eq(-1,true)" enable="eq(-1,true)"/>
+		<setting id="tvshow.characterart_limit" label="characterart" type="slider" option="int" default="1" range="0,1,20"/>
         <setting id="tvshow.othertypes" label="32954" type="text" />
         <setting id="season.poster" label="$LOCALIZE[20373] poster" type="bool" default="true" />
         <setting id="season.banner" label="$LOCALIZE[20373] banner" type="bool" default="true" />
@@ -54,9 +56,11 @@
         <setting id="movie.keyart_limit" label="keyart" type="slider" option="int" default="0" range="0,1,10" />
         <setting id="movie.fanart_limit" label="fanart" type="slider" option="int" default="5" range="0,1,20" />
         <setting id="movie.banner" label="banner" type="bool" default="true" />
-        <setting id="movie.clearlogo" label="clearlogo" type="bool" default="true" />
-        <setting id="movie.landscape" label="landscape" type="bool" default="true" />
-        <setting id="movie.clearart" label="clearart" type="bool" default="true" />
+		<setting id="movie.clearlogo" label="clearlogo" type="bool" default="true"/>
+		<setting id="movie.clearlogo_limit" label="limit" type="slider" option="int" default="1" range="0,1,20" visible="eq(-1,true)" enable="eq(-1,true)"/>
+		<setting id="movie.landscape" label="landscape" type="bool" default="true"/>
+		<setting id="movie.clearart" label="clearart" type="bool" default="true" lvalues=""/>
+		<setting id="movie.clearart_limit" label="limit" type="slider" option="int" default="1" range="0,1,20" visible="eq(-1,true)" enable="eq(-1,true)"/>
         <setting id="movie.discart" label="discart" type="bool" default="true" />
         <setting id="movie.characterart_limit" label="characterart - $ADDON[script.artwork.beef 32986]" type="slider" option="int" default="1" range="0,1,20" />
         <setting id="movie.animatedposter" label="animatedposter - $ADDON[script.artwork.beef 32986]" type="bool" default="false" />
@@ -67,9 +71,11 @@
         <setting id="set.keyart_limit" label="$LOCALIZE[20457] keyart" type="slider" option="int" default="0" range="0,1,10" />
         <setting id="set.fanart_limit" label="$LOCALIZE[20457] fanart" type="slider" option="int" default="5" range="0,1,20" />
         <setting id="set.banner" label="$LOCALIZE[20457] banner" type="bool" default="true" />
-        <setting id="set.clearlogo" label="$LOCALIZE[20457] clearlogo" type="bool" default="true" />
-        <setting id="set.landscape" label="$LOCALIZE[20457] landscape" type="bool" default="true" />
-        <setting id="set.clearart" label="$LOCALIZE[20457] clearart" type="bool" default="true" />
+		<setting id="set.clearlogo" label="$LOCALIZE[20457] clearlogo" type="bool" default="true"/>
+		<setting id="set.clearlogo_limit" label="limit" type="slider" option="int" default="1" range="0,1,20" visible="eq(-1,true)" enable="eq(-1,true)"/>
+		<setting id="set.landscape" label="$LOCALIZE[20457] landscape" type="bool" default="true"/>
+		<setting id="set.clearart" label="$LOCALIZE[20457] clearart" type="bool" default="true"/>
+		<setting id="set.clearart_limit" label="limit" type="slider" option="int" default="1" range="0,1,20" visible="eq(-1,true)" enable="eq(-1,true)"/>
         <setting id="set.discart" label="$LOCALIZE[20457] discart" type="bool" default="true" />
         <setting id="set.othertypes" label="32958" type="text" />
         <setting label="32061" type="lsep" />

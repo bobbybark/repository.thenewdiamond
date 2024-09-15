@@ -32,19 +32,19 @@
 			</menu>
 			<item library="context.py">
 				<label>AB: $ADDON[script.artwork.beef 32410]</label>
-				<visible>!Skin.HasSetting(disablecontext:script.artwork.beef) + [String.StartsWith(System.BuildVersion,18) | String.StartsWith(System.BuildVersion,19)] + [String.IsEqual(ListItem.DBTYPE, artist) | String.IsEqual(ListItem.DBTYPE, album) | String.IsEqual(ListItem.DBTYPE, song)]</visible>
+				<visible>!Skin.HasSetting(disablecontext:script.artwork.beef) + [String.IsEqual(ListItem.DBTYPE, artist) | String.IsEqual(ListItem.DBTYPE, album) | String.IsEqual(ListItem.DBTYPE, song)]</visible>
 			</item>
 			<item library="context_gui.py">
 				<label>AB: $ADDON[script.artwork.beef 32411]</label>
-				<visible>!Skin.HasSetting(disablecontext:script.artwork.beef) + [String.StartsWith(System.BuildVersion,18) | String.StartsWith(System.BuildVersion,19)] + [String.IsEqual(ListItem.DBTYPE, artist) | String.IsEqual(ListItem.DBTYPE, album) | String.IsEqual(ListItem.DBTYPE, song)]</visible>
+				<visible>!Skin.HasSetting(disablecontext:script.artwork.beef) + [String.IsEqual(ListItem.DBTYPE, artist) | String.IsEqual(ListItem.DBTYPE, album) | String.IsEqual(ListItem.DBTYPE, song)]</visible>
 			</item>
 			<item library="context_debug_remove.py">
 				<label>AB: $ADDON[script.artwork.beef 32427]</label>
-				<visible>Skin.HasSetting(enablecontext:script.artwork.beef.debug) + [String.StartsWith(System.BuildVersion,18) | String.StartsWith(System.BuildVersion,19)] + [String.IsEqual(ListItem.DBTYPE, artist) | String.IsEqual(ListItem.DBTYPE, album) | String.IsEqual(ListItem.DBTYPE, song)]</visible>
+				<visible>Skin.HasSetting(enablecontext:script.artwork.beef.debug) + [String.IsEqual(ListItem.DBTYPE, artist) | String.IsEqual(ListItem.DBTYPE, album) | String.IsEqual(ListItem.DBTYPE, song)]</visible>
 			</item>
 			<item library="context_debug_logitem.py">
 				<label>AB: $ADDON[script.artwork.beef 32430]</label>
-				<visible>Skin.HasSetting(enablecontext:script.artwork.beef.debug) + [String.StartsWith(System.BuildVersion,18) | String.StartsWith(System.BuildVersion,19)] + [String.IsEqual(ListItem.DBTYPE, artist) | String.IsEqual(ListItem.DBTYPE, album) | String.IsEqual(ListItem.DBTYPE, song)]</visible>
+				<visible>Skin.HasSetting(enablecontext:script.artwork.beef.debug) + [String.IsEqual(ListItem.DBTYPE, artist) | String.IsEqual(ListItem.DBTYPE, album) | String.IsEqual(ListItem.DBTYPE, song)]</visible>
 			</item>
 		</menu>
 	</extension>

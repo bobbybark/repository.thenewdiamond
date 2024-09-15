@@ -51,6 +51,33 @@ def decode_db(base64_string):
 	sample_string = sample_string_bytes.decode("ascii")
 	return sample_string
 
+def clear_db(connection=None,table_name=None):
+	if db_con == None:
+		connection = db_start()
+	cur = connection.cursor()
+	#[('Trakt',), ('TheMovieDB',), ('rss',), ('IMDB',), ('TasteDive',), ('FanartTV',), ('YouTube',), ('TVMaze',), ('show_filters',), ('Google',)]
+	#dbfile = '/home/osmc/.kodi/userdata/addon_data/script.extendedinfo/cache.db'
+	#con = sqlite3.connect(dbfile)
+	#cur = con.cursor()
+
+	table_list = [a for a in cur.execute("SELECT name FROM sqlite_master WHERE type = 'table'")]
+	for i in table_list:
+		#cur.execute("SELECT * from %s" % (i)).fetchall()
+		if table_name:
+			i = table_name#
+		tools.log(str(i))
+		result = cur.execute('SELECT * FROM %s' % (i)).fetchall()
+		tools.log(str(len(result)))
+		cur.execute('DELETE FROM %s' % (i))
+		tools.log(str('DELETE FROM %s ' % (i))) 
+		if table_name:
+			break
+	connection.commit()
+	cur.execute('VACUUM')
+	cur.close()
+
+
+
 def write_db(connection=None,url=None, cache_days=7.0, folder=False,cache_val=None, headers=False):
 	if db_con == None:
 		connection = db_start()
@@ -166,21 +193,32 @@ def db_delete_expired(connection=None):
 	sql_query = """SELECT * FROM sqlite_master WHERE type='table'
 	"""  
 	sql_result = cur.execute(sql_query).fetchall()
+	tools.log('DELETE____')
 	for i in sql_result:
 		folder = i[1]
-		xbmc.log(str(folder)+'===>PHIL', level=xbmc.LOGINFO)
+		#tools.log(folder)
+		#xbmc.log(str(folder)+'===>PHIL', level=xbmc.LOGINFO)
 		#sql_query = """select * FROM %s
 		#where expire < %s
 		#""" % (folder, curr_time)
 		#sql_result = cur.execute(sql_query).fetchall()
 		#xbmc.log(str(len(sql_result))+str(folder)+'===>PHIL', level=xbmc.LOGINFO)
+		sql_query = """select * FROM %s
+		where expire < %s
+		""" %  (folder, curr_time)
+		sql_result1 = cur.execute(sql_query).fetchall()
+		if len(sql_result1) == 0:
+			continue
+		tools.log(folder)
 		sql_query = """DELETE FROM %s
 		where expire < %s
 		""" % (folder, curr_time)
 		sql_result = cur.execute(sql_query).fetchall()
-		xbmc.log(str(len(sql_result))+str(folder)+'===>DELETED', level=xbmc.LOGINFO)
+		tools.log(str(len(sql_result1))+str(folder),'===>DELETED')
 	connection.commit()
+	cur.execute('VACUUM')
 	cur.close()
+	tools.log('DELETED')
 	return None
 
 
@@ -941,18 +979,26 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 			result['logo'] = clearlogo
 
 		#tools.log(result)
-		try: 
-			#listitem.setUniqueIDs({ 'imdb': result['imdb_id'], 'tmdb' : result['id'] }, "imdb")
-			vinfo = listitem.getVideoInfoTag()
-			vinfo.setUniqueID( result['imdb_id'], type='imdb',  isdefault=False)
-			vinfo.setIMDBNumber( result['imdb_id'])
-		except KeyError: 
-			pass
-		try: 
-			vinfo = listitem.getVideoInfoTag()
-			vinfo.setUniqueID( str(result['id']), type='tmdb',  isdefault=True)
-		except KeyError: 
-			pass
+		try:
+			try: 
+				#listitem.setUniqueIDs({ 'imdb': result['imdb_id'], 'tmdb' : result['id'] }, "imdb")
+				vinfo = listitem.getVideoInfoTag()
+				vinfo.setUniqueID( result['imdb_id'], type='imdb',  isdefault=False)
+				vinfo.setIMDBNumber( result['imdb_id'])
+			except KeyError: 
+				pass
+			try: 
+				vinfo = listitem.getVideoInfoTag()
+				vinfo.setUniqueID( str(result['id']), type='tmdb',  isdefault=True)
+			except KeyError: 
+				pass
+		except AttributeError:
+			try:
+				try: unique_ids = {"imdb": result['imdb_id'], "tmdb": str(result['id'])}
+				except KeyError: unique_ids = { "tmdb": str(result['id'])}
+				listitem.setUniqueIDs(unique_ids, "tmdb")
+			except KeyError: 
+				pass
 		for (key, value) in result.items():
 			if not value:
 				continue
@@ -1007,13 +1053,15 @@ def create_listitems(data=None, preload_images=0, enable_clearlogo=True, info=No
 				#info_tag = ListItemInfoTag(listitem, 'video')
 				#info_tag.set_info({'DBID': str(value)})
 				
-				vinfo = listitem.getVideoInfoTag()
-				vinfo.setDbId(int(value))
-				#try: 
-				#	info_tag = ListItemInfoTag(listitem, 'video')
-				#	info_tag.set_info({'DBID': str(value)})
-				#except:
-				#	listitem.setInfo('video', {'DBID': str(value)})
+				try:
+					vinfo = listitem.getVideoInfoTag()
+					vinfo.setDbId(int(value))
+				except:
+					try: 
+						info_tag = ListItemInfoTag(listitem, 'video')
+						info_tag.set_info({'DBID': str(value)})
+					except:
+						listitem.setInfo('video', {'DBID': str(value)})
 
 			elif key.lower() in ['path']:
 				listitem.setPath(path=value)

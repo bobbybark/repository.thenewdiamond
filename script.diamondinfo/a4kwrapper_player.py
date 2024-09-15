@@ -486,6 +486,11 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True, pres
 	else:
 		cloud_scrape = True
 
+	if xbmc.Player().isPlaying() == True:
+		player_playing = True
+	else:
+		player_playing = False
+
 	PTN_download = ''
 	if cloud_scrape:
 		tools.log('SCRAPE_CLOUD')
@@ -1014,6 +1019,9 @@ def next_ep_play(show_title, show_season, show_episode, tmdb, auto_rd=True, pres
 			#xbmcplugin.addDirectoryItem(handle=handle, url=PTN_download , listitem=li, isFolder=False)
 			xbmcplugin.setResolvedUrl(handle, True, li)
 			xbmcplugin.endOfDirectory(handle)
+			return next_ep_play_details
+		elif player_playing == True and xbmc.Player().isPlaying() == False:
+			print_log(str('Play_State_Changed_During_Execution_RETURN'),'===>OPENINFO')
 			return next_ep_play_details
 		else:
 			xbmc.executebuiltin('Dialog.Close(busydialog)')

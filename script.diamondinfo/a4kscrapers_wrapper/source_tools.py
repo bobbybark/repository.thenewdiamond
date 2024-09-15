@@ -1572,6 +1572,10 @@ def match_episodes_season_pack(meta, sorted_torr_info):
 
 				if ep_title == episode_title or str(ep_title) in str(episode_title) or str(episode_title) in str(ep_title) or distance.jaro_similarity(ep_title, episode_title) > float(jaro_dist_factor):
 					#tools.log(x,i)
+					#tools.log(x['episode'])
+					if x['episode'] == -1:
+						x['episode'] = i[0].get('episode')
+						continue
 					for y in i[-1]:
 						try:
 							if not sorted_torr_info[idx]['pack_path'] in matched_episodes[int(x['episode'])]:
@@ -1741,6 +1745,7 @@ def match_episodes_season_pack(meta, sorted_torr_info):
 		#for i in result_dict:
 		#	tools.log(i, result_dict[i])
 		#tools.write_all_text(path, str(result_dict_sorted))
+		#exit()
 		tools.write_db(connection=tools.db_con,url=url, cache_days=cache_days, folder=folder,cache_val=result_dict_sorted)
 		
 		return result_dict_sorted
