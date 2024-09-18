@@ -93,7 +93,9 @@
         <setting id="musicvideo.fanart_limit" label="fanart" type="slider" option="int" default="3" range="0,1,20" />
         <setting id="musicvideo.banner" label="banner" type="bool" default="true" />
         <setting id="musicvideo.clearlogo" label="clearlogo" type="bool" default="true" />
+		<setting id="musicvideo.clearlogo_limit" label="limit" type="slider" option="int" default="1" range="0,1,20" visible="eq(-1,true)" enable="eq(-1,true)"/>
         <setting id="musicvideo.clearart" label="clearart" type="bool" default="true" />
+		<setting id="musicvideo.clearart_limit" label="limit" type="slider" option="int" default="1" range="0,1,20" visible="eq(-1,true)" enable="eq(-1,true)"/>
         <setting id="musicvideo.discart" label="discart" type="bool" default="true" />
         <setting id="musicvideo.landscape" label="landscape" type="bool" default="true" />
         <setting id="musicvideo.artistthumb" label="artistthumb" type="bool" default="true" />
@@ -113,7 +115,9 @@
         <setting id="artist.fanart_limit" label="$LOCALIZE[557] fanart" type="slider" option="int" default="3" range="0,1,20" />
         <setting id="artist.banner" label="$LOCALIZE[557] banner" type="bool" default="true" />
         <setting id="artist.clearlogo" label="$LOCALIZE[557] clearlogo" type="bool" default="true" />
+		<setting id="artist.clearlogo_limit" label="limit" type="slider" option="int" default="1" range="0,1,20" visible="eq(-1,true)" enable="eq(-1,true)"/>
         <setting id="artist.clearart" label="$LOCALIZE[557] clearart" type="bool" default="true" />
+		<setting id="artist.clearart_limit" label="limit" type="slider" option="int" default="1" range="0,1,20" visible="eq(-1,true)" enable="eq(-1,true)"/>
         <setting id="artist.landscape" label="$LOCALIZE[557] landscape" type="bool" default="true" />
         <setting id="artist.othertypes" label="32960" type="text" />
         <setting id="album.discart" label="$LOCALIZE[558] discart" type="bool" default="true" />
