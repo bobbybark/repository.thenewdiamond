@@ -910,6 +910,9 @@ def get_fanart_results(tvdb_id, media_type=None, show_season = None):
 		for i in tv_dict:
 			if tv_dict[i] == None and i in ('seasonposter', 'seasonthumb', 'seasonbanner'):
 				for k in response.get(i,[]):
+					if str(k['season']) == 'all':
+						tv_dict[i] = k['url']
+						break
 					if int(k['season']) == int(show_season):
 						tv_dict[i] = k['url']
 						break

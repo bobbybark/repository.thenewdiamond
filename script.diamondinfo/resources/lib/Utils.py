@@ -216,7 +216,12 @@ def db_delete_expired(connection=None):
 		sql_result = cur.execute(sql_query).fetchall()
 		tools.log(str(len(sql_result1))+str(folder),'===>DELETED')
 	connection.commit()
-	cur.execute('VACUUM')
+	try: cur.execute('VACUUM')
+	except Exception as ex:
+		if 'SQL statements in progress' in str(ex):
+			return None
+		else:
+			xbmc.log(str(ex)+'===>OPENINFO', level=xbmc.LOGINFO)
 	cur.close()
 	tools.log('DELETED')
 	return None

@@ -1734,6 +1734,8 @@ def match_episodes_season_pack(meta, sorted_torr_info):
 		result_dict_sorted['concat'] = []
 
 		#tools.log(result_dict)
+		if len(result_dict['episode_numbers']) == 0:
+			return
 
 		for i in range(min(result_dict['episode_numbers']),max(result_dict['episode_numbers'])+1):
 			idx = result_dict['episode_numbers'].index(i)
